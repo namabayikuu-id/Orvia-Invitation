@@ -487,7 +487,7 @@ function renderDash() {
   const recent = allOrders.slice(0, 6);
   document.getElementById('dash-table').innerHTML = recent.map(o => `
     <tr>
-      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--muted);font-size:10px">${cfg.baseUrl}/${o.slug}/</span></td>
+      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--muted);font-size:10px">${cfg.baseUrl}/${o.slug}/index.html</span></td>
       <td>${o.client_name}<br><small style="color:var(--muted)">${o.client_wa}</small></td>
       <td>${o.akad_date}</td>
       <td><select class="status-sel s-${o.status}" onchange="updateStatus('${o.slug}',this.value,this)">
