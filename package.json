@@ -1,19 +1,15 @@
 {
-  "version": 2,
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/admin/(.*)", "dest": "/admin/$1" },
-    { "src": "/admin", "dest": "/admin/index.html" },
-    { "src": "/templates/(.*)", "dest": "/templates/$1" },
-    { "src": "/invitations/(.*)", "dest": "/invitations/$1" },
-    {
-      "src": "/([^/]+)/?$",
-      "dest": "/invitations/$1/index.html"
-    },
-    {
-      "src": "/([^/]+)/(.+)",
-      "dest": "/invitations/$1/$2"
-    },
-    { "src": "/(.*)", "dest": "/$1" }
-  ]
+  "name": "undangan-digital",
+  "version": "1.0.0",
+  "description": "Sistem vendor undangan pernikahan digital",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'static site, no build needed'",
+    "start": "vercel dev"
+  }
 }
