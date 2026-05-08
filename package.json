@@ -1,0 +1,15 @@
+{
+  "name": "undangan-digital",
+  "version": "1.0.0",
+  "description": "Sistem vendor undangan pernikahan digital",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'static site, no build needed'",
+    "start": "vercel dev"
+  }
+}
