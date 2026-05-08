@@ -1,19 +1,18 @@
 {
   "version": 2,
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x"
+    }
+  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/admin/(.*)", "dest": "/admin/$1" },
     { "src": "/admin", "dest": "/admin/index.html" },
     { "src": "/templates/(.*)", "dest": "/templates/$1" },
     { "src": "/invitations/(.*)", "dest": "/invitations/$1" },
-    {
-      "src": "/([^/]+)/?$",
-      "dest": "/invitations/$1/index.html"
-    },
-    {
-      "src": "/([^/]+)/(.+)",
-      "dest": "/invitations/$1/$2"
-    },
+    { "src": "/([^/]+)/?$", "dest": "/invitations/$1/index.html" },
+    { "src": "/([^/]+)/(.+)", "dest": "/invitations/$1/$2" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
