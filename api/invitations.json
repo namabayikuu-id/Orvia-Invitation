@@ -1,0 +1,17 @@
+[
+  {
+    "id": "INV-EXAMPLE001",
+    "slug": "contoh-undangan",
+    "bride_name": "Sari Dewi Kusuma",
+    "groom_name": "Andi Pratama Santoso",
+    "client_name": "Bpk. Hendra Kusuma",
+    "client_wa": "081234567890",
+    "template": "template-elegant",
+    "akad_date": "15 Juni 2024",
+    "resepsi_date": "15 Juni 2024",
+    "status": "selesai",
+    "path": "invitations/contoh-undangan/",
+    "created_at": "2024-01-15T08:00:00.000Z",
+    "updated_at": "2024-01-15T09:30:00.000Z"
+  }
+]
