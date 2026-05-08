@@ -9,7 +9,6 @@
   },
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'static site, no build needed'",
-    "start": "vercel dev"
+    "build": "echo 'static site, no build needed'"
   }
 }
