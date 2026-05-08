@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Undangan Digital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:rgba(255,255,255,0.07); --gold:#f0c060; --gold-dim:rgba(240,192,96,0.12);
+      --text:#e8eaf0; --muted:rgba(232,234,240,0.45);
+      --green:#34d399; --red:#f87171; --blue:#60a5fa; --r:12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
+
+    /* ─ Sidebar ─ */
+    .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;flex-shrink:0}
+    .logo{padding:0 20px 24px;border-bottom:1px solid var(--border)}
+    .logo-mark{font-size:18px;font-weight:700;color:var(--gold)}
+    .logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .nav{padding:16px 10px;flex:1}
+    .nav-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:0 10px;margin:12px 0 6px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:1px}
+    .nav-item:hover{background:var(--surface2);color:var(--text)}
+    .nav-item.active{background:var(--gold-dim);color:var(--gold)}
+    .nav-item .ic{font-size:15px;width:18px;text-align:center}
+    .badge{margin-left:auto;background:var(--gold);color:var(--bg);font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px}
+    .sidebar-foot{padding:16px 20px;border-top:1px solid var(--border)}
+    .admin-row{display:flex;align-items:center;gap:8px}
+    .av{width:30px;height:30px;background:var(--gold-dim);border:1px solid rgba(240,192,96,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold)}
+    .an{font-size:12px;font-weight:600}
+    .ar{font-size:10px;color:var(--muted)}
+
+    /* ─ Main ─ */
+    .main{flex:1;overflow-y:auto}
+    .topbar{padding:18px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:10}
+    .page-title{font-size:17px;font-weight:700}
+    .topbar-right{display:flex;gap:10px;align-items:center}
+
+    /* Buttons */
+    .btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:inherit}
+    .btn-gold{background:var(--gold);color:#0f1117}
+    .btn-gold:hover{background:#f5d080}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+    .btn-green{background:rgba(52,211,153,.15);color:var(--green);border:none}
+    .btn-blue{background:rgba(96,165,250,.15);color:var(--blue);border:none}
+    .btn-red{background:rgba(248,113,113,.12);color:var(--red);border:none}
+
+    .content{padding:28px}
+    .page{display:none}.page.active{display:block}
+
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+    .stat-l{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+    .stat-v{font-size:34px;font-weight:700;margin:6px 0 3px;line-height:1}
+    .stat-c{font-size:11px;color:var(--muted)}
+
+    /* Card */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+    .card-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:13px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th{padding:11px 22px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+    td{padding:14px 22px;font-size:12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.015)}
+    .status-sel{background:transparent;border:none;font-size:10px;font-weight:700;color:inherit;cursor:pointer;font-family:inherit;padding:3px 8px;border-radius:100px}
+    .s-baru{color:var(--blue);background:rgba(96,165,250,.12)}
+    .s-proses{color:var(--gold);background:rgba(240,192,96,.12)}
+    .s-selesai{color:var(--green);background:rgba(52,211,153,.12)}
+    .s-batal{color:var(--red);background:rgba(248,113,113,.1)}
+
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:center;justify-content:center}
+    .overlay.open{display:flex}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:28px}
+    .modal-title{font-size:17px;font-weight:700;margin-bottom:22px}
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .fg-full{grid-column:span 2}
+    .fg-head{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);grid-column:span 2;margin-top:6px}
+    label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+    input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s}
+    input:focus,select:focus,textarea:focus{border-color:rgba(240,192,96,.5)}
+    select option{background:var(--surface)}
+    textarea{resize:vertical;min-height:70px}
+    .modal-foot{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);padding:12px 24px;border-radius:100px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1}
+    .toast.ok{border-color:rgba(52,211,153,.4);color:var(--green)}
+    .toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
+
+    /* Deploy guide */
+    .guide-step{display:flex;gap:12px;padding:14px;background:var(--bg);border-radius:8px;margin-bottom:8px}
+    .gs-num{width:24px;height:24px;border-radius:50%;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .gs-text{font-size:12px;color:var(--muted);line-height:1.6}
+    .gs-text strong{color:var(--text)}
+    .code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:12px;color:var(--green);line-height:1.8;margin-top:8px;overflow-x:auto}
+
+    /* Link gen */
+    .link-gen{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px}
+    .link-gen h3{font-size:13px;font-weight:700;margin-bottom:14px}
+    .link-row{display:flex;gap:10px;align-items:flex-end}
+    .link-out{margin-top:12px;display:none}
+    .link-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;color:var(--blue);cursor:pointer;word-break:break-all}
+    .link-box:hover{border-color:var(--blue)}
+
+    /* Loading spinner */
+    .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(15,17,23,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* Env setup */
+    .env-card{background:var(--surface);border:1px solid rgba(240,192,96,.3);border-radius:var(--r);padding:22px;margin-bottom:20px}
+    .env-title{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:14px}
+    .env-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+    .env-key{font-family:monospace;font-size:11px;color:var(--gold);background:var(--bg);padding:4px 10px;border-radius:6px;flex-shrink:0;min-width:140px}
+    .env-val{flex:1}
+    .env-saved{font-size:10px;color:var(--green);margin-top:4px}
+
+    @media(max-width:900px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .sidebar{width:56px}
+      .logo-sub,.nav-item span,.nav-label,.an,.ar{display:none}
+      .nav-item{justify-content:center}
+      .fg{grid-template-columns:1fr}
+      .fg-full,.fg-head{grid-column:span 1}
+    }
+  </style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">✦ Admin</div>
+    <div class="logo-sub">Undangan Digital</div>
+  </div>
+  <div class="nav">
+    <div class="nav-label">Menu</div>
+    <div class="nav-item active" onclick="go('dashboard',this)"><span class="ic">◉</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="go('orders',this)"><span class="ic">📋</span><span>Undangan</span><span class="badge" id="new-badge">0</span></div>
+    <div class="nav-item" onclick="go('create',this)"><span class="ic">✨</span><span>Buat Baru</span></div>
+    <div class="nav-item" onclick="go('links',this)"><span class="ic">🔗</span><span>Generator Link</span></div>
+    <div class="nav-label">Sistem</div>
+    <div class="nav-item" onclick="go('setup',this)"><span class="ic">⚙</span><span>Setup & Env</span></div>
+  </div>
+  <div class="sidebar-foot">
+    <div class="admin-row">
+      <div class="av">A</div>
+      <div><div class="an">Admin</div><div class="ar">Super Admin</div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="ptitle">Dashboard</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="loadOrders()">↻ Refresh</button>
+      <button class="btn btn-gold" onclick="go('create', document.querySelectorAll('.nav-item')[2])">+ Buat Undangan</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats">
+        <div class="stat"><div class="stat-l">Total Undangan</div><div class="stat-v" id="s-total" style="color:var(--text)">–</div><div class="stat-c">Semua waktu</div></div>
+        <div class="stat"><div class="stat-l">Baru / Proses</div><div class="stat-v" id="s-active" style="color:var(--blue)">–</div><div class="stat-c">Perlu perhatian</div></div>
+        <div class="stat"><div class="stat-l">Selesai</div><div class="stat-v" id="s-done" style="color:var(--green)">–</div><div class="stat-c">Live di website</div></div>
+        <div class="stat"><div class="stat-l">Bulan Ini</div><div class="stat-v" id="s-month" style="color:var(--gold)">–</div><div class="stat-c">Undangan baru</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Undangan Terbaru</div></div>
+        <table><thead><tr><th>Mempelai</th><th>Klien</th><th>Tanggal Akad</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="dash-table"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Memuat data...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ORDERS -->
+    <div class="page" id="page-orders">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div><div style="font-size:18px;font-weight:700">Semua Undangan</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Data dari GitHub JSON</div></div>
+        <input style="width:220px" placeholder="🔍 Cari nama..." id="search-input" oninput="renderOrders()">
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('all')">Semua</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('baru')">Baru</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('proses')">Proses</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('selesai')">Selesai</button>
+          </div>
+        </div>
+        <table><thead><tr><th>#</th><th>Mempelai</th><th>Klien</th><th>Template</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="orders-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <div class="page" id="page-create">
+      <div style="max-width:680px">
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">✨ Buat Undangan Baru</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Isi form di bawah → klik Buat → selesai! Link langsung aktif ±30 detik.</div>
+
+        <div class="card" style="padding:24px;overflow:visible">
+          <div class="fg">
+            <div class="fg-head">👫 Data Mempelai</div>
+            <div><label>Nama Pengantin Wanita *</label><input id="c-bride" placeholder="Sari Dewi Kusuma"></div>
+            <div><label>Nama Pengantin Pria *</label><input id="c-groom" placeholder="Andi Pratama Santoso"></div>
+            <div><label>Ayah Pengantin Wanita</label><input id="c-bride-father" placeholder="Bpk. Hendra Kusuma"></div>
+            <div><label>Ibu Pengantin Wanita</label><input id="c-bride-mother" placeholder="Ibu Ria Kusuma"></div>
+            <div><label>Ayah Pengantin Pria</label><input id="c-groom-father" placeholder="Bpk. Agus Santoso"></div>
+            <div><label>Ibu Pengantin Pria</label><input id="c-groom-mother" placeholder="Ibu Yuli Santoso"></div>
+            <div><label>URL Foto Pengantin Wanita</label><input id="c-bride-photo" placeholder="https://..."></div>
+            <div><label>URL Foto Pengantin Pria</label><input id="c-groom-photo" placeholder="https://..."></div>
+
+            <div class="fg-head">📅 Akad Nikah</div>
+            <div><label>Tanggal (angka)</label><input id="c-akad-date" placeholder="15"></div>
+            <div><label>Bulan</label><input id="c-akad-month" placeholder="Juni"></div>
+            <div><label>Tahun</label><input id="c-akad-year" placeholder="2024"></div>
+            <div><label>Hari</label><input id="c-akad-day" placeholder="Sabtu"></div>
+            <div><label>Jam</label><input id="c-akad-time" placeholder="09.00 – 11.00 WIB"></div>
+            <div><label>Tanggal ISO (untuk countdown)</label><input id="c-akad-iso" placeholder="2024-06-15T09:00:00"></div>
+            <div><label>Nama Venue</label><input id="c-akad-venue" placeholder="Masjid Al-Azhar"></div>
+            <div><label>Alamat</label><input id="c-akad-address" placeholder="Jl. Sisingamangaraja, Jakarta"></div>
+            <div class="fg-full"><label>Link Google Maps</label><input id="c-akad-maps" placeholder="https://maps.google.com/?q=..."></div>
+
+            <div class="fg-head">🥂 Resepsi (kosongkan jika sama dengan akad)</div>
+            <div><label>Tanggal Resepsi</label><input id="c-res-date" placeholder="15"></div>
+            <div><label>Bulan Resepsi</label><input id="c-res-month" placeholder="Juni"></div>
+            <div><label>Tahun Resepsi</label><input id="c-res-year" placeholder="2024"></div>
+            <div><label>Jam Resepsi</label><input id="c-res-time" placeholder="11.00 – 14.00 WIB"></div>
+            <div><label>Venue Resepsi</label><input id="c-res-venue" placeholder="Ballroom Hotel Mulia"></div>
+            <div><label>Alamat Resepsi</label><input id="c-res-address" placeholder="Jl. Asia Afrika, Jakarta"></div>
+            <div class="fg-full"><label>Link Maps Resepsi</label><input id="c-res-maps" placeholder="https://maps.google.com/?q=..."></div>
+
+            <div class="fg-head">🖼 Galeri Foto</div>
+            <div><label>Foto 1 (banner utama)</label><input id="c-g1" placeholder="https://..."></div>
+            <div><label>Foto 2</label><input id="c-g2" placeholder="https://..."></div>
+            <div><label>Foto 3</label><input id="c-g3" placeholder="https://..."></div>
+            <div><label>Foto 4</label><input id="c-g4" placeholder="https://..."></div>
+            <div class="fg-full"><label>Foto 5</label><input id="c-g5" placeholder="https://..."></div>
+
+            <div class="fg-head">💌 Love Story</div>
+            <div><label>Tahun 1</label><input id="c-s1y" placeholder="2020"></div>
+            <div><label>Cerita 1</label><input id="c-s1t" placeholder="Pertama bertemu..."></div>
+            <div><label>Tahun 2</label><input id="c-s2y" placeholder="2022"></div>
+            <div><label>Cerita 2</label><input id="c-s2t" placeholder="Mulai menjalin hubungan..."></div>
+            <div><label>Tahun 3</label><input id="c-s3y" placeholder="2024"></div>
+            <div><label>Cerita 3</label><input id="c-s3t" placeholder="Memutuskan untuk menikah..."></div>
+
+            <div class="fg-head">💳 Amplop Digital</div>
+            <div><label>Bank 1</label><input id="c-bank1" placeholder="Bank BCA"></div>
+            <div><label>No. Rekening 1</label><input id="c-acc1" placeholder="1234567890"></div>
+            <div><label>A/N Rekening 1</label><input id="c-acc1n" placeholder="Sari Dewi"></div>
+            <div></div>
+            <div><label>Bank 2</label><input id="c-bank2" placeholder="Bank Mandiri"></div>
+            <div><label>No. Rekening 2</label><input id="c-acc2" placeholder="0987654321"></div>
+            <div class="fg-full"><label>A/N Rekening 2</label><input id="c-acc2n" placeholder="Andi Pratama"></div>
+
+            <div class="fg-head">⚙ Pengaturan</div>
+            <div><label>Template *</label>
+              <select id="c-template">
+                <option value="template-elegant">Elegant Floral (Dark Gold)</option>
+                <option value="template-modern">Modern Minimalist</option>
+                <option value="template-rustic">Rustic Garden</option>
+              </select>
+            </div>
+            <div><label>Slug URL (auto jika kosong)</label><input id="c-slug" placeholder="andi-sari (→ /andi-sari/)"></div>
+            <div><label>Deadline RSVP</label><input id="c-rsvp" placeholder="1 Juni 2024"></div>
+            <div><label>URL Musik Latar (MP3)</label><input id="c-music" placeholder="https://..."></div>
+            <div><label>Nama Klien (pemesan) *</label><input id="c-client" placeholder="Nama klien/pemesan"></div>
+            <div><label>WA Klien</label><input id="c-client-wa" placeholder="08xxxxxxxxxx"></div>
+            <div><label>No. WA Tamu (untuk RSVP)</label><input id="c-wa" placeholder="628xxxxxxxxxx"></div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="clearCreate()">Reset</button>
+            <button class="btn btn-gold" id="create-btn" onclick="createInvitation()">✨ Buat Undangan</button>
+          </div>
+        </div>
+
+        <div id="create-result" style="display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(52,211,153,.3);border-radius:var(--r);padding:20px">
+          <div style="color:var(--green);font-weight:700;margin-bottom:8px">✅ Undangan berhasil dibuat!</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Vercel sedang deploy otomatis. Live dalam ±30 detik.</div>
+          <div style="font-family:monospace;font-size:13px;color:var(--blue);background:var(--bg);padding:10px 14px;border-radius:8px;cursor:pointer" id="result-link" onclick="copyResult()"></div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-green" onclick="copyResult()">📋 Salin Link</button>
+            <button class="btn btn-blue" onclick="shareResultWA()">💬 Kirim ke Klien via WA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LINK GENERATOR -->
+    <div class="page" id="page-links">
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">🔗 Generator Link Tamu</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Generate link personal untuk setiap tamu undangan.</div>
+
+      <div class="link-gen">
+        <h3>Generate dari daftar undangan</h3>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="flex:1"><label>Pilih Undangan</label>
+            <select id="lg-inv"><option value="">-- Pilih undangan --</option></select>
+          </div>
+          <div style="flex:1"><label>Nama Tamu</label><input id="lg-guest" placeholder="Bapak/Ibu Santoso"></div>
+        </div>
+        <button class="btn btn-gold" onclick="genLink()">Generate Link</button>
+        <div class="link-out" id="link-out">
+          <div class="link-box" id="link-box" onclick="copyLink()"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-blue" style="font-size:11px" onclick="copyLink()">📋 Salin</button>
+            <button class="btn btn-green" style="font-size:11px" onclick="shareLink()">💬 WA</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="link-gen">
+        <h3>Generate manual</h3>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:2"><label>Base URL</label><input id="lg-base" placeholder="https://undanganku.com/andi-sari"></div>
+          <div style="flex:2"><label>Nama Tamu</label><input id="lg-manual-guest" placeholder="Pak Budi Santoso"></div>
+          <button class="btn btn-gold" style="flex-shrink:0;margin-top:18px" onclick="genManualLink()">Generate</button>
+        </div>
+        <div class="link-out" id="manual-link-out">
+          <div class="link-box" id="manual-link-box" onclick="copyManualLink()"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-blue" style="font-size:11px" onclick="copyManualLink()">📋 Salin</button>
+            <button class="btn btn-green" style="font-size:11px" onclick="shareManualLink()">💬 WA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="page" id="page-setup">
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">⚙ Setup Sistem</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Konfigurasi sekali saja. Data disimpan di browser.</div>
+
+      <div class="env-card">
+        <div class="env-title">🔑 Konfigurasi API (simpan di browser)</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+          Data ini digunakan admin panel untuk menghubungi API Vercel. <strong style="color:var(--gold)">Jangan share ke orang lain!</strong><br>
+          Untuk keamanan production, simpan sebagai Environment Variables di Vercel, bukan di sini.
+        </div>
+        <div class="env-row">
+          <div class="env-key">ADMIN_SECRET</div>
+          <div class="env-val"><input type="password" id="env-secret" placeholder="Password admin panel Anda"></div>
+        </div>
+        <div class="env-row">
+          <div class="env-key">Base URL</div>
+          <div class="env-val"><input id="env-baseurl" placeholder="https://undanganku.com (tanpa slash)"></div>
+        </div>
+        <div class="env-row">
+          <div class="env-key">WA Vendor</div>
+          <div class="env-val"><input id="env-wa" placeholder="6281234567890"></div>
+        </div>
+        <button class="btn btn-gold" style="margin-top:8px" onclick="saveEnv()">Simpan Konfigurasi</button>
+        <div id="env-saved" class="env-saved" style="margin-top:8px;display:none">✓ Tersimpan!</div>
+      </div>
+
+      <div class="card" style="overflow:visible">
+        <div class="card-head"><div class="card-title">📘 Panduan Setup Vercel Environment Variables</div></div>
+        <div style="padding:20px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+            Set environment variables berikut di <strong style="color:var(--text)">Vercel → Project → Settings → Environment Variables</strong>:
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">1</div>
+            <div class="gs-text">
+              <strong>GITHUB_TOKEN</strong> — Personal Access Token GitHub dengan scope <code style="color:var(--gold)">repo</code><br>
+              Buat di: <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">github.com/settings/tokens/new</a>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">2</div>
+            <div class="gs-text">
+              <strong>GITHUB_OWNER</strong> — Username GitHub kamu, contoh: <code style="color:var(--gold)">samueljkt</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">3</div>
+            <div class="gs-text">
+              <strong>GITHUB_REPO</strong> — Nama repository, contoh: <code style="color:var(--gold)">undangan-digital</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">4</div>
+            <div class="gs-text">
+              <strong>ADMIN_SECRET</strong> — Password bebas untuk proteksi API admin, contoh: <code style="color:var(--gold)">rahasia123</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">5</div>
+            <div class="gs-text">
+              <strong>GITHUB_BRANCH</strong> — Branch utama repo, biasanya: <code style="color:var(--gold)">main</code>
+            </div>
+          </div>
+          <div class="code">
+# vercel.json — routing agar /andi-sari/ → /invitations/andi-sari/index.html<br>
+# (sudah ada di file vercel.json yang disertakan)
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const cfg = {
+  get secret()  { return localStorage.getItem('ud_secret')  || '' },
+  get baseUrl() { return localStorage.getItem('ud_baseurl') || '' },
+  get wa()      { return localStorage.getItem('ud_wa')      || '' },
+};
+
+function apiHeaders() {
+  return { 'Content-Type': 'application/json', 'x-admin-key': cfg.secret };
+}
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let allOrders = [];
+let currentFilter = 'all';
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+function toast(msg, type = 'ok') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 3000);
+}
+
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const titles = { dashboard:'Dashboard', orders:'Semua Undangan', create:'Buat Undangan Baru', links:'Generator Link', setup:'Setup Sistem' };
+function go(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('ptitle').textContent = titles[page] || page;
+  if (page === 'dashboard' || page === 'orders') loadOrders();
+  if (page === 'setup') loadEnv();
+  if (page === 'links') populateLinkSel();
+}
+
+// ── LOAD ORDERS ───────────────────────────────────────────────────────────────
+async function loadOrders() {
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+  try {
+    const r = await fetch('/api/get-invitations', { headers: apiHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    allOrders = await r.json();
+    renderDash();
+    renderOrders();
+    populateLinkSel();
+  } catch (e) {
+    toast('Gagal load: ' + e.message, 'err');
+  }
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash() {
+  const now = new Date();
+  const thisMonth = now.getMonth() + '-' + now.getFullYear();
+  document.getElementById('s-total').textContent = allOrders.length;
+  document.getElementById('s-active').textContent = allOrders.filter(o => o.status === 'baru' || o.status === 'proses').length;
+  document.getElementById('s-done').textContent = allOrders.filter(o => o.status === 'selesai').length;
+  document.getElementById('s-month').textContent = allOrders.filter(o => {
+    const d = new Date(o.created_at);
+    return d.getMonth() + '-' + d.getFullYear() === thisMonth;
+  }).length;
+  document.getElementById('new-badge').textContent = allOrders.filter(o => o.status === 'baru').length;
+
+  const recent = allOrders.slice(0, 6);
+  document.getElementById('dash-table').innerHTML = recent.map(o => `
+    <tr>
+      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--muted);font-size:10px">${cfg.baseUrl}/${o.slug}/</span></td>
+      <td>${o.client_name}<br><small style="color:var(--muted)">${o.client_wa}</small></td>
+      <td>${o.akad_date}</td>
+      <td><select class="status-sel s-${o.status}" onchange="updateStatus('${o.slug}',this.value,this)">
+        <option value="baru" ${o.status==='baru'?'selected':''}>BARU</option>
+        <option value="proses" ${o.status==='proses'?'selected':''}>PROSES</option>
+        <option value="selesai" ${o.status==='selesai'?'selected':''}>SELESAI</option>
+        <option value="batal" ${o.status==='batal'?'selected':''}>BATAL</option>
+      </select></td>
+      <td>
+        <button class="btn btn-blue" style="font-size:10px;padding:5px 10px" onclick="openInv('${o.slug}')">🔗 Buka</button>
+        <button class="btn btn-green" style="font-size:10px;padding:5px 10px" onclick="waClient('${o.client_wa}','${o.bride_name}','${o.groom_name}','${o.slug}')">💬 WA</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Belum ada undangan</td></tr>';
+}
+
+// ── ORDERS TABLE ─────────────────────────────────────────────────────────────
+function setFilter(f) { currentFilter = f; renderOrders(); }
+function renderOrders() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let list = allOrders;
+  if (currentFilter !== 'all') list = list.filter(o => o.status === currentFilter);
+  if (q) list = list.filter(o =>
+    (o.bride_name+o.groom_name+o.client_name+o.slug).toLowerCase().includes(q)
+  );
+  document.getElementById('orders-table').innerHTML = list.map((o, i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--blue);font-size:10px;font-family:monospace">/${o.slug}/</span></td>
+      <td>${o.client_name}<br><small style="color:var(--muted)">${o.client_wa}</small></td>
+      <td style="color:var(--muted);font-size:11px">${o.template}</td>
+      <td style="font-size:11px">${o.akad_date}</td>
+      <td><select class="status-sel s-${o.status}" onchange="updateStatus('${o.slug}',this.value,this)">
+        <option value="baru" ${o.status==='baru'?'selected':''}>BARU</option>
+        <option value="proses" ${o.status==='proses'?'selected':''}>PROSES</option>
+        <option value="selesai" ${o.status==='selesai'?'selected':''}>SELESAI</option>
+        <option value="batal" ${o.status==='batal'?'selected':''}>BATAL</option>
+      </select></td>
+      <td>
+        <button class="btn btn-blue" style="font-size:10px;padding:4px 8px" onclick="openInv('${o.slug}')">🔗</button>
+        <button class="btn btn-green" style="font-size:10px;padding:4px 8px" onclick="waClient('${o.client_wa}','${o.bride_name}','${o.groom_name}','${o.slug}')">💬</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">Tidak ada data</td></tr>';
+}
+
+// ── STATUS UPDATE ─────────────────────────────────────────────────────────────
+async function updateStatus(slug, status, el) {
+  el.className = 'status-sel s-' + status;
+  try {
+    const r = await fetch('/api/update-status', {
+      method: 'PATCH',
+      headers: apiHeaders(),
+      body: JSON.stringify({ slug, status }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const o = allOrders.find(x => x.slug === slug);
+    if (o) o.status = status;
+    toast('Status diperbarui → ' + status.toUpperCase());
+    document.getElementById('new-badge').textContent = allOrders.filter(o => o.status === 'baru').length;
+  } catch (e) {
+    toast('Gagal update: ' + e.message, 'err');
+  }
+}
+
+// ── CREATE ────────────────────────────────────────────────────────────────────
+async function createInvitation() {
+  const btn = document.getElementById('create-btn');
+  const bride = document.getElementById('c-bride').value.trim();
+  const groom = document.getElementById('c-groom').value.trim();
+  const client = document.getElementById('c-client').value.trim();
+  const template = document.getElementById('c-template').value;
+
+  if (!bride || !groom || !client) {
+    toast('Nama mempelai dan klien wajib diisi!', 'err'); return;
+  }
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Membuat...';
+
+  const payload = {
+    bride_name: bride, groom_name: groom, client_name: client,
+    client_wa: document.getElementById('c-client-wa').value,
+    template_folder: template,
+    slug: document.getElementById('c-slug').value.trim(),
+    bride_father: document.getElementById('c-bride-father').value,
+    bride_mother: document.getElementById('c-bride-mother').value,
+    groom_father: document.getElementById('c-groom-father').value,
+    groom_mother: document.getElementById('c-groom-mother').value,
+    bride_photo: document.getElementById('c-bride-photo').value,
+    groom_photo: document.getElementById('c-groom-photo').value,
+    akad_date: document.getElementById('c-akad-date').value,
+    akad_month: document.getElementById('c-akad-month').value,
+    akad_year: document.getElementById('c-akad-year').value,
+    akad_day: document.getElementById('c-akad-day').value,
+    akad_time: document.getElementById('c-akad-time').value,
+    wedding_date_iso: document.getElementById('c-akad-iso').value,
+    akad_venue: document.getElementById('c-akad-venue').value,
+    akad_address: document.getElementById('c-akad-address').value,
+    akad_maps: document.getElementById('c-akad-maps').value,
+    resepsi_date: document.getElementById('c-res-date').value,
+    resepsi_month: document.getElementById('c-res-month').value,
+    resepsi_year: document.getElementById('c-res-year').value,
+    resepsi_time: document.getElementById('c-res-time').value,
+    resepsi_venue: document.getElementById('c-res-venue').value,
+    resepsi_address: document.getElementById('c-res-address').value,
+    resepsi_maps: document.getElementById('c-res-maps').value,
+    gallery_1: document.getElementById('c-g1').value,
+    gallery_2: document.getElementById('c-g2').value,
+    gallery_3: document.getElementById('c-g3').value,
+    gallery_4: document.getElementById('c-g4').value,
+    gallery_5: document.getElementById('c-g5').value,
+    story_1_year: document.getElementById('c-s1y').value,
+    story_1_text: document.getElementById('c-s1t').value,
+    story_2_year: document.getElementById('c-s2y').value,
+    story_2_text: document.getElementById('c-s2t').value,
+    story_3_year: document.getElementById('c-s3y').value,
+    story_3_text: document.getElementById('c-s3t').value,
+    bank_1: document.getElementById('c-bank1').value,
+    account_1: document.getElementById('c-acc1').value,
+    account_name_1: document.getElementById('c-acc1n').value,
+    bank_2: document.getElementById('c-bank2').value,
+    account_2: document.getElementById('c-acc2').value,
+    account_name_2: document.getElementById('c-acc2n').value,
+    rsvp_deadline: document.getElementById('c-rsvp').value,
+    music_url: document.getElementById('c-music').value,
+    wa_number: document.getElementById('c-wa').value,
+    vendor_name: 'Undangan Digital',
+  };
+
+  try {
+    const r = await fetch('/api/create-invitation', {
+      method: 'POST', headers: apiHeaders(), body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Gagal');
+
+    const fullLink = `${cfg.baseUrl}/${data.slug}/`;
+    document.getElementById('result-link').textContent = fullLink;
+    document.getElementById('result-link').dataset.link = fullLink;
+    document.getElementById('result-link').dataset.bride = bride;
+    document.getElementById('result-link').dataset.groom = groom;
+    document.getElementById('result-link').dataset.wa = document.getElementById('c-client-wa').value;
+    document.getElementById('create-result').style.display = 'block';
+    document.getElementById('create-result').scrollIntoView({ behavior: 'smooth' });
+    toast('✅ Undangan berhasil dibuat!');
+    allOrders.unshift(data.record);
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '✨ Buat Undangan';
+  }
+}
+
+function clearCreate() {
+  document.querySelectorAll('#page-create input, #page-create select, #page-create textarea')
+    .forEach(el => { if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; });
+  document.getElementById('create-result').style.display = 'none';
+}
+
+function copyResult() {
+  const link = document.getElementById('result-link').dataset.link;
+  navigator.clipboard.writeText(link).then(() => toast('Link tersalin!'));
+}
+
+function shareResultWA() {
+  const el = document.getElementById('result-link');
+  const link = el.dataset.link;
+  const bride = el.dataset.bride;
+  const groom = el.dataset.groom;
+  const wa = el.dataset.wa?.replace(/^0/, '62').replace(/\D/g, '');
+  const msg = `Halo! 👋\n\nUndangan digital *${bride} & ${groom}* sudah siap! 🎉\n\n🔗 ${link}\n\nBisa langsung dibagikan ke tamu dengan menambahkan nama tamu:\n${link}?to=Nama+Tamu\n\nSelamat menuju hari bahagia! 💍`;
+  window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── LINK GENERATOR ────────────────────────────────────────────────────────────
+function populateLinkSel() {
+  const sel = document.getElementById('lg-inv');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Pilih undangan --</option>' +
+    allOrders.map(o => `<option value="${o.slug}">${o.bride_name} & ${o.groom_name} (/${o.slug}/)</option>`).join('');
+}
+
+function genLink() {
+  const slug = document.getElementById('lg-inv').value;
+  const guest = document.getElementById('lg-guest').value;
+  if (!slug) { toast('Pilih undangan dulu', 'err'); return; }
+  const url = `${cfg.baseUrl}/${slug}/${guest ? '?to=' + encodeURIComponent(guest) : ''}`;
+  document.getElementById('link-box').textContent = url;
+  document.getElementById('link-box').dataset.url = url;
+  document.getElementById('link-box').dataset.guest = guest;
+  document.getElementById('link-box').dataset.slug = slug;
+  document.getElementById('link-out').style.display = 'block';
+}
+
+function copyLink() { navigator.clipboard.writeText(document.getElementById('link-box').dataset.url).then(() => toast('Link tersalin!')); }
+function shareLink() {
+  const { url, guest, slug } = document.getElementById('link-box').dataset;
+  const o = allOrders.find(x => x.slug === slug);
+  const msg = `Kepada Yth.\n${guest || 'Bapak/Ibu'}\n\nBersama ini kami mengundang kehadiran Anda dalam pernikahan${o ? ' *'+o.bride_name+' & '+o.groom_name+'*' : ''}.\n\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function genManualLink() {
+  const base = document.getElementById('lg-base').value.trim().replace(/\/$/, '');
+  const guest = document.getElementById('lg-manual-guest').value.trim();
+  if (!base) { toast('Masukkan base URL', 'err'); return; }
+  const url = guest ? `${base}?to=${encodeURIComponent(guest)}` : base;
+  document.getElementById('manual-link-box').textContent = url;
+  document.getElementById('manual-link-box').dataset.url = url;
+  document.getElementById('manual-link-box').dataset.guest = guest;
+  document.getElementById('manual-link-out').style.display = 'block';
+}
+function copyManualLink() { navigator.clipboard.writeText(document.getElementById('manual-link-box').dataset.url).then(() => toast('Link tersalin!')); }
+function shareManualLink() {
+  const { url, guest } = document.getElementById('manual-link-box').dataset;
+  const msg = `Kepada Yth.\n${guest || 'Bapak/Ibu'}\n\nKami mengundang kehadiran Anda.\n\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function openInv(slug) { window.open(`${cfg.baseUrl}/${slug}/`, '_blank'); }
+function waClient(wa, bride, groom, slug) {
+  const num = wa.replace(/^0/, '62').replace(/\D/g, '');
+  const link = `${cfg.baseUrl}/${slug}/`;
+  const msg = `Halo! 👋 Undangan digital *${bride} & ${groom}* sudah selesai!\n\n🔗 ${link}\n\nLink per tamu: ${link}?to=Nama+Tamu\n\nKabar baik ya! 🎉`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────────────────
+function saveEnv() {
+  localStorage.setItem('ud_secret',  document.getElementById('env-secret').value);
+  localStorage.setItem('ud_baseurl', document.getElementById('env-baseurl').value.trim().replace(/\/$/, ''));
+  localStorage.setItem('ud_wa',      document.getElementById('env-wa').value);
+  document.getElementById('env-saved').style.display = 'block';
+  toast('Konfigurasi tersimpan!');
+}
+function loadEnv() {
+  document.getElementById('env-secret').value  = cfg.secret;
+  document.getElementById('env-baseurl').value = cfg.baseUrl;
+  document.getElementById('env-wa').value      = cfg.wa;
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadOrders();
+</script>
+</body>
+</html>
