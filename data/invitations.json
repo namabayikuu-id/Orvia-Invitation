@@ -1,5 +1,20 @@
 [
   {
+    "id": "INV-1778255099431",
+    "slug": "andika-sari",
+    "bride_name": "Andin",
+    "groom_name": "Andi",
+    "client_name": "Andika",
+    "client_wa": "085778435598",
+    "template": "template-elegant",
+    "akad_date": "20 Mei 2026",
+    "resepsi_date": "20 Mei 2026",
+    "status": "proses",
+    "path": "invitations/andika-sari/",
+    "created_at": "2026-05-08T15:44:59.431Z",
+    "updated_at": "2026-05-08T15:44:59.431Z"
+  },
+  {
     "id": "INV-EXAMPLE001",
     "slug": "contoh-undangan",
     "bride_name": "Sari Dewi Kusuma",
