@@ -26,14 +26,21 @@
 
     /* ── COVER ── */
     #cover {
-      position: fixed; inset: 0;
+      position: sticky;
+      top: 0;
+      width: 100%;
+      min-height: 100vh;
       background: var(--dark);
       display: flex; align-items: center; justify-content: center;
       flex-direction: column;
       z-index: 100;
       transition: opacity 0.8s ease, visibility 0.8s ease;
     }
-    #cover.hidden { opacity: 0; visibility: hidden; }
+    /* On real mobile, keep it fixed */
+    @media (max-width: 600px) {
+      #cover { position: fixed; inset: 0; min-height: auto; }
+    }
+    #cover.hidden { opacity: 0; visibility: hidden; height: 0; overflow: hidden; min-height: 0; }
 
     .cover-ornament {
       width: 280px; height: 280px;
@@ -459,7 +466,12 @@
 
     /* Music */
     .music-btn {
-      position: fixed; bottom: 24px; right: 24px;
+      position: sticky;
+      bottom: 44px;
+      right: 0;
+      float: right;
+      margin-right: 16px;
+      margin-top: -64px;
       width: 48px; height: 48px;
       border: 1px solid rgba(201,169,110,0.5);
       border-radius: 50%;
@@ -470,6 +482,13 @@
       backdrop-filter: blur(10px);
       transition: all 0.3s;
     }
+    @media (max-width: 600px) {
+      .music-btn {
+        position: fixed;
+        bottom: 24px; right: 24px;
+        float: none; margin: 0;
+      }
+    }
     .music-btn.show { display: flex; }
     .music-btn.playing { animation: pulse 2s ease infinite; }
     @keyframes pulse {
@@ -477,7 +496,7 @@
       50% { box-shadow: 0 0 0 8px rgba(201,169,110,0); }
     }
 
-    /* Responsive */
+    /* ── MOBILE NATIVE (≤600px): full screen, no changes ── */
     @media (max-width: 600px) {
       .couple-grid { grid-template-columns: 1fr; }
       .couple-amp { display: none; }
@@ -492,10 +511,306 @@
       }
       .story-dot { position: absolute; left: -6px; }
       .story-timeline { position: relative; }
+
+      /* Hide android frame on real mobile */
+      .android-scene { display: contents !important; }
+      .android-device { all: unset !important; display: contents !important; }
+      .android-screen { all: unset !important; display: contents !important; }
+      .android-notch,
+      .android-nav,
+      .android-status { display: none !important; }
+      body { background: var(--dark) !important; overflow: auto !important; }
+    }
+
+    /* ── DESKTOP: show Android device frame ── */
+    @media (min-width: 601px) {
+      body {
+        background: #0d0d0d;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        overflow: auto;
+        padding: 40px 20px;
+      }
+
+      /* Subtle grid background for desktop */
+      body::before {
+        content: '';
+        position: fixed; inset: 0;
+        background-image:
+          linear-gradient(rgba(201,169,110,0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(201,169,110,0.04) 1px, transparent 1px);
+        background-size: 40px 40px;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .android-scene {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .android-scene-label {
+        font-family: 'Jost', sans-serif;
+        font-size: 10px;
+        letter-spacing: 4px;
+        color: rgba(201,169,110,0.35);
+        text-transform: uppercase;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .android-scene-label::before,
+      .android-scene-label::after {
+        content: '';
+        display: block;
+        width: 32px; height: 1px;
+        background: rgba(201,169,110,0.2);
+      }
+
+      /* The phone shell */
+      .android-device {
+        width: 393px;
+        height: 852px;
+        background: #111;
+        border-radius: 52px;
+        position: relative;
+        box-shadow:
+          0 0 0 1.5px #2a2a2a,
+          0 0 0 3px #1a1a1a,
+          0 40px 80px rgba(0,0,0,0.7),
+          0 0 60px rgba(201,169,110,0.06),
+          inset 0 0 0 1px rgba(255,255,255,0.04);
+        overflow: hidden;
+        flex-shrink: 0;
+      }
+
+      /* Side buttons */
+      .android-device::before {
+        content: '';
+        position: absolute;
+        left: -3px; top: 130px;
+        width: 3px; height: 36px;
+        background: #1e1e1e;
+        border-radius: 2px 0 0 2px;
+        box-shadow: 0 50px 0 #1e1e1e, 0 90px 0 #1e1e1e;
+      }
+      .android-device::after {
+        content: '';
+        position: absolute;
+        right: -3px; top: 170px;
+        width: 3px; height: 60px;
+        background: #1e1e1e;
+        border-radius: 0 2px 2px 0;
+      }
+
+      /* Status bar */
+      .android-status {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 44px;
+        background: rgba(0,0,0,0.6);
+        backdrop-filter: blur(10px);
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 28px;
+        padding-top: 8px;
+      }
+
+      /* Dynamic island / notch */
+      .android-notch {
+        position: absolute;
+        top: 12px; left: 50%;
+        transform: translateX(-50%);
+        width: 120px; height: 34px;
+        background: #000;
+        border-radius: 20px;
+        z-index: 210;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .android-notch .camera {
+        width: 10px; height: 10px;
+        background: #1a1a1a;
+        border-radius: 50%;
+        border: 1.5px solid #2a2a2a;
+        position: relative;
+      }
+      .android-notch .camera::after {
+        content: '';
+        position: absolute;
+        top: 50%; left: 50%;
+        transform: translate(-50%,-50%);
+        width: 4px; height: 4px;
+        background: #0d2a4a;
+        border-radius: 50%;
+      }
+
+      .android-status .status-time {
+        font-family: 'Jost', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: 0.5px;
+      }
+      .android-status .status-icons {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .android-status .status-icons svg {
+        width: 14px; height: 14px;
+        fill: #fff;
+        opacity: 0.9;
+      }
+      .android-status .battery {
+        font-size: 11px; color: #fff;
+        font-family: 'Jost', sans-serif;
+        font-weight: 500;
+      }
+
+      /* Navigation bar */
+      .android-nav {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 34px;
+        background: rgba(0,0,0,0.7);
+        backdrop-filter: blur(10px);
+        z-index: 200;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 36px;
+        padding-bottom: 4px;
+      }
+      .android-nav .nav-btn {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.25);
+      }
+      .android-nav .nav-btn.home {
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1.5px solid rgba(255,255,255,0.35);
+      }
+      .android-nav .nav-btn.back {
+        width: 0; height: 0;
+        border-style: solid;
+        border-width: 6px 9px 6px 0;
+        border-color: transparent rgba(255,255,255,0.35) transparent transparent;
+        background: transparent;
+        border-radius: 0;
+      }
+      .android-nav .nav-btn.recents {
+        width: 14px; height: 14px;
+        border-radius: 3px;
+        background: transparent;
+        border: 1.5px solid rgba(255,255,255,0.35);
+      }
+
+      /* The scrollable screen content */
+      .android-screen {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: 52px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        /* hide scrollbar */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        /* padding top for status bar, bottom for nav */
+        padding-top: 44px;
+        padding-bottom: 34px;
+      }
+      .android-screen::-webkit-scrollbar { display: none; }
+
+      /* Scroll indicator */
+      .scroll-hint {
+        position: absolute;
+        bottom: 44px; left: 50%;
+        transform: translateX(-50%);
+        z-index: 190;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        animation: fadeHint 3s ease 2s forwards;
+        pointer-events: none;
+      }
+      @keyframes fadeHint {
+        0% { opacity: 1; }
+        80% { opacity: 1; }
+        100% { opacity: 0; }
+      }
+      .scroll-hint span {
+        font-family: 'Jost', sans-serif;
+        font-size: 9px;
+        letter-spacing: 3px;
+        color: rgba(201,169,110,0.6);
+        text-transform: uppercase;
+      }
+      .scroll-hint .arrow {
+        width: 1px; height: 20px;
+        background: linear-gradient(to bottom, rgba(201,169,110,0.6), transparent);
+        margin: 0 auto;
+        animation: scrollPulse 1.5s ease infinite;
+      }
+      @keyframes scrollPulse {
+        0%, 100% { opacity: 1; transform: scaleY(1); }
+        50% { opacity: 0.4; transform: scaleY(0.6); }
+      }
+
+      /* Desktop label below phone */
+      .android-footer-label {
+        margin-top: 24px;
+        font-family: 'Jost', sans-serif;
+        font-size: 10px;
+        letter-spacing: 3px;
+        color: rgba(201,169,110,0.2);
+        text-transform: uppercase;
+      }
     }
   </style>
 </head>
 <body>
+
+<!-- DESKTOP: Android Frame Wrapper -->
+<!-- On mobile (≤600px) this wrapper is CSS-neutralized to display:contents -->
+<div class="android-scene">
+  <div class="android-scene-label">Mobile Preview</div>
+  <div class="android-device">
+
+    <!-- Status Bar -->
+    <div class="android-status">
+      <span class="status-time" id="status-clock">09:41</span>
+      <div class="status-icons">
+        <!-- Signal -->
+        <svg viewBox="0 0 24 24"><rect x="1" y="14" width="4" height="6" rx="1"/><rect x="7" y="10" width="4" height="10" rx="1"/><rect x="13" y="6" width="4" height="14" rx="1"/><rect x="19" y="2" width="4" height="18" rx="1" opacity="0.3"/></svg>
+        <!-- WiFi -->
+        <svg viewBox="0 0 24 24"><path d="M5 12.55a11 11 0 0 1 14.08 0" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M1.42 9a16 16 0 0 1 21.16 0" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0" stroke="#fff" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="12" cy="20" r="1.5" fill="#fff"/></svg>
+        <span class="battery">84</span>
+        <!-- Battery -->
+        <svg viewBox="0 0 24 24"><rect x="2" y="7" width="18" height="11" rx="2" stroke="#fff" stroke-width="1.5" fill="none"/><rect x="20" y="10" width="2" height="5" rx="1" fill="#fff"/><rect x="3.5" y="8.5" width="13" height="8" rx="1" fill="#fff"/></svg>
+      </div>
+    </div>
+
+    <!-- Notch / Dynamic Island -->
+    <div class="android-notch">
+      <div class="camera"></div>
+    </div>
+
+    <!-- Scrollable Screen Content -->
+    <div class="android-screen" id="android-screen">
 
 <!-- COVER -->
 <div id="cover">
@@ -785,6 +1100,48 @@
     const el = document.querySelector('#cover .names + * + p');
     // handled by server/template
   }
+
+  // Live clock for status bar
+  function updateStatusClock() {
+    const el = document.getElementById('status-clock');
+    if (!el) return;
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    el.textContent = h + ':' + m;
+  }
+  updateStatusClock();
+  setInterval(updateStatusClock, 10000);
+
+  // Make #cover open button trigger scroll to top of android-screen
+  const origOpen = window.openInvitation;
+  window.openInvitation = function() {
+    origOpen();
+    setTimeout(() => {
+      const screen = document.getElementById('android-screen');
+      if (screen) screen.scrollTop = 0;
+    }, 900);
+  };
 </script>
+
+    </div><!-- /.android-screen -->
+
+    <!-- Scroll hint overlay -->
+    <div class="scroll-hint">
+      <span>Scroll</span>
+      <div class="arrow"></div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div class="android-nav">
+      <div class="nav-btn back"></div>
+      <div class="nav-btn home"></div>
+      <div class="nav-btn recents"></div>
+    </div>
+
+  </div><!-- /.android-device -->
+  <div class="android-footer-label">primarylineindo.com · Mobile View</div>
+</div><!-- /.android-scene -->
+
 </body>
 </html>
