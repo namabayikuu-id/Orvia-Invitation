@@ -147,6 +147,7 @@
     <div class="nav-item" onclick="go('create',this)"><span class="ic">✨</span><span>Buat Baru</span></div>
     <div class="nav-item" onclick="go('links',this)"><span class="ic">🔗</span><span>Generator Link</span></div>
     <div class="nav-label">Template</div>
+    <div class="nav-item" onclick="go('templates',this)"><span class="ic">🎨</span><span>Kelola Template</span></div>
     <div class="nav-item" onclick="window.location='edit-template.html'"><span class="ic">✏️</span><span>Edit Template</span></div>
     <div class="nav-label">Sistem</div>
     <div class="nav-item" onclick="go('setup',this)"><span class="ic">⚙</span><span>Setup & Env</span></div>
@@ -273,10 +274,9 @@
             <div class="fg-head">⚙ Pengaturan</div>
             <div><label>Template *</label>
               <select id="c-template">
-                <option value="template-elegant">Elegant Floral (Dark Gold)</option>
-                <option value="template-modern">Modern Minimalist</option>
-                <option value="template-rustic">Rustic Garden</option>
+                <option value="template-elegant">template-elegant (memuat...)</option>
               </select>
+              <div style="font-size:10px;color:var(--muted);margin-top:4px">Template dimuat otomatis dari daftar. Kelola di menu 🎨 Template.</div>
             </div>
             <div><label>Slug URL (auto jika kosong)</label><input id="c-slug" placeholder="andi-sari (→ /andi-sari/)"></div>
             <div><label>Deadline RSVP</label><input id="c-rsvp" placeholder="1 Juni 2024"></div>
@@ -342,6 +342,22 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- TEMPLATES -->
+    <div class="page" id="page-templates">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:18px;font-weight:700">🎨 Manajemen Template</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Tambah, edit, duplikat, atau hapus template undangan</div>
+        </div>
+        <button class="btn btn-gold" onclick="openNewTemplateModal()">+ Tambah Template</button>
+      </div>
+      <div id="tpl-loading" style="text-align:center;padding:48px;color:var(--muted)">
+        <div class="spin" style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px"></div>
+        Memuat template...
+      </div>
+      <div id="tpl-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
     </div>
 
     <!-- SETUP -->
@@ -446,7 +462,7 @@ function toast(msg, type = 'ok') {
 }
 
 // ── NAV ───────────────────────────────────────────────────────────────────────
-const titles = { dashboard:'Dashboard', orders:'Semua Undangan', create:'Buat Undangan Baru', links:'Generator Link', setup:'Setup Sistem' };
+const titles = { dashboard:'Dashboard', orders:'Semua Undangan', create:'Buat Undangan Baru', links:'Generator Link', templates:'Manajemen Template', setup:'Setup Sistem' };
 function go(page, el) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
@@ -456,6 +472,7 @@ function go(page, el) {
   if (page === 'dashboard' || page === 'orders') loadOrders();
   if (page === 'setup') loadEnv();
   if (page === 'links') populateLinkSel();
+  if (page === 'templates') loadTemplates();
 }
 
 // ── LOAD ORDERS ───────────────────────────────────────────────────────────────
@@ -734,8 +751,203 @@ function loadEnv() {
   document.getElementById('env-wa').value      = cfg.wa;
 }
 
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+let allTemplates = [];
+
+async function loadTemplates() {
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+  document.getElementById('tpl-loading').style.display = 'block';
+  document.getElementById('tpl-grid').style.display = 'none';
+  try {
+    const r = await fetch('/api/get-templates', { headers: apiHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    allTemplates = await r.json();
+    renderTemplates();
+    updateTemplateSelector();
+  } catch (e) {
+    document.getElementById('tpl-loading').innerHTML = `<div style="color:var(--red)">Gagal memuat: ${e.message}<br><button class="btn btn-ghost" style="margin-top:12px;font-size:11px" onclick="loadTemplates()">↻ Coba lagi</button></div>`;
+  }
+}
+
+function renderTemplates() {
+  const grid = document.getElementById('tpl-grid');
+  document.getElementById('tpl-loading').style.display = 'none';
+  grid.style.display = 'grid';
+  if (!allTemplates.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">
+      Belum ada template. Klik <strong>+ Tambah Template</strong> untuk membuat yang pertama.
+    </div>`;
+    return;
+  }
+  grid.innerHTML = allTemplates.map(t => `
+    <div class="card" style="padding:0;overflow:hidden;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="height:160px;background:linear-gradient(135deg,#1a1208,#2c2416);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer" onclick="editTemplate('${t.id}')">
+        <div style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🎨</div>
+          <div style="font-size:10px;color:rgba(201,169,110,.5);font-family:monospace">${t.id}</div>
+        </div>
+        <div style="position:absolute;top:8px;right:8px;font-size:9px;background:rgba(52,211,153,.12);color:var(--green);padding:2px 8px;border-radius:4px;border:1px solid rgba(52,211,153,.2)">AKTIF</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,rgba(0,0,0,.5))"></div>
+      </div>
+      <div style="padding:14px">
+        <div style="font-weight:700;margin-bottom:2px">${t.displayName || t.id}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Diperbarui: ${t.updatedAt ? new Date(t.updatedAt).toLocaleDateString('id-ID') : '–'}</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-gold" style="font-size:10px;flex:1;padding:6px 8px" onclick="editTemplate('${t.id}')">✏ Edit</button>
+          <button class="btn btn-blue" style="font-size:10px;flex:1;padding:6px 8px" onclick="previewTemplate('${t.id}')">👁 Preview</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:6px 8px" title="Duplikat" onclick="duplicateTemplate('${t.id}','${(t.displayName||t.id).replace(/'/g,'')}')">⊕</button>
+          <button style="font-size:10px;padding:6px 8px;background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(248,113,113,.2)'" onmouseout="this.style.background='rgba(248,113,113,.1)'" title="Hapus" onclick="deleteTemplate('${t.id}','${(t.displayName||t.id).replace(/'/g,'')}')">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateTemplateSelector() {
+  const sel = document.getElementById('c-template');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = allTemplates.length
+    ? allTemplates.map(t => `<option value="${t.id}" ${t.id===cur?'selected':''}>${t.displayName || t.id}</option>`).join('')
+    : '<option value="template-elegant">template-elegant (default)</option>';
+}
+
+function editTemplate(id) {
+  window.location.href = `edit-template.html?template=${encodeURIComponent(id)}`;
+}
+
+function previewTemplate(id) {
+  window.open(`/templates/${id}/index.html`, '_blank');
+}
+
+async function deleteTemplate(id, name) {
+  if (!confirm(`Hapus template "${name}"?\n\nUndangan yang sudah dibuat dengan template ini tidak terpengaruh.`)) return;
+  try {
+    const r = await fetch('/api/delete-template', {
+      method: 'DELETE', headers: apiHeaders(),
+      body: JSON.stringify({ templateId: id }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    allTemplates = allTemplates.filter(t => t.id !== id);
+    renderTemplates();
+    updateTemplateSelector();
+    toast('✅ Template dihapus');
+  } catch (e) {
+    toast('Gagal hapus: ' + e.message, 'err');
+  }
+}
+
+async function duplicateTemplate(id, name) {
+  const suffix = Date.now().toString().slice(-4);
+  const newId = id.replace(/-copy-\d+$/, '') + '-copy-' + suffix;
+  const newName = name + ' (Salinan)';
+  try {
+    const r = await fetch('/api/duplicate-template', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ sourceId: id, newId, displayName: newName }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Template diduplikat! Membuka editor...', 'ok');
+    setTimeout(() => editTemplate(newId), 900);
+  } catch (e) {
+    toast('Gagal duplikat: ' + e.message, 'err');
+  }
+}
+
+function openNewTemplateModal() {
+  const modal = document.getElementById('modal-new-template');
+  modal.style.display = 'flex';
+  const baseSel = document.getElementById('new-tpl-base');
+  baseSel.innerHTML = allTemplates.length
+    ? allTemplates.map(t => `<option value="${t.id}">${t.displayName || t.id}</option>`).join('')
+    : '<option value="template-elegant">template-elegant</option>';
+  document.getElementById('new-tpl-name').value = '';
+  document.getElementById('new-tpl-id').value = '';
+}
+function closeNewTemplateModal() {
+  document.getElementById('modal-new-template').style.display = 'none';
+}
+document.getElementById('modal-new-template')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-new-template')) closeNewTemplateModal();
+});
+
+// Auto-generate ID from name
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('new-tpl-name')?.addEventListener('input', function() {
+    const auto = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const idField = document.getElementById('new-tpl-id');
+    if (!idField._manual) idField.value = 'template-' + auto;
+  });
+  document.getElementById('new-tpl-id')?.addEventListener('input', function() {
+    this._manual = !!this.value;
+  });
+  // Load templates for selector when create page opens
+  loadTemplatesForSelector();
+});
+
+async function loadTemplatesForSelector() {
+  if (!cfg.secret) return;
+  try {
+    const r = await fetch('/api/get-templates', { headers: apiHeaders() });
+    if (r.ok) { allTemplates = await r.json(); updateTemplateSelector(); }
+  } catch {}
+}
+
+async function createNewTemplate() {
+  const name = document.getElementById('new-tpl-name').value.trim();
+  const rawId = document.getElementById('new-tpl-id').value.trim();
+  const baseId = document.getElementById('new-tpl-base').value;
+  if (!name) { toast('Nama template wajib diisi!', 'err'); return; }
+  const id = rawId || ('template-' + name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+  if (!/^[a-z0-9-]+$/.test(id)) { toast('ID hanya boleh huruf kecil, angka, dan strip', 'err'); return; }
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Membuat...';
+  try {
+    const r = await fetch('/api/duplicate-template', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ sourceId: baseId, newId: id, displayName: name }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    closeNewTemplateModal();
+    toast('✅ Template dibuat! Membuka editor...', 'ok');
+    setTimeout(() => editTemplate(id), 700);
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Buat & Edit Template';
+  }
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 loadOrders();
 </script>
+<!-- MODAL: Tambah Template Baru -->
+<div id="modal-new-template" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.7)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">🎨 Tambah Template Baru</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6">Template baru dibuat dari salinan template yang ada, kemudian bisa diedit bebas di editor visual.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="grid-column:span 2">
+        <label>Nama Template *</label>
+        <input id="new-tpl-name" placeholder="Contoh: Elegant Dark Floral">
+      </div>
+      <div style="grid-column:span 2">
+        <label>ID Template (auto dari nama)</label>
+        <input id="new-tpl-id" placeholder="template-elegant-dark-floral" style="font-family:monospace;font-size:12px">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">Hanya huruf kecil, angka, dan strip (-). Tidak bisa diubah setelah dibuat.</div>
+      </div>
+      <div style="grid-column:span 2">
+        <label>Salin desain dari template</label>
+        <select id="new-tpl-base"></select>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">Template baru akan menggunakan HTML yang sama, dengan canvas desain kosong.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeNewTemplateModal()">Batal</button>
+      <button class="btn btn-gold" onclick="createNewTemplate()">✨ Buat & Buka Editor</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
