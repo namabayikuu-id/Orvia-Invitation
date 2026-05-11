@@ -1,2031 +1,790 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✏️ Edit Template – Admin Undangan</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0b0d13;--surf:#13161f;--surf2:#1c2030;--surf3:#252a3a;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
-  --gold:#f0c060;--gold-dim:rgba(240,192,96,0.1);--gold-glow:rgba(240,192,96,0.25);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.1);
-  --green:#34d399;--red:#f87171;--purple:#a78bfa;
-  --text:#e2e6f0;--muted:rgba(226,230,240,0.4);--muted2:rgba(226,230,240,0.65);
-  --r:8px;--r2:12px;
-  --panel-left:240px;--panel-right:288px;--topbar:52px;
-  --handle:8px;
-  --canvas-w:390px;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
-::selection{background:var(--gold-dim);color:var(--gold)}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Undangan Pernikahan – {{BRIDE_NAME}} & {{GROOM_NAME}}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gold: #c9a96e;
+      --gold-light: #e8d5b0;
+      --cream: #faf6f0;
+      --dark: #2c2416;
+      --blush: #e8c4b8;
+      --sage: #8a9b7e;
+    }
 
-/* ── TOPBAR ── */
-.topbar{
-  height:var(--topbar);display:flex;align-items:center;gap:0;
-  background:var(--surf);border-bottom:1px solid var(--border);
-  position:relative;z-index:20;flex-shrink:0;
-}
-.tb-logo{padding:0 16px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--border);height:100%;flex-shrink:0}
-.tb-logo a{font-size:11px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
-.tb-logo a:hover{color:var(--text)}
-.tb-logo-divider{color:var(--border2);font-size:16px}
-.tb-logo-name{font-weight:700;font-size:13px;color:var(--gold)}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
-.tb-tools{display:flex;align-items:center;gap:2px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.tb-tool{width:34px;height:34px;border:none;background:transparent;color:var(--muted);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;position:relative}
-.tb-tool:hover{background:var(--surf2);color:var(--text)}
-.tb-tool.active{background:var(--gold-dim);color:var(--gold)}
-.tb-tool[title]:hover::after{content:attr(title);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#000;color:var(--text);font-size:11px;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:99}
+    body {
+      background: var(--dark);
+      font-family: 'Jost', sans-serif;
+      color: var(--cream);
+      overflow-x: hidden;
+    }
 
-.tb-toggles{display:flex;align-items:center;gap:4px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.tb-toggle{padding:5px 10px;border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.tb-toggle:hover{border-color:var(--gold);color:var(--gold)}
-.tb-toggle.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+    /* ── COVER ── */
+    #cover {
+      position: fixed; inset: 0;
+      background: var(--dark);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      z-index: 100;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+    #cover.hidden { opacity: 0; visibility: hidden; }
 
-.tb-zoom{display:flex;align-items:center;gap:4px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.zoom-btn{width:26px;height:26px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
-.zoom-btn:hover{border-color:var(--gold);color:var(--gold)}
-.zoom-val{font-size:12px;font-weight:600;color:var(--muted2);min-width:38px;text-align:center;cursor:pointer;padding:4px 6px;border-radius:5px}
-.zoom-val:hover{background:var(--surf2);color:var(--text)}
+    .cover-ornament {
+      width: 280px; height: 280px;
+      border: 1px solid rgba(201,169,110,0.3);
+      border-radius: 50%;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 40px;
+      animation: rotate-slow 20s linear infinite;
+    }
+    @keyframes rotate-slow { to { transform: rotate(360deg); } }
 
-.tb-actions{margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 14px;height:100%}
-.btn{padding:7px 14px;border-radius:var(--r);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:inherit;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted2)}
-.btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-.btn-gold{background:var(--gold);color:#0b0d13;font-weight:700}
-.btn-gold:hover{background:#f5d280;transform:translateY(-1px)}
-.btn-blue{background:var(--blue-dim);color:var(--blue);border:none}
-.btn-blue:hover{background:rgba(96,165,250,0.2)}
-.btn-red{background:rgba(248,113,113,0.1);color:var(--red);border:none}
-.btn-red:hover{background:rgba(248,113,113,0.2)}
-.spin{width:13px;height:13px;border:2px solid rgba(11,13,19,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
+    .cover-ornament::before {
+      content: '';
+      position: absolute; inset: 10px;
+      border: 1px solid rgba(201,169,110,0.2);
+      border-radius: 50%;
+    }
 
-/* ── LAYOUT ── */
-.editor{display:flex;height:calc(100vh - var(--topbar));overflow:hidden}
+    .cover-inner {
+      text-align: center;
+      animation: rotate-slow 20s linear infinite reverse;
+    }
+    .cover-inner .label {
+      font-family: 'Jost', sans-serif;
+      font-size: 10px; letter-spacing: 4px;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    .cover-inner .names {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-style: italic; font-weight: 300;
+      color: var(--cream);
+      line-height: 1.3;
+    }
+    .cover-inner .amp {
+      font-size: 20px; color: var(--gold);
+    }
 
-/* ── LEFT PANEL ── */
-.panel-left{
-  width:var(--panel-left);flex-shrink:0;
-  background:var(--surf);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.pane-head{
-  padding:12px 14px 10px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-}
-.pane-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
-.pane-add-btn{
-  width:24px;height:24px;border-radius:6px;background:var(--gold-dim);
-  border:1px solid rgba(240,192,96,0.2);color:var(--gold);font-size:16px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;position:relative;
-}
-.pane-add-btn:hover{background:var(--gold-glow)}
+    .cover-greeting {
+      font-size: 12px; letter-spacing: 2px;
+      color: rgba(250,246,240,0.6);
+      text-transform: uppercase;
+      margin-bottom: 32px;
+    }
 
-.layer-add-menu{
-  position:absolute;top:calc(100% + 4px);right:0;
-  background:var(--surf2);border:1px solid var(--border2);
-  border-radius:var(--r);padding:4px;z-index:50;
-  min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,.5);
-  display:none;
-}
-.layer-add-menu.open{display:block}
-.lam-item{
-  padding:8px 12px;border-radius:6px;cursor:pointer;
-  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);
-  transition:all .15s;
-}
-.lam-item:hover{background:var(--surf3);color:var(--text)}
-.lam-item .ic{font-size:15px;width:18px;text-align:center}
+    .open-btn {
+      padding: 14px 40px;
+      border: 1px solid var(--gold);
+      background: transparent;
+      color: var(--gold);
+      font-family: 'Jost', sans-serif;
+      font-size: 11px; letter-spacing: 3px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      position: relative; overflow: hidden;
+    }
+    .open-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: var(--gold);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s;
+    }
+    .open-btn:hover::before { transform: scaleX(1); }
+    .open-btn span { position: relative; z-index: 1; }
+    .open-btn:hover span { color: var(--dark); }
 
-.layer-search{padding:8px 12px;flex-shrink:0}
-.layer-search input{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:var(--r);padding:6px 10px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;transition:border-color .2s;
-}
-.layer-search input:focus{border-color:rgba(240,192,96,.4)}
-.layer-search input::placeholder{color:var(--muted)}
+    /* ── MAIN ── */
+    main { display: none; }
+    main.visible { display: block; }
 
-.layers-list{flex:1;overflow-y:auto;padding:4px 8px 8px}
-.layers-list::-webkit-scrollbar{width:4px}
-.layers-list::-webkit-scrollbar-track{background:transparent}
-.layers-list::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
+    section { padding: 80px 24px; text-align: center; position: relative; }
 
-.layer-item{
-  display:flex;align-items:center;gap:6px;
-  padding:7px 8px;border-radius:var(--r);cursor:pointer;
-  transition:background .15s;border:1px solid transparent;margin-bottom:2px;
-  user-select:none;
-}
-.layer-item:hover{background:var(--surf2)}
-.layer-item.selected{background:var(--gold-dim);border-color:rgba(240,192,96,.2)}
-.layer-item.dragging{opacity:.4}
-.layer-item.drag-over{border-color:var(--blue)!important;background:var(--blue-dim)!important}
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      background: linear-gradient(180deg, var(--dark) 0%, #1a1208 100%);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-.li-vis,.li-lock{
-  width:18px;height:18px;border:none;background:transparent;
-  color:var(--muted);cursor:pointer;font-size:13px;
-  border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;padding:0;
-}
-.li-vis:hover,.li-lock:hover{background:var(--surf3);color:var(--text)}
-.li-vis.off,.li-lock.on{color:var(--red)!important}
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ccircle cx='200' cy='200' r='180' fill='none' stroke='%23c9a96e' stroke-width='0.5' stroke-dasharray='4 8' opacity='0.2'/%3E%3Ccircle cx='200' cy='200' r='140' fill='none' stroke='%23c9a96e' stroke-width='0.5' opacity='0.15'/%3E%3C/svg%3E") center/600px no-repeat;
+      opacity: 0.5;
+    }
 
-.li-thumb{
-  width:22px;height:22px;border-radius:4px;flex-shrink:0;
-  background:var(--surf3);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-size:11px;
-  overflow:hidden;
-}
-.li-thumb img{width:100%;height:100%;object-fit:cover}
+    .floral-top, .floral-bottom {
+      position: absolute; width: 320px;
+      opacity: 0.12;
+    }
+    .floral-top { top: -40px; right: -40px; transform: rotate(-20deg); }
+    .floral-bottom { bottom: -40px; left: -40px; transform: rotate(160deg); }
 
-.li-name{flex:1;font-size:12px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.layer-item.selected .li-name{color:var(--text)}
-.li-name input{background:transparent;border:none;outline:none;color:inherit;font-family:inherit;font-size:inherit;width:100%}
+    .hero-label {
+      font-size: 10px; letter-spacing: 5px;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 24px;
+      animation: fadeUp 1s ease 0.3s both;
+    }
+    .hero-names {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(52px, 12vw, 96px);
+      font-weight: 300; line-height: 1;
+      color: var(--cream);
+      animation: fadeUp 1s ease 0.5s both;
+    }
+    .hero-names .amp {
+      color: var(--gold); font-style: italic; display: block;
+      font-size: 0.5em;
+    }
+    .hero-date {
+      margin-top: 32px;
+      font-size: 12px; letter-spacing: 4px;
+      color: var(--gold-light); text-transform: uppercase;
+      animation: fadeUp 1s ease 0.7s both;
+    }
+    .hero-divider {
+      width: 1px; height: 60px;
+      background: linear-gradient(to bottom, transparent, var(--gold), transparent);
+      margin: 32px auto;
+      animation: fadeUp 1s ease 0.9s both;
+    }
 
-.li-del{
-  width:18px;height:18px;border:none;background:transparent;color:var(--muted);
-  cursor:pointer;font-size:12px;border-radius:4px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:all .15s;padding:0;
-}
-.layer-item:hover .li-del{opacity:1}
-.li-del:hover{background:rgba(248,113,113,.15);color:var(--red)}
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
-.layers-empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
+    /* Countdown */
+    .countdown-section {
+      background: #1a1208;
+    }
+    .section-tag {
+      font-size: 10px; letter-spacing: 5px;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 42px; font-weight: 300; font-style: italic;
+      color: var(--cream);
+      margin-bottom: 48px;
+    }
+    .countdown {
+      display: flex; justify-content: center; gap: 32px;
+      flex-wrap: wrap;
+    }
+    .countdown-box {
+      min-width: 80px;
+      padding: 20px 16px;
+      border: 1px solid rgba(201,169,110,0.3);
+      position: relative;
+    }
+    .countdown-box::before {
+      content: '';
+      position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
+      border: 1px solid rgba(201,169,110,0.1);
+    }
+    .countdown-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 48px; font-weight: 300;
+      color: var(--gold); line-height: 1;
+    }
+    .countdown-label {
+      font-size: 9px; letter-spacing: 3px;
+      text-transform: uppercase; color: rgba(250,246,240,0.5);
+      margin-top: 8px;
+    }
 
-/* ── CANVAS AREA ── */
-.canvas-area{
-  flex:1;overflow:auto;background:#080a10;
-  position:relative;display:flex;align-items:flex-start;justify-content:center;
-  padding:32px;
-}
-.canvas-area::-webkit-scrollbar{width:8px;height:8px}
-.canvas-area::-webkit-scrollbar-track{background:var(--bg)}
-.canvas-area::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
+    /* Couple */
+    .couple-section {
+      background: var(--dark);
+    }
+    .couple-grid {
+      display: grid; grid-template-columns: 1fr auto 1fr;
+      align-items: center; gap: 40px;
+      max-width: 700px; margin: 0 auto;
+    }
+    .person { text-align: center; }
+    .person-photo {
+      width: 120px; height: 150px;
+      margin: 0 auto 20px;
+      position: relative;
+    }
+    .person-photo img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(30%) sepia(20%);
+    }
+    .person-photo::after {
+      content: '';
+      position: absolute; top: -6px; left: -6px;
+      width: 100%; height: 100%;
+      border: 1px solid rgba(201,169,110,0.4);
+    }
+    .person-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 28px; font-style: italic; font-weight: 300;
+      color: var(--cream);
+    }
+    .person-parents {
+      font-size: 11px; color: rgba(250,246,240,0.5);
+      margin-top: 8px; line-height: 1.8;
+    }
+    .couple-amp {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 80px; font-style: italic; font-weight: 300;
+      color: var(--gold); opacity: 0.4;
+    }
 
-.canvas-wrap{
-  position:relative;flex-shrink:0;
-}
-.canvas-scaler{
-  transform-origin:top left;
-  /* width/height set dynamically */
-}
-.canvas{
-  width:var(--canvas-w);
-  position:relative;
-  overflow:visible;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 24px 80px rgba(0,0,0,.8);
-}
-/* Section backgrounds */
-.section-block{
-  width:100%;position:relative;overflow:hidden;display:flex;
-  align-items:center;justify-content:center;flex-direction:column;
-  user-select:none;pointer-events:none;
-}
-.section-label{
-  font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  opacity:.25;color:#fff;text-align:center;
-  font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  white-space:nowrap;
-}
-.section-accent{
-  position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(201,169,110,.15),transparent);
-}
+    /* Event */
+    .event-section { background: #1a1208; }
+    .event-cards {
+      display: flex; gap: 24px; justify-content: center; flex-wrap: wrap;
+      margin-top: 48px;
+    }
+    .event-card {
+      flex: 1; min-width: 240px; max-width: 320px;
+      border: 1px solid rgba(201,169,110,0.3);
+      padding: 40px 32px;
+      position: relative;
+    }
+    .event-card::before {
+      content: '';
+      position: absolute; top: 6px; left: 6px; right: 6px; bottom: 6px;
+      border: 1px solid rgba(201,169,110,0.1);
+      pointer-events: none;
+    }
+    .event-type {
+      font-size: 10px; letter-spacing: 4px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 20px;
+    }
+    .event-date-big {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 64px; font-weight: 300;
+      color: var(--cream); line-height: 1;
+    }
+    .event-month {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-style: italic;
+      color: var(--gold); margin: 4px 0;
+    }
+    .event-time {
+      font-size: 12px; letter-spacing: 2px;
+      color: rgba(250,246,240,0.6); margin-top: 16px;
+    }
+    .event-place {
+      font-size: 13px; color: var(--cream);
+      margin-top: 8px; line-height: 1.6;
+    }
 
-/* Canvas elements */
-.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
-.canvas-el{
-  position:absolute;pointer-events:all;
-  box-sizing:border-box;
-  transform-origin:center center;
-}
-.canvas-el.selected{outline:2px solid #f0c060!important;outline-offset:1px}
-.canvas-el.locked-el{cursor:default!important}
-.canvas-el img{display:block;pointer-events:none;-webkit-user-drag:none}
-.canvas-el .el-inner{width:100%;height:100%;overflow:hidden;pointer-events:none}
+    /* Gallery */
+    .gallery-section { background: var(--dark); }
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px; max-width: 600px;
+      margin: 48px auto 0;
+    }
+    .gallery-item {
+      aspect-ratio: 1;
+      overflow: hidden;
+      position: relative;
+    }
+    .gallery-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      filter: grayscale(30%) sepia(20%);
+      transition: transform 0.6s;
+    }
+    .gallery-item:hover img { transform: scale(1.05); }
+    .gallery-item:first-child {
+      grid-column: span 2; aspect-ratio: 2/1;
+    }
+    .gallery-item:nth-child(4) {
+      grid-column: span 2; aspect-ratio: 2/1;
+    }
 
-/* Selection handles */
-.h{
-  position:absolute;width:var(--handle);height:var(--handle);
-  background:#fff;border:1.5px solid #f0c060;border-radius:2px;z-index:5;
-}
-.h-nw{top:calc(var(--handle)/-2);left:calc(var(--handle)/-2);cursor:nw-resize}
-.h-n {top:calc(var(--handle)/-2);left:calc(50% - var(--handle)/2);cursor:n-resize}
-.h-ne{top:calc(var(--handle)/-2);right:calc(var(--handle)/-2);cursor:ne-resize}
-.h-e {top:calc(50% - var(--handle)/2);right:calc(var(--handle)/-2);cursor:e-resize}
-.h-se{bottom:calc(var(--handle)/-2);right:calc(var(--handle)/-2);cursor:se-resize}
-.h-s {bottom:calc(var(--handle)/-2);left:calc(50% - var(--handle)/2);cursor:s-resize}
-.h-sw{bottom:calc(var(--handle)/-2);left:calc(var(--handle)/-2);cursor:sw-resize}
-.h-w {top:calc(50% - var(--handle)/2);left:calc(var(--handle)/-2);cursor:w-resize}
+    /* Story */
+    .story-section { background: #1a1208; }
+    .story-timeline {
+      max-width: 500px; margin: 48px auto 0;
+      position: relative;
+    }
+    .story-timeline::before {
+      content: '';
+      position: absolute; left: 50%; top: 0; bottom: 0;
+      width: 1px; background: rgba(201,169,110,0.2);
+      transform: translateX(-50%);
+    }
+    .story-item {
+      display: flex; gap: 32px;
+      align-items: flex-start;
+      margin-bottom: 40px;
+    }
+    .story-item:nth-child(even) { flex-direction: row-reverse; }
+    .story-content {
+      flex: 1; text-align: right;
+      padding-right: 40px;
+    }
+    .story-item:nth-child(even) .story-content {
+      text-align: left; padding-right: 0; padding-left: 40px;
+    }
+    .story-year {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px; font-weight: 300;
+      color: var(--gold); line-height: 1;
+    }
+    .story-text {
+      font-size: 13px; color: rgba(250,246,240,0.7);
+      line-height: 1.7; margin-top: 8px;
+    }
+    .story-dot {
+      width: 12px; height: 12px;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 8px;
+      position: relative; z-index: 1;
+      background: var(--dark);
+    }
 
-/* Grid overlay */
-.canvas-grid{
-  position:absolute;inset:0;pointer-events:none;z-index:8;
-  background-image:
-    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
-  background-size:20px 20px;
-}
-/* Center guides */
-.canvas-guide-h,.canvas-guide-v{position:absolute;pointer-events:none;z-index:9}
-.canvas-guide-h{left:0;right:0;height:1px;background:rgba(96,165,250,.35);top:50%}
-.canvas-guide-v{top:0;bottom:0;width:1px;background:rgba(96,165,250,.35);left:50%}
+    /* RSVP */
+    .rsvp-section { background: var(--dark); }
+    .rsvp-form {
+      max-width: 480px; margin: 48px auto 0;
+    }
+    .form-group { margin-bottom: 20px; text-align: left; }
+    .form-group label {
+      display: block;
+      font-size: 10px; letter-spacing: 3px;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 8px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      background: transparent;
+      border: none; border-bottom: 1px solid rgba(201,169,110,0.3);
+      padding: 12px 0;
+      color: var(--cream);
+      font-family: 'Jost', sans-serif; font-size: 14px;
+      outline: none; transition: border-color 0.3s;
+      -webkit-appearance: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--gold);
+    }
+    .form-group select option { background: var(--dark); }
+    .submit-btn {
+      width: 100%; padding: 16px;
+      border: 1px solid var(--gold);
+      background: transparent; color: var(--gold);
+      font-family: 'Jost', sans-serif;
+      font-size: 11px; letter-spacing: 4px;
+      text-transform: uppercase; cursor: pointer;
+      transition: all 0.3s; margin-top: 8px;
+    }
+    .submit-btn:hover {
+      background: var(--gold); color: var(--dark);
+    }
 
-/* var badge on linked elements */
-.var-badge{
-  position:absolute;bottom:2px;left:2px;
-  background:rgba(96,165,250,.9);color:#fff;
-  font-size:8px;padding:1px 5px;border-radius:3px;
-  font-family:monospace;pointer-events:none;white-space:nowrap;z-index:1;
-}
+    /* Gift */
+    .gift-section { background: #1a1208; }
+    .gift-cards {
+      display: flex; gap: 20px; justify-content: center;
+      flex-wrap: wrap; margin-top: 48px;
+    }
+    .gift-card {
+      flex: 1; min-width: 220px; max-width: 280px;
+      border: 1px solid rgba(201,169,110,0.3);
+      padding: 32px 24px;
+    }
+    .gift-bank { font-size: 11px; letter-spacing: 3px; color: var(--gold); }
+    .gift-number {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 300; color: var(--cream);
+      margin: 12px 0 4px; letter-spacing: 2px;
+    }
+    .gift-name { font-size: 12px; color: rgba(250,246,240,0.6); }
+    .copy-btn {
+      margin-top: 16px; padding: 8px 20px;
+      border: 1px solid rgba(201,169,110,0.3);
+      background: transparent; color: var(--gold);
+      font-size: 10px; letter-spacing: 2px;
+      cursor: pointer; transition: all 0.3s;
+    }
+    .copy-btn:hover { background: rgba(201,169,110,0.1); }
 
-/* Rubber-band selection */
-.rubber-band{
-  position:absolute;border:1px dashed var(--blue);
-  background:rgba(96,165,250,.07);z-index:11;pointer-events:none;
-}
+    /* Footer */
+    footer {
+      background: var(--dark);
+      padding: 80px 24px 40px;
+      text-align: center;
+    }
+    .footer-names {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 56px; font-style: italic; font-weight: 300;
+      color: var(--cream);
+    }
+    .footer-closing {
+      font-size: 11px; letter-spacing: 3px;
+      color: rgba(250,246,240,0.5);
+      margin-top: 24px; text-transform: uppercase;
+    }
+    .footer-gold-line {
+      width: 60px; height: 1px;
+      background: var(--gold); margin: 24px auto;
+    }
+    .footer-credit {
+      font-size: 10px; color: rgba(250,246,240,0.25);
+      letter-spacing: 1px;
+    }
 
-/* ── RIGHT PANEL ── */
-.panel-right{
-  width:var(--panel-right);flex-shrink:0;
-  background:var(--surf);border-left:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.panel-right .pane-head{flex-shrink:0}
-.props-body{flex:1;overflow-y:auto;padding:14px}
-.props-body::-webkit-scrollbar{width:4px}
-.props-body::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
+    /* Music */
+    .music-btn {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 48px; height: 48px;
+      border: 1px solid rgba(201,169,110,0.5);
+      border-radius: 50%;
+      background: rgba(44,36,22,0.9);
+      color: var(--gold); font-size: 18px;
+      cursor: pointer; z-index: 50;
+      display: none; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+    .music-btn.show { display: flex; }
+    .music-btn.playing { animation: pulse 2s ease infinite; }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(201,169,110,0.3); }
+      50% { box-shadow: 0 0 0 8px rgba(201,169,110,0); }
+    }
 
-.prop-group{margin-bottom:16px}
-.prop-group-title{
-  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;
-}
-.prop-group-title::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.prop-row{display:flex;gap:8px;margin-bottom:8px}
-.prop-col{flex:1;min-width:0}
-.prop-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500}
-.prop-input{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;transition:border-color .2s;
-}
-.prop-input:focus{border-color:rgba(240,192,96,.5)}
-.prop-input[type=color]{padding:3px;height:32px;cursor:pointer}
-.prop-input[type=range]{padding:0;height:32px;accent-color:var(--gold)}
-
-.prop-row-label{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.prop-row-label .prop-label{margin-bottom:0;flex:1}
-
-.prop-select{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;cursor:pointer;
-}
-.prop-select:focus{border-color:rgba(240,192,96,.5)}
-.prop-select option{background:var(--surf)}
-
-.prop-textarea{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;resize:vertical;min-height:60px;
-  transition:border-color .2s;
-}
-.prop-textarea:focus{border-color:rgba(240,192,96,.5)}
-
-.text-btns{display:flex;gap:4px}
-.text-btn{
-  width:28px;height:28px;border:1px solid var(--border2);border-radius:5px;
-  background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-  font-family:inherit;
-}
-.text-btn:hover{border-color:var(--gold);color:var(--gold)}
-.text-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
-
-.action-row{display:flex;gap:6px;flex-wrap:wrap}
-.action-btn{
-  flex:1;min-width:0;padding:6px 8px;border:1px solid var(--border2);
-  border-radius:var(--r);background:transparent;color:var(--muted2);
-  font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;
-  transition:all .15s;text-align:center;
-}
-.action-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-.action-btn.red:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.1)}
-
-.no-sel{
-  padding:40px 20px;text-align:center;color:var(--muted);
-  display:flex;flex-direction:column;align-items:center;gap:12px;
-}
-.no-sel-icon{font-size:40px;opacity:.3}
-.no-sel-text{font-size:12px;line-height:1.6}
-
-/* ── VARS PANEL (bottom of right) ── */
-.vars-panel{
-  border-top:1px solid var(--border);flex-shrink:0;max-height:200px;
-  overflow-y:auto;
-}
-.vars-panel::-webkit-scrollbar{width:4px}
-.vars-panel::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
-.vars-panel .pane-head{border-bottom:1px solid var(--border)}
-.var-list{padding:8px}
-.var-chip{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--surf3);border:1px solid var(--border);
-  border-radius:5px;padding:3px 8px;margin:2px;
-  font-size:10px;font-family:monospace;color:var(--muted2);
-  cursor:pointer;transition:all .15s;
-}
-.var-chip:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
-
-/* ── MODALS ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center}
-.overlay.open{display:flex}
-.modal{
-  background:var(--surf);border:1px solid var(--border2);
-  border-radius:16px;width:100%;max-width:520px;
-  max-height:88vh;overflow-y:auto;padding:0;
-  box-shadow:0 24px 80px rgba(0,0,0,.7);
-}
-.modal-head{
-  padding:20px 24px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;background:var(--surf);z-index:1;
-}
-.modal-title{font-size:16px;font-weight:700}
-.modal-close{
-  width:30px;height:30px;border:none;background:var(--surf2);
-  border-radius:50%;color:var(--muted);cursor:pointer;font-size:18px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.modal-close:hover{background:var(--surf3);color:var(--text)}
-.modal-body{padding:20px 24px}
-.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fg-full{grid-column:span 2}
-.field-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.field-input{
-  width:100%;background:var(--bg);border:1px solid var(--border);
-  border-radius:var(--r);padding:8px 12px;color:var(--text);
-  font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;
-}
-.field-input:focus{border-color:rgba(240,192,96,.5)}
-.field-input::placeholder{color:var(--muted)}
-
-.upload-zone{
-  border:2px dashed var(--border2);border-radius:var(--r2);
-  padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;
-  position:relative;
-}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
-.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.upload-zone-icon{font-size:28px;margin-bottom:8px;opacity:.5}
-.upload-zone-text{font-size:12px;color:var(--muted2)}
-.upload-zone-sub{font-size:11px;color:var(--muted);margin-top:4px}
-
-.preview-img-wrap{
-  background:var(--bg);border:1px solid var(--border);border-radius:var(--r);
-  overflow:hidden;margin-bottom:12px;max-height:160px;display:flex;align-items:center;justify-content:center;
-}
-.preview-img-wrap img{max-width:100%;max-height:160px;object-fit:contain}
-
-.font-pill{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--surf2);border:1px solid var(--border);
-  border-radius:100px;padding:5px 10px 5px 12px;margin:3px;font-size:12px;
-}
-.font-pill-del{
-  width:16px;height:16px;border:none;background:var(--surf3);
-  border-radius:50%;color:var(--muted);cursor:pointer;font-size:10px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.font-pill-del:hover{background:rgba(248,113,113,.2);color:var(--red)}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
-  background:var(--surf);border:1px solid var(--border2);padding:10px 20px;
-  border-radius:100px;font-size:12px;z-index:9999;
-  opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:rgba(52,211,153,.4);color:var(--green)}
-.toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
-.toast.info{border-color:rgba(96,165,250,.4);color:var(--blue)}
-
-/* ── MISC ── */
-.divider{height:1px;background:var(--border);margin:12px 0}
-.flex-center{display:flex;align-items:center;justify-content:center}
-.gap-6{gap:6px}
-.section-tag{
-  display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  padding:2px 8px;border-radius:4px;background:var(--surf3);border:1px solid var(--border);
-  color:var(--muted);margin-bottom:8px;
-}
-.badge-img{background:rgba(96,165,250,.12);color:var(--blue);border-color:rgba(96,165,250,.2)}
-.badge-box{background:rgba(167,139,250,.12);color:var(--purple);border-color:rgba(167,139,250,.2)}
-.badge-txt{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.2)}
-
-/* ── Responsive ── */
-@media(max-width:1100px){
-  :root{--panel-right:260px}
-}
-@media(max-width:880px){
-  .panel-right{display:none}
-}
-</style>
+    /* Responsive */
+    @media (max-width: 600px) {
+      .couple-grid { grid-template-columns: 1fr; }
+      .couple-amp { display: none; }
+      .gallery-grid { grid-template-columns: 1fr 1fr; }
+      .gallery-item:first-child, .gallery-item:nth-child(4) {
+        grid-column: span 2;
+      }
+      .story-timeline::before { left: 0; }
+      .story-item, .story-item:nth-child(even) { flex-direction: column; padding-left: 28px; }
+      .story-content, .story-item:nth-child(even) .story-content {
+        text-align: left; padding: 0;
+      }
+      .story-dot { position: absolute; left: -6px; }
+      .story-timeline { position: relative; }
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── TOPBAR ───────────────────────────────────────────── -->
-<div class="topbar">
-  <div class="tb-logo">
-    <a href="index.html">← Admin</a>
-    <span class="tb-logo-divider">/</span>
-    <span class="tb-logo-name">✏ Edit Template</span>
+<!-- COVER -->
+<div id="cover">
+  <div style="text-align:center; margin-bottom: 20px;">
+    <p style="font-size:11px;letter-spacing:4px;color:rgba(250,246,240,0.5);text-transform:uppercase;">Kepada Yth.</p>
+    <p style="font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;color:var(--cream);margin-top:8px;">{{GUEST_NAME}}</p>
   </div>
-
-  <!-- Tools -->
-  <div class="tb-tools">
-    <button class="tb-tool active" id="tool-select" title="Pilih & Geser (V)" onclick="setTool('select')">⬡</button>
-    <button class="tb-tool" id="tool-box"    title="Tambah Box (B)"    onclick="setTool('box')">▭</button>
-    <button class="tb-tool" id="tool-image"  title="Tambah Gambar (I)" onclick="setTool('image');openImageModal()">🖼</button>
-    <button class="tb-tool" id="tool-text"   title="Tambah Teks (T)"   onclick="setTool('text');addTextLayer()">T</button>
+  <div class="cover-ornament">
+    <div class="cover-inner">
+      <p class="label">The Wedding of</p>
+      <p class="names">{{BRIDE_NAME}}<br><span class="amp">&</span><br>{{GROOM_NAME}}</p>
+    </div>
   </div>
-
-  <!-- Toggles -->
-  <div class="tb-toggles">
-    <button class="tb-toggle" id="btn-grid"   onclick="toggleGrid()"   title="Grid">⊞ Grid</button>
-    <button class="tb-toggle" id="btn-guides" onclick="toggleGuides()" title="Garis Bantu">⊟ Guides</button>
-    <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
-    <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
-  </div>
-
-  <!-- Zoom -->
-  <div class="tb-zoom">
-    <button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button>
-    <span class="zoom-val" id="zoom-label" onclick="resetZoom()">50%</span>
-    <button class="zoom-btn" onclick="adjustZoom(+0.1)">+</button>
-  </div>
-
-  <!-- Actions -->
-  <div class="tb-actions">
-    <button class="btn btn-ghost" onclick="undoAction()" id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
-    <button class="btn btn-ghost" onclick="redoAction()" id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
-    <button class="btn btn-ghost" onclick="previewTemplate()">👁 Preview</button>
-    <button class="btn btn-blue"  onclick="downloadTemplate()">⬇ Download</button>
-    <button class="btn btn-gold"  id="btn-save" onclick="saveToGitHub()">💾 Simpan ke GitHub</button>
-  </div>
+  <p class="cover-greeting">Kami mengundang kehadiran Anda</p>
+  <button class="open-btn" onclick="openInvitation()"><span>Buka Undangan</span></button>
 </div>
 
-<!-- ── EDITOR ──────────────────────────────────────────── -->
-<div class="editor">
+<!-- MUSIC -->
+<audio id="bgMusic" loop>
+  <source src="{{MUSIC_URL}}" type="audio/mpeg">
+</audio>
+<button class="music-btn" id="musicBtn" onclick="toggleMusic()">♪</button>
 
-  <!-- LEFT: Layers -->
-  <div class="panel-left">
-    <div class="pane-head">
-      <span class="pane-title">Layers</span>
-      <div style="position:relative">
-        <button class="pane-add-btn" onclick="toggleAddMenu()" id="add-menu-btn">+</button>
-        <div class="layer-add-menu" id="layer-add-menu">
-          <div class="lam-item" onclick="closeAddMenu();openImageModal()"><span class="ic">🖼</span> Upload Gambar</div>
-          <div class="lam-item" onclick="closeAddMenu();addBoxLayer()"><span class="ic">▭</span> Tambah Box</div>
-          <div class="lam-item" onclick="closeAddMenu();addTextLayer()"><span class="ic">T</span> Tambah Teks</div>
-          <div style="height:1px;background:var(--border);margin:4px 0"></div>
-          <div class="lam-item" onclick="closeAddMenu();openSectionStyleModal()"><span class="ic">🎨</span> Style Seksi</div>
+<!-- MAIN -->
+<main id="main">
+
+  <!-- HERO -->
+  <section class="hero">
+    <svg class="floral-top" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M200,50 C230,20 270,30 260,70 C290,50 310,80 280,100 C320,100 320,140 290,145 C310,170 290,200 260,185 C270,220 240,240 220,210 C210,250 180,250 175,215 C155,240 125,225 130,190 C100,205 80,175 105,155 C75,145 75,105 110,105 C85,80 105,50 130,65 C130,25 165,20 200,50Z" fill="white"/>
+      <path d="M200,80 C220,60 250,70 245,100 C265,85 280,105 260,120 C285,120 285,150 265,155 C278,172 265,192 248,182 C254,208 234,220 220,198 C212,225 195,225 192,200 C178,218 162,208 165,185 C145,196 132,174 148,162 C128,155 130,127 150,125 C135,108 150,88 167,98 C168,72 193,68 200,80Z" fill="white" opacity="0.5"/>
+    </svg>
+    <p class="hero-label">The Wedding of</p>
+    <h1 class="hero-names">
+      {{BRIDE_NAME}}<span class="amp">&amp;</span>{{GROOM_NAME}}
+    </h1>
+    <div class="hero-divider"></div>
+    <p class="hero-date">{{AKAD_DAY}}, {{AKAD_DATE}} {{AKAD_MONTH}} {{AKAD_YEAR}}</p>
+    <svg class="floral-bottom" viewBox="0 0 400 400" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M200,50 C230,20 270,30 260,70 C290,50 310,80 280,100 C320,100 320,140 290,145 C310,170 290,200 260,185 C270,220 240,240 220,210 C210,250 180,250 175,215 C155,240 125,225 130,190 C100,205 80,175 105,155 C75,145 75,105 110,105 C85,80 105,50 130,65 C130,25 165,20 200,50Z" fill="white"/>
+    </svg>
+  </section>
+
+  <!-- COUPLE -->
+  <section class="couple-section">
+    <p class="section-tag">Mempelai</p>
+    <h2 class="section-title">Dua Hati, Satu Tujuan</h2>
+    <div class="couple-grid">
+      <div class="person">
+        <div class="person-photo">
+          <img src="{{BRIDE_PHOTO}}" alt="{{BRIDE_NAME}}" onerror="this.src='https://images.unsplash.com/photo-1494790108755-2616b612b5ab?w=300&h=375&fit=crop&crop=face'">
         </div>
+        <p class="person-name">{{BRIDE_NAME}}</p>
+        <p class="person-parents">Putri dari<br>{{BRIDE_FATHER}} & {{BRIDE_MOTHER}}</p>
       </div>
-    </div>
-
-    <div class="layer-search">
-      <input type="text" id="layer-search" placeholder="🔍 Cari layer..." oninput="renderLayers()">
-    </div>
-
-    <div class="layers-list" id="layers-list">
-      <div class="layers-empty">
-        <div>📦</div>
-        <div>Belum ada layer.<br>Klik <strong>+</strong> untuk menambah elemen desain.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CENTER: Canvas -->
-  <div class="canvas-area" id="canvas-area" onmousedown="canvasBgMousedown(event)">
-    <div class="canvas-wrap" id="canvas-wrap">
-      <div class="canvas-scaler" id="canvas-scaler">
-        <div class="canvas" id="canvas">
-          <!-- Section backgrounds (static) -->
-          <div id="canvas-bg"></div>
-          <!-- Grid -->
-          <div class="canvas-grid" id="canvas-grid" style="display:none"></div>
-          <!-- Center guides -->
-          <div id="canvas-guides" style="display:none">
-            <div class="canvas-guide-h"></div>
-            <div class="canvas-guide-v"></div>
-          </div>
-          <!-- Elements -->
-          <div class="canvas-els" id="canvas-els"></div>
+      <div class="couple-amp">&</div>
+      <div class="person">
+        <div class="person-photo">
+          <img src="{{GROOM_PHOTO}}" alt="{{GROOM_NAME}}" onerror="this.src='https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=375&fit=crop&crop=face'">
         </div>
+        <p class="person-name">{{GROOM_NAME}}</p>
+        <p class="person-parents">Putra dari<br>{{GROOM_FATHER}} & {{GROOM_MOTHER}}</p>
       </div>
     </div>
-  </div>
+  </section>
 
-  <!-- RIGHT: Properties + Vars -->
-  <div class="panel-right">
-    <div class="pane-head" style="border-bottom:1px solid var(--border)">
-      <span class="pane-title">Properti</span>
-      <span id="props-type-badge" class="section-tag" style="display:none"></span>
+  <!-- COUNTDOWN -->
+  <section class="countdown-section">
+    <p class="section-tag">Hitung Mundur</p>
+    <h2 class="section-title">Menuju Hari Bahagia</h2>
+    <div class="countdown" id="countdown">
+      <div class="countdown-box"><div class="countdown-num" id="cd-days">00</div><div class="countdown-label">Hari</div></div>
+      <div class="countdown-box"><div class="countdown-num" id="cd-hours">00</div><div class="countdown-label">Jam</div></div>
+      <div class="countdown-box"><div class="countdown-num" id="cd-mins">00</div><div class="countdown-label">Menit</div></div>
+      <div class="countdown-box"><div class="countdown-num" id="cd-secs">00</div><div class="countdown-label">Detik</div></div>
     </div>
+  </section>
 
-    <div class="props-body" id="props-body">
-      <div class="no-sel" id="no-sel">
-        <div class="no-sel-icon">🖱</div>
-        <div class="no-sel-text">Pilih elemen di canvas<br>untuk mengedit propertinya</div>
+  <!-- EVENT -->
+  <section class="event-section">
+    <p class="section-tag">Rangkaian Acara</p>
+    <h2 class="section-title">Undangan Resepsi</h2>
+    <div class="event-cards">
+      <div class="event-card">
+        <p class="event-type">Akad Nikah</p>
+        <div class="event-date-big">{{AKAD_DATE}}</div>
+        <div class="event-month">{{AKAD_MONTH}} {{AKAD_YEAR}}</div>
+        <p class="event-time">{{AKAD_TIME}}</p>
+        <p class="event-place">{{AKAD_VENUE}}<br><small style="color:var(--gold-light);font-size:11px;">{{AKAD_ADDRESS}}</small></p>
+        <a href="{{AKAD_MAPS}}" target="_blank" style="display:inline-block;margin-top:16px;font-size:10px;letter-spacing:2px;color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(201,169,110,0.3);padding-bottom:2px;">Lihat Peta →</a>
       </div>
-      <!-- Dynamic props inserted here -->
+      <div class="event-card">
+        <p class="event-type">Resepsi</p>
+        <div class="event-date-big">{{RESEPSI_DATE}}</div>
+        <div class="event-month">{{RESEPSI_MONTH}} {{RESEPSI_YEAR}}</div>
+        <p class="event-time">{{RESEPSI_TIME}}</p>
+        <p class="event-place">{{RESEPSI_VENUE}}<br><small style="color:var(--gold-light);font-size:11px;">{{RESEPSI_ADDRESS}}</small></p>
+        <a href="{{RESEPSI_MAPS}}" target="_blank" style="display:inline-block;margin-top:16px;font-size:10px;letter-spacing:2px;color:var(--gold);text-decoration:none;border-bottom:1px solid rgba(201,169,110,0.3);padding-bottom:2px;">Lihat Peta →</a>
+      </div>
     </div>
+  </section>
 
-    <!-- Template vars -->
-    <div class="vars-panel">
-      <div class="pane-head">
-        <span class="pane-title">Template Variables</span>
-      </div>
-      <div class="var-list" id="var-list">
-        <!-- chips rendered by JS -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Add Image ─────────────────────────────────── -->
-<div class="overlay" id="modal-image">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title">🖼 Tambah Gambar</span>
-      <button class="modal-close" onclick="closeModal('modal-image')">×</button>
-    </div>
-    <div class="modal-body">
-      <!-- Tabs -->
-      <div style="display:flex;gap:4px;margin-bottom:16px">
-        <button class="btn btn-gold" id="img-tab-upload" onclick="switchImgTab('upload')">Upload File</button>
-        <button class="btn btn-ghost" id="img-tab-url" onclick="switchImgTab('url')">URL / Link</button>
-        <button class="btn btn-ghost" id="img-tab-var" onclick="switchImgTab('var')">Variable Template</button>
-      </div>
-
-      <!-- Upload tab -->
-      <div id="img-tab-upload-body">
-        <div class="upload-zone" id="upload-zone">
-          <input type="file" id="img-file-input" accept="image/*,.webp" onchange="handleFileUpload(event)">
-          <div class="upload-zone-icon" id="upload-zone-icon">📁</div>
-          <div class="upload-zone-text" id="upload-zone-text">Drag & drop atau klik untuk upload</div>
-          <div class="upload-zone-sub" id="upload-zone-sub">WebP, PNG, JPG, SVG, GIF – max 5MB</div>
+  <!-- LOVE STORY -->
+  <section class="story-section">
+    <p class="section-tag">Kisah Kami</p>
+    <h2 class="section-title">Perjalanan Cinta</h2>
+    <div class="story-timeline">
+      <div class="story-item" style="justify-content:flex-end">
+        <div class="story-content">
+          <div class="story-year">{{STORY_1_YEAR}}</div>
+          <p class="story-text">{{STORY_1_TEXT}}</p>
         </div>
-        <div id="img-upload-preview" style="display:none;margin-top:12px">
-          <div class="preview-img-wrap"><img id="img-upload-preview-img" src=""></div>
-          <div style="font-size:11px;color:var(--muted)" id="img-upload-name"></div>
-          <div style="font-size:11px;margin-top:4px" id="img-upload-github-url"></div>
+        <div class="story-dot"></div>
+      </div>
+      <div class="story-item">
+        <div class="story-content" style="text-align:left;padding-left:40px;padding-right:0">
+          <div class="story-year">{{STORY_2_YEAR}}</div>
+          <p class="story-text">{{STORY_2_TEXT}}</p>
         </div>
+        <div class="story-dot" style="order:-1"></div>
       </div>
-
-      <!-- URL tab -->
-      <div id="img-tab-url-body" style="display:none">
-        <div class="field-label">URL Gambar</div>
-        <input class="field-input" id="img-url-input" placeholder="https://..." oninput="previewImgUrl()">
-        <div id="img-url-preview" style="display:none;margin-top:12px">
-          <div class="preview-img-wrap"><img id="img-url-preview-img" src="" onerror="this.parentElement.parentElement.style.display='none'"></div>
+      <div class="story-item" style="justify-content:flex-end">
+        <div class="story-content">
+          <div class="story-year">{{STORY_3_YEAR}}</div>
+          <p class="story-text">{{STORY_3_TEXT}}</p>
         </div>
-      </div>
-
-      <!-- Variable tab -->
-      <div id="img-tab-var-body" style="display:none">
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.6">
-          Pilih variable template. Gambar akan menggunakan URL yang diisi admin saat membuat undangan.
-        </div>
-        <div id="img-var-chips" style="margin-bottom:8px"></div>
-        <div style="font-size:11px;color:var(--muted)" id="img-var-selected-label">Belum dipilih</div>
-      </div>
-
-      <!-- Size input -->
-      <div style="margin-top:16px" class="fg">
-        <div>
-          <div class="field-label">Lebar (px)</div>
-          <input class="field-input" id="img-w" type="number" value="200">
-        </div>
-        <div>
-          <div class="field-label">Tinggi (px)</div>
-          <input class="field-input" id="img-h" type="number" value="200">
-        </div>
-        <div>
-          <div class="field-label">Object Fit</div>
-          <select class="field-input" id="img-fit">
-            <option value="cover">Cover</option>
-            <option value="contain">Contain</option>
-            <option value="fill">Fill</option>
-          </select>
-        </div>
-        <div>
-          <div class="field-label">Nama Layer</div>
-          <input class="field-input" id="img-name" placeholder="Image 1">
-        </div>
+        <div class="story-dot"></div>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modal-image')">Batal</button>
-      <button class="btn btn-gold" onclick="confirmAddImage()">Tambah ke Canvas</button>
-    </div>
-  </div>
-</div>
+  </section>
 
-<!-- ── MODAL: Font Manager ──────────────────────────────── -->
-<div class="overlay" id="modal-font">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title">🔤 Kelola Font</span>
-      <button class="modal-close" onclick="closeModal('modal-font')">×</button>
+  <!-- GALLERY -->
+  <section class="gallery-section">
+    <p class="section-tag">Foto Bersama</p>
+    <h2 class="section-title">Kenangan Indah</h2>
+    <div class="gallery-grid">
+      <div class="gallery-item"><img src="{{GALLERY_1}}" alt="Gallery" onerror="this.src='https://images.unsplash.com/photo-1519741497674-611481863552?w=600&h=300&fit=crop'"></div>
+      <div class="gallery-item"><img src="{{GALLERY_2}}" alt="Gallery" onerror="this.src='https://images.unsplash.com/photo-1537633552985-df8429e8048b?w=300&h=300&fit=crop'"></div>
+      <div class="gallery-item"><img src="{{GALLERY_3}}" alt="Gallery" onerror="this.src='https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=300&h=300&fit=crop'"></div>
+      <div class="gallery-item"><img src="{{GALLERY_4}}" alt="Gallery" onerror="this.src='https://images.unsplash.com/photo-1525776874-b1a9b5219de9?w=600&h=300&fit=crop'"></div>
+      <div class="gallery-item"><img src="{{GALLERY_5}}" alt="Gallery" onerror="this.src='https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=300&h=300&fit=crop'"></div>
     </div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
-        Tempel link Google Fonts atau isi nama font. Font yang ditambahkan bisa dipakai di semua elemen teks.
+  </section>
+
+  <!-- RSVP -->
+  <section class="rsvp-section">
+    <p class="section-tag">Konfirmasi Kehadiran</p>
+    <h2 class="section-title">Mohon Konfirmasi</h2>
+    <p style="font-size:13px;color:rgba(250,246,240,0.6);max-width:400px;margin:0 auto;">Kehadiran Anda sangat berarti bagi kami. Mohon konfirmasikan kehadiran Anda sebelum <strong style="color:var(--gold-light)">{{RSVP_DEADLINE}}</strong>.</p>
+    <div class="rsvp-form">
+      <div class="form-group">
+        <label>Nama Lengkap</label>
+        <input type="text" id="rsvp-name" placeholder="Masukkan nama Anda" value="{{GUEST_NAME}}">
       </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
-        <div style="flex:1">
-          <div class="field-label">Google Fonts URL atau nama font</div>
-          <input class="field-input" id="font-url-input" placeholder="https://fonts.googleapis.com/css2?family=Playfair+Display atau Playfair+Display">
-        </div>
-        <button class="btn btn-gold" onclick="addFont()">Tambah</button>
+      <div class="form-group">
+        <label>Konfirmasi Kehadiran</label>
+        <select id="rsvp-attend">
+          <option value="">-- Pilih --</option>
+          <option value="hadir">Hadir</option>
+          <option value="tidak_hadir">Tidak Hadir</option>
+          <option value="mungkin">Mungkin Hadir</option>
+        </select>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
-        Contoh: Playfair+Display, Great+Vibes, Sacramento, Dancing+Script
+      <div class="form-group">
+        <label>Jumlah Tamu</label>
+        <input type="number" id="rsvp-count" placeholder="1" min="1" max="5">
       </div>
-
-      <div class="field-label" style="margin-bottom:8px">Font Terpasang</div>
-      <div id="font-pills-list">
-        <div style="font-size:12px;color:var(--muted)">Belum ada font tambahan</div>
+      <div class="form-group">
+        <label>Ucapan & Doa</label>
+        <textarea id="rsvp-message" rows="3" placeholder="Tuliskan ucapan dan doa Anda..."></textarea>
       </div>
+      <button class="submit-btn" onclick="submitRSVP()">Kirim Konfirmasi</button>
+    </div>
+    <div id="rsvp-success" style="display:none;margin-top:32px;padding:24px;border:1px solid rgba(201,169,110,0.3);">
+      <p style="color:var(--gold);font-family:'Cormorant Garamond',serif;font-size:22px;font-style:italic;">Terima kasih!</p>
+      <p style="font-size:13px;color:rgba(250,246,240,0.6);margin-top:8px;">Konfirmasi kehadiran Anda telah kami terima.</p>
+    </div>
+  </section>
 
-      <div class="divider"></div>
-      <div class="field-label" style="margin-bottom:8px">Preview Font</div>
-      <div id="font-preview-list" style="font-size:18px;line-height:2;color:var(--text)">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic">Cormorant Garamond – Built-in</div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans – Built-in</div>
+  <!-- GIFT -->
+  <section class="gift-section">
+    <p class="section-tag">Hadiah Pernikahan</p>
+    <h2 class="section-title">Amplop Digital</h2>
+    <p style="font-size:13px;color:rgba(250,246,240,0.6);max-width:400px;margin:0 auto;">Doa dan kehadiran Anda adalah hadiah terbaik. Namun jika ingin memberikan hadiah, berikut rekening kami:</p>
+    <div class="gift-cards">
+      <div class="gift-card">
+        <div class="gift-bank">{{BANK_1}}</div>
+        <div class="gift-number">{{ACCOUNT_1}}</div>
+        <div class="gift-name">a/n {{ACCOUNT_NAME_1}}</div>
+        <button class="copy-btn" onclick="copyText('{{ACCOUNT_1}}')">Salin Nomor</button>
+      </div>
+      <div class="gift-card">
+        <div class="gift-bank">{{BANK_2}}</div>
+        <div class="gift-number">{{ACCOUNT_2}}</div>
+        <div class="gift-name">a/n {{ACCOUNT_NAME_2}}</div>
+        <button class="copy-btn" onclick="copyText('{{ACCOUNT_2}}')">Salin Nomor</button>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn btn-gold" onclick="closeModal('modal-font')">Selesai</button>
-    </div>
-  </div>
-</div>
+  </section>
 
-<!-- ── MODAL: Section Style ─────────────────────────────── -->
-<div class="overlay" id="modal-section">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-head">
-      <span class="modal-title">🎨 Style Seksi Template</span>
-      <button class="modal-close" onclick="closeModal('modal-section')">×</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
-        Ubah warna latar belakang setiap seksi template. Perubahan akan terlihat di canvas dan diterapkan ke template.
-      </div>
-      <div id="section-style-list"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="resetSectionStyles()">Reset Default</button>
-      <button class="btn btn-gold" onclick="closeModal('modal-section')">Terapkan</button>
-    </div>
-  </div>
-</div>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-gold-line"></div>
+    <p style="font-size:11px;letter-spacing:4px;color:rgba(250,246,240,0.5);text-transform:uppercase;margin-bottom:16px">With Love</p>
+    <p class="footer-names">{{BRIDE_NAME}} & {{GROOM_NAME}}</p>
+    <div class="footer-gold-line"></div>
+    <p class="footer-closing">{{AKAD_DATE}} {{AKAD_MONTH}} {{AKAD_YEAR}}</p>
+    <p class="footer-credit" style="margin-top:40px">Made with ♥ by {{VENDOR_NAME}}</p>
+  </footer>
 
-<!-- ── MODAL: Save Result ───────────────────────────────── -->
-<div class="overlay" id="modal-save">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head">
-      <span class="modal-title" id="save-modal-title">Menyimpan...</span>
-      <button class="modal-close" onclick="closeModal('modal-save')">×</button>
-    </div>
-    <div class="modal-body" id="save-modal-body" style="text-align:center;padding:32px">
-      <div class="spin" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div>
-      <div style="font-size:13px;color:var(--muted)">Menghubungi GitHub API...</div>
-    </div>
-  </div>
-</div>
-
-<!-- TOAST -->
-<div class="toast" id="toast"></div>
+</main>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════
-const CANVAS_W = 390;
+  // Config
+  const weddingDate = new Date('{{WEDDING_DATE_ISO}}');
 
-const SECTIONS = [
-  { id:'cover',    label:'Cover / Landing Page',     height:420, bg:'#100c07', accent:'#c9a96e' },
-  { id:'hero',     label:'Hero – Nama Mempelai',     height:360, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'quote',    label:'Quote / Ayat Suci',        height:100, bg:'#0d0a06', accent:'#8a9b7e' },
-  { id:'countdown',label:'Countdown Timer',          height:200, bg:'#111008', accent:'#c9a96e' },
-  { id:'couple',   label:'Profil Mempelai',          height:380, bg:'#1a1208', accent:'#e8c4b8' },
-  { id:'events',   label:'Akad Nikah & Resepsi',     height:280, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'story',    label:'Love Story Timeline',      height:320, bg:'#1a1208', accent:'#8a9b7e' },
-  { id:'gallery',  label:'Gallery Foto',             height:260, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'rsvp',     label:'RSVP Form',                height:320, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'gift',     label:'Amplop Digital',           height:220, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'footer',   label:'Footer',                   height:120, bg:'#090704', accent:'#c9a96e' },
-];
-const CANVAS_H = SECTIONS.reduce((s,sec) => s + sec.height, 0);
+  function openInvitation() {
+    document.getElementById('cover').classList.add('hidden');
+    setTimeout(() => {
+      document.getElementById('main').classList.add('visible');
+      document.getElementById('musicBtn').classList.add('show');
+      startCountdown();
+      // Auto play music
+      const music = document.getElementById('bgMusic');
+      music.play().catch(() => {});
+    }, 800);
+  }
 
-const HANDLES = [
-  {dir:'nw',cur:'nw-resize'},{dir:'n',cur:'n-resize'},{dir:'ne',cur:'ne-resize'},
-  {dir:'e',cur:'e-resize'},{dir:'se',cur:'se-resize'},{dir:'s',cur:'s-resize'},
-  {dir:'sw',cur:'sw-resize'},{dir:'w',cur:'w-resize'}
-];
+  // Countdown
+  function startCountdown() {
+    function update() {
+      const now = new Date();
+      const diff = weddingDate - now;
+      if (diff <= 0) {
+        document.getElementById('countdown').innerHTML = '<p style="font-family:Cormorant Garamond,serif;font-size:32px;font-style:italic;color:var(--gold)">Hari Bahagia Telah Tiba ✦</p>';
+        return;
+      }
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff % 86400000) / 3600000);
+      const m = Math.floor((diff % 3600000) / 60000);
+      const s = Math.floor((diff % 60000) / 1000);
+      document.getElementById('cd-days').textContent = String(d).padStart(2,'0');
+      document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
+      document.getElementById('cd-mins').textContent = String(m).padStart(2,'0');
+      document.getElementById('cd-secs').textContent = String(s).padStart(2,'0');
+    }
+    update(); setInterval(update, 1000);
+  }
 
-const TEMPLATE_VARS = [
-  '{{BRIDE_NAME}}','{{GROOM_NAME}}','{{BRIDE_FATHER}}','{{BRIDE_MOTHER}}',
-  '{{GROOM_FATHER}}','{{GROOM_MOTHER}}','{{BRIDE_PHOTO}}','{{GROOM_PHOTO}}',
-  '{{AKAD_DATE}}','{{AKAD_MONTH}}','{{AKAD_YEAR}}','{{AKAD_DAY}}',
-  '{{AKAD_TIME}}','{{AKAD_VENUE}}','{{AKAD_ADDRESS}}','{{AKAD_MAPS}}',
-  '{{RESEPSI_DATE}}','{{RESEPSI_MONTH}}','{{RESEPSI_YEAR}}','{{RESEPSI_TIME}}',
-  '{{RESEPSI_VENUE}}','{{RESEPSI_ADDRESS}}','{{RESEPSI_MAPS}}',
-  '{{GALLERY_1}}','{{GALLERY_2}}','{{GALLERY_3}}','{{GALLERY_4}}','{{GALLERY_5}}',
-  '{{STORY_1_YEAR}}','{{STORY_1_TEXT}}','{{STORY_2_YEAR}}','{{STORY_2_TEXT}}',
-  '{{STORY_3_YEAR}}','{{STORY_3_TEXT}}',
-  '{{BANK_1}}','{{ACCOUNT_1}}','{{ACCOUNT_NAME_1}}',
-  '{{BANK_2}}','{{ACCOUNT_2}}','{{ACCOUNT_NAME_2}}',
-  '{{RSVP_DEADLINE}}','{{WA_NUMBER}}','{{WEDDING_DATE_ISO}}',
-  '{{VENDOR_NAME}}','{{GUEST_NAME}}'
-];
+  // Music
+  let isPlaying = false;
+  function toggleMusic() {
+    const music = document.getElementById('bgMusic');
+    const btn = document.getElementById('musicBtn');
+    if (isPlaying) {
+      music.pause(); btn.classList.remove('playing');
+      btn.textContent = '♪'; isPlaying = false;
+    } else {
+      music.play(); btn.classList.add('playing');
+      btn.textContent = '■'; isPlaying = true;
+    }
+  }
 
-const BUILT_IN_FONTS = ['Cormorant Garamond','Plus Jakarta Sans'];
+  // RSVP
+  function submitRSVP() {
+    const name = document.getElementById('rsvp-name').value;
+    const attend = document.getElementById('rsvp-attend').value;
+    const count = document.getElementById('rsvp-count').value;
+    const msg = document.getElementById('rsvp-message').value;
+    if (!name || !attend) { alert('Mohon lengkapi nama dan konfirmasi kehadiran.'); return; }
+    const waNum = '{{WA_NUMBER}}';
+    const text = `*RSVP Undangan Pernikahan*\n{{BRIDE_NAME}} & {{GROOM_NAME}}\n\nNama: ${name}\nKehadiran: ${attend}\nJumlah: ${count || 1} orang\nPesan: ${msg || '-'}`;
+    window.open(`https://wa.me/${waNum}?text=${encodeURIComponent(text)}`, '_blank');
+    document.querySelector('.rsvp-form').style.display = 'none';
+    document.getElementById('rsvp-success').style.display = 'block';
+  }
 
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let state = {
-  layers: [],
-  selected: null,
-  tool: 'select',
-  zoom: 0.5,
-  showGrid: false,
-  showGuides: false,
-  snapToGrid: false,
-  gridSize: 20,
-  sectionBgs: {},    // overrides for section backgrounds
-  customFonts: [],   // { name, url }
-  history: [],
-  histIndex: -1,
-};
+  // Copy
+  function copyText(text) {
+    navigator.clipboard.writeText(text).then(() => alert('Nomor rekening tersalin!'));
+  }
 
-// Pending image data for modal
-let pendingImg = { src: '', type: 'upload', selectedVar: '', uploading: false };
-
-// Ambil templateId dari URL param atau default
-(function() {
+  // URL param for guest name
   const params = new URLSearchParams(window.location.search);
-  state.currentTemplateId = params.get('templateId') || 'template-elegant';
-})();
-
-// ═══════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════
-function init() {
-  buildCanvasBg();
-  setZoom(0.5);
-  renderVarChips();
-  renderLayers();
-  renderCanvas();
-  loadFromStorage();
-  buildSectionStyleList();
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', onKeydown);
-  // Prevent browser zoom
-  document.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); adjustZoom(e.deltaY < 0 ? .1 : -.1); } }, {passive:false});
-}
-
-function loadFromStorage() {
-  try {
-    const saved = localStorage.getItem('ud_template_design');
-    if (saved) {
-      const data = JSON.parse(saved);
-      state.layers = data.layers || [];
-      state.sectionBgs = data.sectionBgs || {};
-      state.customFonts = data.customFonts || [];
-      if (state.customFonts.length) {
-        state.customFonts.forEach(f => injectFont(f));
-        renderFontPills();
-      }
-      buildCanvasBg();
-      renderLayers();
-      renderCanvas();
-      toast('💾 Design terakhir dimuat dari storage');
-    }
-  } catch(e) {}
-}
-
-function saveToStorage() {
-  localStorage.setItem('ud_template_design', JSON.stringify({
-    layers: state.layers,
-    sectionBgs: state.sectionBgs,
-    customFonts: state.customFonts,
-  }));
-}
-
-// ═══════════════════════════════════════════════════════════
-// CANVAS BACKGROUND
-// ═══════════════════════════════════════════════════════════
-function buildCanvasBg() {
-  const bg = document.getElementById('canvas-bg');
-  bg.innerHTML = '';
-  SECTIONS.forEach(sec => {
-    const bgColor = state.sectionBgs[sec.id] || sec.bg;
-    const div = document.createElement('div');
-    div.className = 'section-block';
-    div.dataset.section = sec.id;
-    div.style.cssText = `height:${sec.height}px;background:${bgColor};`;
-    div.innerHTML = `
-      <div class="section-label">${sec.label}</div>
-      <div class="section-accent" style="background:linear-gradient(90deg,transparent,${sec.accent}33,transparent)"></div>
-    `;
-    bg.appendChild(div);
-  });
-  document.getElementById('canvas').style.height = CANVAS_H + 'px';
-}
-
-// ═══════════════════════════════════════════════════════════
-// ZOOM
-// ═══════════════════════════════════════════════════════════
-function setZoom(z) {
-  state.zoom = Math.max(0.2, Math.min(2, z));
-  const scaler = document.getElementById('canvas-scaler');
-  const wrap   = document.getElementById('canvas-wrap');
-  scaler.style.transform = `scale(${state.zoom})`;
-  scaler.style.width  = CANVAS_W + 'px';
-  scaler.style.height = CANVAS_H + 'px';
-  wrap.style.width    = (CANVAS_W * state.zoom) + 'px';
-  wrap.style.height   = (CANVAS_H * state.zoom) + 'px';
-  document.getElementById('zoom-label').textContent = Math.round(state.zoom*100) + '%';
-}
-function adjustZoom(delta) { setZoom(state.zoom + delta); }
-function resetZoom() { setZoom(0.5); }
-
-// ═══════════════════════════════════════════════════════════
-// TOOLS
-// ═══════════════════════════════════════════════════════════
-function setTool(t) {
-  state.tool = t;
-  document.querySelectorAll('.tb-tool').forEach(el => el.classList.remove('active'));
-  const btn = document.getElementById('tool-' + t);
-  if (btn) btn.classList.add('active');
-  document.getElementById('canvas').style.cursor = t === 'select' ? 'default' : 'crosshair';
-}
-
-// ═══════════════════════════════════════════════════════════
-// LAYER CRUD
-// ═══════════════════════════════════════════════════════════
-let _idCounter = 1;
-function newId() { return 'el_' + (_idCounter++) + '_' + Date.now(); }
-
-function nextZ() {
-  return state.layers.length ? Math.max(...state.layers.map(l => l.zIndex)) + 1 : 1;
-}
-
-function findLayer(id) { return state.layers.find(l => l.id === id); }
-
-function addLayer(layer) {
-  pushHistory();
-  state.layers.push(layer);
-  state.selected = layer.id;
-  renderLayers();
-  renderCanvas();
-  updatePropsPanel();
-  saveToStorage();
-}
-
-function deleteLayer(id) {
-  pushHistory();
-  state.layers = state.layers.filter(l => l.id !== id);
-  if (state.selected === id) { state.selected = null; updatePropsPanel(); }
-  renderLayers();
-  renderCanvas();
-  saveToStorage();
-}
-
-function duplicateLayer(id) {
-  const src = findLayer(id);
-  if (!src) return;
-  const copy = JSON.parse(JSON.stringify(src));
-  copy.id = newId();
-  copy.name = src.name + ' copy';
-  copy.x += 16; copy.y += 16;
-  copy.zIndex = nextZ();
-  addLayer(copy);
-  toast('Layer diduplikasi');
-}
-
-function selectLayer(id) {
-  state.selected = id;
-  renderCanvas();
-  renderLayers();
-  updatePropsPanel();
-}
-
-function deselectAll() {
-  state.selected = null;
-  renderCanvas();
-  renderLayers();
-  updatePropsPanel();
-}
-
-// ═══════════════════════════════════════════════════════════
-// ADD ELEMENT HELPERS
-// ═══════════════════════════════════════════════════════════
-function addBoxLayer() {
-  const centerX = Math.round((CANVAS_W - 160) / 2);
-  addLayer({
-    id: newId(), type: 'box', name: 'Box ' + (state.layers.length+1),
-    x: centerX, y: 100, w: 160, h: 80, rotation: 0,
-    opacity: 0.5, visible: true, locked: false, zIndex: nextZ(),
-    bgColor: 'rgba(201,169,110,0.25)',
-    borderColor: 'rgba(201,169,110,0.6)', borderWidth: 1, borderRadius: 0,
-    linkedVar: '',
-  });
-  setTool('select');
-  toast('Box ditambahkan');
-}
-
-function addTextLayer() {
-  const centerX = Math.round((CANVAS_W - 200) / 2);
-  addLayer({
-    id: newId(), type: 'text', name: 'Teks ' + (state.layers.length+1),
-    x: centerX, y: 120, w: 200, h: 60, rotation: 0,
-    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
-    text: 'Teks di sini',
-    fontFamily: 'Cormorant Garamond', fontSize: 24,
-    fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-    textAlign: 'center', color: '#f0c060', lineHeight: 1.4,
-    linkedVar: '',
-  });
-  setTool('select');
-  toast('Teks ditambahkan');
-}
-
-function confirmAddImage() {
-  if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
-  let src = '';
-  const tab = document.getElementById('img-tab-upload').classList.contains('btn-gold') ? 'upload'
-    : document.getElementById('img-tab-url').classList.contains('btn-gold') ? 'url' : 'var';
-
-  if (tab === 'upload') src = pendingImg.src;
-  else if (tab === 'url') src = document.getElementById('img-url-input').value.trim();
-  else if (tab === 'var') src = pendingImg.selectedVar;
-
-  if (!src) { toast('Pilih gambar atau masukkan URL dulu!', 'err'); return; }
-
-  const w = parseInt(document.getElementById('img-w').value) || 200;
-  const h = parseInt(document.getElementById('img-h').value) || 200;
-  const fit = document.getElementById('img-fit').value;
-  const name = document.getElementById('img-name').value.trim() || ('Gambar ' + (state.layers.length+1));
-  const cx = Math.round((CANVAS_W - w) / 2);
-  const isVar = tab === 'var';
-
-  addLayer({
-    id: newId(), type: 'image', name,
-    x: cx, y: 80, w, h, rotation: 0,
-    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
-    src: src, objectFit: fit,
-    linkedVar: isVar ? src : '',
-  });
-  closeModal('modal-image');
-  setTool('select');
-  toast('Gambar ditambahkan ✓');
-  // reset
-  pendingImg = { src:'', type:'upload', selectedVar:'', uploading: false };
-  document.getElementById('img-upload-preview').style.display = 'none';
-  document.getElementById('img-upload-github-url').textContent = '';
-  document.getElementById('img-url-input').value = '';
-}
-
-// ═══════════════════════════════════════════════════════════
-// CANVAS RENDER
-// ═══════════════════════════════════════════════════════════
-function renderCanvas() {
-  const container = document.getElementById('canvas-els');
-  if (!state.layers.length) { container.innerHTML = ''; return; }
-
-  const sorted = [...state.layers]
-    .filter(l => l.visible)
-    .sort((a, b) => a.zIndex - b.zIndex);
-
-  container.innerHTML = sorted.map(layer => {
-    const isSel = layer.id === state.selected;
-    let inner = '';
-
-    if (layer.type === 'image') {
-      const src = layer.src.startsWith('{{') ? '' : escH(layer.src);
-      inner = src
-        ? `<img src="${src}" style="width:100%;height:100%;object-fit:${layer.objectFit};display:block" draggable="false" onerror="this.style.opacity='0'">`
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(96,165,250,.08);border:1px dashed rgba(96,165,250,.3)"><span style="font-size:11px;color:rgba(96,165,250,.8);font-family:monospace">${escH(layer.src)}</span></div>`;
-      if (layer.linkedVar) inner += `<div class="var-badge">${escH(layer.linkedVar)}</div>`;
-    } else if (layer.type === 'box') {
-      // styled by parent div
-    } else if (layer.type === 'text') {
-      const fam = layer.fontFamily.includes(' ') ? `'${layer.fontFamily}'` : layer.fontFamily;
-      inner = `<div class="el-inner" style="display:flex;align-items:center;justify-content:${layer.textAlign==='center'?'center':layer.textAlign==='right'?'flex-end':'flex-start'};padding:4px">
-        <span style="font-family:${fam},serif;font-size:${layer.fontSize}px;color:${escH(layer.color)};font-weight:${layer.fontWeight};font-style:${layer.fontStyle};text-decoration:${layer.textDecoration};text-align:${layer.textAlign};line-height:${layer.lineHeight};display:block;word-break:break-word;width:100%">${escH(layer.text)}</span></div>`;
-    }
-
-    const handles = isSel && !layer.locked
-      ? HANDLES.map(h => `<div class="h h-${h.dir}" data-dir="${h.dir}" style="cursor:${h.cur}" onmousedown="hMousedown(event,'${layer.id}','${h.dir}')"></div>`).join('')
-      : '';
-
-    const bSt = layer.type === 'box'
-      ? `background:${layer.bgColor};border:${layer.borderWidth}px solid ${escH(layer.borderColor)};border-radius:${layer.borderRadius}px;`
-      : '';
-
-    return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
-      data-id="${layer.id}"
-      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}cursor:${layer.locked?'default':'move'}"
-      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${inner}${handles}</div>`;
-  }).join('');
-}
-
-function escH(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ═══════════════════════════════════════════════════════════
-// MOUSE EVENTS (drag / resize)
-// ═══════════════════════════════════════════════════════════
-function getCanvasPos(e) {
-  const scaler = document.getElementById('canvas-scaler');
-  const rect = scaler.getBoundingClientRect();
-  return {
-    x: (e.clientX - rect.left) / state.zoom,
-    y: (e.clientY - rect.top)  / state.zoom
-  };
-}
-
-function elMousedown(e, el) {
-  e.stopPropagation();
-  if (e.target.classList.contains('h')) return;
-  const id = el.dataset.id;
-  selectLayer(id);
-  const layer = findLayer(id);
-  if (!layer || layer.locked) return;
-
-  const start = getCanvasPos(e);
-  const ox = layer.x - start.x, oy = layer.y - start.y;
-  let moved = false;
-
-  function onMove(e) {
-    const pos = getCanvasPos(e);
-    let nx = pos.x + ox, ny = pos.y + oy;
-    if (state.snapToGrid) {
-      nx = Math.round(nx / state.gridSize) * state.gridSize;
-      ny = Math.round(ny / state.gridSize) * state.gridSize;
-    }
-    layer.x = nx; layer.y = ny;
-    moved = true;
-    renderCanvas(); updatePropsPanel();
+  const guestParam = params.get('to');
+  if (guestParam) {
+    const el = document.querySelector('#cover .names + * + p');
+    // handled by server/template
   }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    if (moved) { saveHistory(); saveToStorage(); }
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
-
-function hMousedown(e, id, dir) {
-  e.stopPropagation(); e.preventDefault();
-  const layer = findLayer(id);
-  if (!layer) return;
-  pushHistory();
-
-  const start = getCanvasPos(e);
-  const s = { x: layer.x, y: layer.y, w: layer.w, h: layer.h };
-
-  function onMove(e) {
-    const pos = getCanvasPos(e);
-    const dx = pos.x - start.x, dy = pos.y - start.y;
-    let {x,y,w,h} = s;
-    if (dir.includes('e')) w = Math.max(20, s.w + dx);
-    if (dir.includes('s')) h = Math.max(20, s.h + dy);
-    if (dir.includes('w')) { const nw = Math.max(20, s.w - dx); x = s.x + s.w - nw; w = nw; }
-    if (dir.includes('n')) { const nh = Math.max(20, s.h - dy); y = s.y + s.h - nh; h = nh; }
-    layer.x=x; layer.y=y; layer.w=w; layer.h=h;
-    renderCanvas(); updatePropsPanel();
-  }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    saveToStorage();
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
-
-function canvasBgMousedown(e) {
-  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent')) {
-    deselectAll();
-  }
-  if (state.tool === 'box' && (e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target.classList.contains('section-block'))) {
-    const pos = getCanvasPos(e);
-    addLayer({
-      id:newId(), type:'box', name:'Box '+(state.layers.length+1),
-      x:Math.round(pos.x), y:Math.round(pos.y), w:140, h:80,
-      rotation:0, opacity:0.5, visible:true, locked:false, zIndex:nextZ(),
-      bgColor:'rgba(201,169,110,0.25)', borderColor:'rgba(201,169,110,0.5)', borderWidth:1, borderRadius:0,
-      linkedVar:'',
-    });
-    setTool('select');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// LAYERS PANEL
-// ═══════════════════════════════════════════════════════════
-let dragLayerId = null, dragOverId = null;
-
-function renderLayers() {
-  const container = document.getElementById('layers-list');
-  const q = (document.getElementById('layer-search')?.value || '').toLowerCase();
-  const list = [...state.layers].reverse(); // top layer first
-  const filtered = q ? list.filter(l => l.name.toLowerCase().includes(q)) : list;
-
-  if (!state.layers.length) {
-    container.innerHTML = `<div class="layers-empty"><div>📦</div><div>Belum ada layer.<br>Klik <strong>+</strong> untuk menambah elemen desain.</div></div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(layer => {
-    const isSel = layer.id === state.selected;
-    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : 'T';
-    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : 'badge-txt';
-
-    let thumb = `<span>${typeIcon}</span>`;
-    if (layer.type === 'image' && layer.src && !layer.src.startsWith('{{')) {
-      thumb = `<img src="${escH(layer.src)}" onerror="this.style.display='none'">`;
-    }
-
-    return `<div class="layer-item${isSel?' selected':''}"
-      data-id="${layer.id}" draggable="true"
-      onclick="selectLayer('${layer.id}')"
-      ondragstart="layerDragStart(event,'${layer.id}')"
-      ondragover="layerDragOver(event,'${layer.id}')"
-      ondrop="layerDrop(event,'${layer.id}')"
-      ondragleave="layerDragLeave(event)">
-      <button class="li-vis${!layer.visible?' off':''}" onclick="toggleVis('${layer.id}',event)" title="${layer.visible?'Sembunyikan':'Tampilkan'}">${layer.visible?'👁':'🚫'}</button>
-      <button class="li-lock${layer.locked?' on':''}" onclick="toggleLock('${layer.id}',event)" title="${layer.locked?'Buka kunci':'Kunci'}">${layer.locked?'🔒':'🔓'}</button>
-      <div class="li-thumb ${typeBadge}">${thumb}</div>
-      <span class="li-name" title="${escH(layer.name)}">${escH(layer.name)}</span>
-      <button class="li-del" onclick="deleteLayer('${layer.id}');event.stopPropagation()" title="Hapus">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function toggleVis(id, e) {
-  e.stopPropagation();
-  const l = findLayer(id);
-  if (l) { l.visible = !l.visible; renderCanvas(); renderLayers(); saveToStorage(); }
-}
-function toggleLock(id, e) {
-  e.stopPropagation();
-  const l = findLayer(id);
-  if (l) { l.locked = !l.locked; renderCanvas(); renderLayers(); }
-}
-
-// Layer drag-to-reorder
-function layerDragStart(e, id) {
-  dragLayerId = id;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => document.querySelector(`.layer-item[data-id="${id}"]`)?.classList.add('dragging'), 0);
-}
-function layerDragOver(e, id) {
-  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('drag-over'));
-  if (id !== dragLayerId) {
-    document.querySelector(`.layer-item[data-id="${id}"]`)?.classList.add('drag-over');
-    dragOverId = id;
-  }
-}
-function layerDragLeave(e) {
-  e.target.closest('.layer-item')?.classList.remove('drag-over');
-}
-function layerDrop(e, id) {
-  e.preventDefault();
-  document.querySelectorAll('.layer-item').forEach(el => { el.classList.remove('dragging','drag-over'); });
-  if (!dragLayerId || dragLayerId === id) return;
-  pushHistory();
-  const fromIdx = state.layers.findIndex(l => l.id === dragLayerId);
-  const toIdx   = state.layers.findIndex(l => l.id === id);
-  if (fromIdx < 0 || toIdx < 0) return;
-  const [moved] = state.layers.splice(fromIdx, 1);
-  state.layers.splice(toIdx, 0, moved);
-  // reassign zIndex
-  state.layers.forEach((l, i) => l.zIndex = i + 1);
-  renderLayers(); renderCanvas(); saveToStorage();
-  dragLayerId = null; dragOverId = null;
-}
-
-// ═══════════════════════════════════════════════════════════
-// PROPERTIES PANEL
-// ═══════════════════════════════════════════════════════════
-function updatePropsPanel() {
-  const body = document.getElementById('props-body');
-  const badge = document.getElementById('props-type-badge');
-  const noSel = document.getElementById('no-sel');
-
-  if (!state.selected) {
-    body.innerHTML = `<div class="no-sel"><div class="no-sel-icon">🖱</div><div class="no-sel-text">Pilih elemen di canvas<br>untuk mengedit propertinya</div></div>`;
-    badge.style.display = 'none';
-    return;
-  }
-
-  const l = findLayer(state.selected);
-  if (!l) return;
-
-  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : 'TEKS';
-  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : 'badge-txt';
-  badge.textContent = typeLabel;
-  badge.className = 'section-tag ' + typeCls;
-  badge.style.display = 'inline-block';
-
-  const allFonts = [...BUILT_IN_FONTS, ...state.customFonts.map(f => f.name)];
-  const fontOpts = allFonts.map(f => `<option value="${escH(f)}" ${l.fontFamily===f?'selected':''}>${f}</option>`).join('');
-
-  const varOpts = `<option value="">— Tidak ada —</option>` + TEMPLATE_VARS.map(v => `<option value="${escH(v)}" ${l.linkedVar===v?'selected':''}>${v}</option>`).join('');
-
-  let typeSpecific = '';
-
-  if (l.type === 'image') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Gambar</div>
-        <div class="prop-label">Sumber (URL / base64)</div>
-        <input class="prop-input" value="${l.src.startsWith('data:') ? '[Base64 Upload]' : escH(l.src)}" ${l.src.startsWith('data:') ? 'readonly style="color:var(--muted)"' : ''} oninput="setProp('src',this.value)" style="margin-bottom:6px">
-        <div class="prop-label">Object Fit</div>
-        <select class="prop-select" onchange="setProp('objectFit',this.value)">
-          <option value="cover" ${l.objectFit==='cover'?'selected':''}>Cover</option>
-          <option value="contain" ${l.objectFit==='contain'?'selected':''}>Contain</option>
-          <option value="fill" ${l.objectFit==='fill'?'selected':''}>Fill</option>
-        </select>
-      </div>`;
-  } else if (l.type === 'box') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Tampilan Box</div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna Isi</div>
-            <input class="prop-input" type="text" value="${escH(l.bgColor)}" oninput="setProp('bgColor',this.value)" placeholder="rgba(0,0,0,0.5)">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Preview</div>
-            <div style="height:32px;border-radius:6px;background:${l.bgColor};border:1px solid var(--border)"></div>
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna Border</div>
-            <input class="prop-input" type="text" value="${escH(l.borderColor)}" oninput="setProp('borderColor',this.value)" placeholder="transparent">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Tebal Border</div>
-            <input class="prop-input" type="number" value="${l.borderWidth}" min="0" oninput="setProp('borderWidth',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Border Radius</div>
-            <input class="prop-input" type="range" min="0" max="100" value="${l.borderRadius}" oninput="setProp('borderRadius',+this.value)">
-          </div>
-          <div class="prop-col flex-center" style="font-size:12px;color:var(--muted2)">${l.borderRadius}px</div>
-        </div>
-      </div>`;
-  } else if (l.type === 'text') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Teks</div>
-        <div class="prop-label">Konten</div>
-        <textarea class="prop-textarea" oninput="setProp('text',this.value)">${escH(l.text)}</textarea>
-        <div class="prop-row" style="margin-top:8px">
-          <div class="prop-col">
-            <div class="prop-label">Font</div>
-            <select class="prop-select" onchange="setProp('fontFamily',this.value)">${fontOpts}</select>
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Ukuran (px)</div>
-            <input class="prop-input" type="number" value="${l.fontSize}" min="8" oninput="setProp('fontSize',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna</div>
-            <input class="prop-input" type="color" value="${rgbToHex(l.color)}" oninput="setProp('color',this.value)">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Line Height</div>
-            <input class="prop-input" type="number" value="${l.lineHeight}" step="0.1" min="0.8" max="3" oninput="setProp('lineHeight',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row" style="align-items:center;margin-top:4px">
-          <div class="prop-col">
-            <div class="prop-label" style="margin-bottom:6px">Gaya</div>
-            <div class="text-btns">
-              <button class="text-btn${l.fontWeight==='700'?' active':''}" onclick="toggleTextProp('fontWeight','700','400')" title="Bold"><b>B</b></button>
-              <button class="text-btn${l.fontStyle==='italic'?' active':''}" onclick="toggleTextProp('fontStyle','italic','normal')" title="Italic"><i>I</i></button>
-              <button class="text-btn${l.textDecoration==='underline'?' active':''}" onclick="toggleTextProp('textDecoration','underline','none')" title="Underline"><u>U</u></button>
-            </div>
-          </div>
-          <div class="prop-col">
-            <div class="prop-label" style="margin-bottom:6px">Rata</div>
-            <div class="text-btns">
-              <button class="text-btn${l.textAlign==='left'?' active':''}"   onclick="setProp('textAlign','left');updatePropsPanel()" title="Kiri">⬤</button>
-              <button class="text-btn${l.textAlign==='center'?' active':''}" onclick="setProp('textAlign','center');updatePropsPanel()" title="Tengah">≡</button>
-              <button class="text-btn${l.textAlign==='right'?' active':''}"  onclick="setProp('textAlign','right');updatePropsPanel()" title="Kanan">⬤</button>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  body.innerHTML = `
-    <!-- Position & Size -->
-    <div class="prop-group">
-      <div class="prop-group-title">Posisi & Ukuran</div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">X (px)</div><input class="prop-input" type="number" value="${Math.round(l.x)}" oninput="setProp('x',+this.value)"></div>
-        <div class="prop-col"><div class="prop-label">Y (px)</div><input class="prop-input" type="number" value="${Math.round(l.y)}" oninput="setProp('y',+this.value)"></div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">Lebar (px)</div><input class="prop-input" type="number" value="${Math.round(l.w)}" min="1" oninput="setProp('w',+this.value)"></div>
-        <div class="prop-col"><div class="prop-label">Tinggi (px)</div><input class="prop-input" type="number" value="${Math.round(l.h)}" min="1" oninput="setProp('h',+this.value)"></div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">Rotasi (°)</div><input class="prop-input" type="number" value="${l.rotation}" oninput="setProp('rotation',+this.value)"></div>
-        <div class="prop-col" style="display:flex;flex-direction:column;gap:4px">
-          <div class="prop-label">Transparansi</div>
-          <input class="prop-input" type="range" min="0" max="1" step="0.01" value="${l.opacity}" oninput="setProp('opacity',+this.value);this.nextElementSibling.textContent=Math.round(+this.value*100)+'%'">
-          <span style="font-size:11px;color:var(--muted)">${Math.round(l.opacity*100)}%</span>
-        </div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col">
-          <div class="prop-label">Nama Layer</div>
-          <input class="prop-input" value="${escH(l.name)}" oninput="setProp('name',this.value);renderLayers()">
-        </div>
-      </div>
-    </div>
-
-    ${typeSpecific}
-
-    <!-- Variable binding -->
-    <div class="prop-group">
-      <div class="prop-group-title">Link ke Variable</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">Hubungkan elemen ini ke data klien. Konten akan diisi otomatis saat admin buat undangan.</div>
-      <select class="prop-select" onchange="setProp('linkedVar',this.value);renderCanvas()">${varOpts}</select>
-    </div>
-
-    <!-- Z-order & actions -->
-    <div class="prop-group">
-      <div class="prop-group-title">Layer & Aksi</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Z-Index: ${l.zIndex}</div>
-      <div class="action-row" style="margin-bottom:6px">
-        <button class="action-btn" onclick="bringToFront('${l.id}')">Paling Atas</button>
-        <button class="action-btn" onclick="sendToBack('${l.id}')">Paling Bawah</button>
-      </div>
-      <div class="action-row" style="margin-bottom:6px">
-        <button class="action-btn" onclick="moveUp('${l.id}')">↑ Naik</button>
-        <button class="action-btn" onclick="moveDown('${l.id}')">↓ Turun</button>
-      </div>
-      <div class="action-row">
-        <button class="action-btn" onclick="duplicateLayer('${l.id}')">⊕ Duplikat</button>
-        <button class="action-btn red" onclick="deleteLayer('${l.id}')">🗑 Hapus</button>
-      </div>
-    </div>`;
-}
-
-function setProp(key, val) {
-  const l = findLayer(state.selected);
-  if (!l) return;
-  l[key] = val;
-  renderCanvas();
-  saveToStorage();
-}
-
-function toggleTextProp(key, on, off) {
-  const l = findLayer(state.selected);
-  if (!l) return;
-  l[key] = l[key] === on ? off : on;
-  renderCanvas(); updatePropsPanel(); saveToStorage();
-}
-
-// Z-order helpers
-function bringToFront(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  l.zIndex = nextZ();
-  renderCanvas(); renderLayers(); saveToStorage();
-  toast('Layer dibawa ke depan');
-}
-function sendToBack(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const min = Math.min(...state.layers.map(x => x.zIndex));
-  l.zIndex = min - 1;
-  renderCanvas(); renderLayers(); saveToStorage();
-  toast('Layer dibawa ke belakang');
-}
-function moveUp(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const above = state.layers.filter(x => x.id !== id && x.zIndex > l.zIndex).sort((a,b) => a.zIndex-b.zIndex)[0];
-  if (above) { const tmp = l.zIndex; l.zIndex = above.zIndex; above.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
-}
-function moveDown(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const below = state.layers.filter(x => x.id !== id && x.zIndex < l.zIndex).sort((a,b) => b.zIndex-a.zIndex)[0];
-  if (below) { const tmp = l.zIndex; l.zIndex = below.zIndex; below.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
-}
-
-// ═══════════════════════════════════════════════════════════
-// GRID / GUIDES
-// ═══════════════════════════════════════════════════════════
-function toggleGrid() {
-  state.showGrid = !state.showGrid;
-  document.getElementById('canvas-grid').style.display = state.showGrid ? 'block' : 'none';
-  document.getElementById('btn-grid').classList.toggle('on', state.showGrid);
-}
-function toggleGuides() {
-  state.showGuides = !state.showGuides;
-  document.getElementById('canvas-guides').style.display = state.showGuides ? 'block' : 'none';
-  document.getElementById('btn-guides').classList.toggle('on', state.showGuides);
-}
-function toggleSnap() {
-  state.snapToGrid = !state.snapToGrid;
-  document.getElementById('btn-snap').classList.toggle('on', state.snapToGrid);
-  toast(state.snapToGrid ? 'Snap to grid: ON' : 'Snap to grid: OFF');
-}
-
-// ═══════════════════════════════════════════════════════════
-// FONT MANAGER
-// ═══════════════════════════════════════════════════════════
-function injectFont(f) {
-  const linkId = 'font-' + f.name.replace(/\s+/g, '-');
-  if (!document.getElementById(linkId)) {
-    const link = document.createElement('link');
-    link.id = linkId; link.rel = 'stylesheet';
-    link.href = f.url.startsWith('http') ? f.url
-      : `https://fonts.googleapis.com/css2?family=${f.url.replace(/\s+/g, '+')}`;
-    document.head.appendChild(link);
-  }
-}
-
-function addFont() {
-  let raw = document.getElementById('font-url-input').value.trim();
-  if (!raw) return;
-  let name = '', url = raw;
-
-  if (raw.startsWith('http')) {
-    // extract family name from Google Fonts URL
-    const match = raw.match(/family=([^:&]+)/);
-    if (match) name = decodeURIComponent(match[1]).replace(/\+/g, ' ').split(':')[0];
-    else name = 'Custom Font';
-  } else {
-    name = raw.replace(/\+/g, ' ');
-    url = `https://fonts.googleapis.com/css2?family=${raw.replace(/\s+/g, '+')}`;
-  }
-
-  if (state.customFonts.find(f => f.name === name)) { toast('Font sudah ada!', 'err'); return; }
-  state.customFonts.push({ name, url });
-  injectFont({ name, url });
-  saveToStorage();
-  renderFontPills();
-  toast(`✓ Font "${name}" ditambahkan`);
-  document.getElementById('font-url-input').value = '';
-}
-
-function removeFont(name) {
-  state.customFonts = state.customFonts.filter(f => f.name !== name);
-  saveToStorage(); renderFontPills();
-}
-
-function renderFontPills() {
-  const container = document.getElementById('font-pills-list');
-  const preview   = document.getElementById('font-preview-list');
-  if (!state.customFonts.length) {
-    container.innerHTML = '<div style="font-size:12px;color:var(--muted)">Belum ada font tambahan</div>';
-    return;
-  }
-  container.innerHTML = state.customFonts.map(f => `
-    <div class="font-pill">
-      <span style="font-family:'${f.name}'">${f.name}</span>
-      <button class="font-pill-del" onclick="removeFont('${escH(f.name)}')">✕</button>
-    </div>`).join('');
-  preview.innerHTML = `
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic">Cormorant Garamond – Built-in</div>
-    <div style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans – Built-in</div>
-    ${state.customFonts.map(f => `<div style="font-family:'${f.name}'">${f.name} – Custom</div>`).join('')}
-  `;
-}
-
-// ═══════════════════════════════════════════════════════════
-// IMAGE MODAL
-// ═══════════════════════════════════════════════════════════
-function openImageModal() {
-  openModal('modal-image');
-  renderImgVarChips();
-}
-
-function switchImgTab(tab) {
-  ['upload','url','var'].forEach(t => {
-    document.getElementById(`img-tab-${t}-body`).style.display = t===tab ? 'block' : 'none';
-    document.getElementById(`img-tab-${t}`).className = `btn ${t===tab?'btn-gold':'btn-ghost'}`;
-  });
-}
-
-async function handleFileUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 5*1024*1024) { toast('File terlalu besar (max 5MB)', 'err'); return; }
-
-  // Tampilkan preview lokal dulu (biar user bisa lihat gambarnya)
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pendingImg.src = ev.target.result; // sementara pakai base64
-    pendingImg.uploading = true;
-    const preview = document.getElementById('img-upload-preview');
-    preview.style.display = 'block';
-    document.getElementById('img-upload-preview-img').src = ev.target.result;
-    document.getElementById('img-upload-name').textContent = file.name + ' – ' + Math.round(file.size/1024) + 'KB';
-    document.getElementById('img-upload-github-url').innerHTML = '<span style="color:var(--gold)">⏳ Mengupload ke GitHub...</span>';
-    if (!document.getElementById('img-name').value) {
-      document.getElementById('img-name').value = file.name.replace(/\.[^.]+$/,'');
-    }
-  };
-  reader.readAsDataURL(file);
-
-  // Upload ke GitHub via API
-  const secret = localStorage.getItem('ud_secret');
-  if (!secret) {
-    toast('Set ADMIN_SECRET dulu sebelum upload!', 'err');
-    return;
-  }
-
-  // Konversi file ke base64 untuk dikirim ke API
-  const toBase64 = f => new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = ev => res(ev.target.result.split(',')[1]); // strip data:...;base64,
-    r.onerror = rej;
-    r.readAsDataURL(f);
-  });
-
-  try {
-    const b64 = await toBase64(file);
-    const templateId = state.currentTemplateId || 'template-elegant';
-    const r = await fetch('/api/upload-asset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
-      body: JSON.stringify({
-        templateId,
-        filename: file.name,
-        contentBase64: b64,
-        mimeType: file.type,
-      }),
-    });
-
-    if (r.ok) {
-      const data = await r.json();
-      // Ganti src dari base64 ke URL GitHub
-      pendingImg.src = data.url;
-      pendingImg.uploading = false;
-      document.getElementById('img-upload-preview-img').src = data.url;
-      document.getElementById('img-upload-github-url').innerHTML =
-        '<span style="color:var(--green)">✅ Tersimpan di GitHub:</span> <span style="color:var(--muted2);word-break:break-all">' + data.url + '</span>';
-      toast('✅ Asset diupload ke GitHub!', 'ok');
-    } else {
-      const err = await r.text();
-      pendingImg.uploading = false;
-      document.getElementById('img-upload-github-url').innerHTML =
-        '<span style="color:var(--red)">⚠ Gagal upload ke GitHub – menggunakan base64 lokal. (' + err + ')</span>';
-      toast('Gagal upload asset: ' + err, 'err');
-      // Fallback: tetap pakai base64 yang sudah di-set sebelumnya
-    }
-  } catch(err) {
-    pendingImg.uploading = false;
-    document.getElementById('img-upload-github-url').innerHTML =
-      '<span style="color:var(--red)">⚠ Tidak bisa menghubungi server – menggunakan base64 lokal.</span>';
-    toast('Gagal upload asset ke GitHub', 'err');
-  }
-}
-
-function previewImgUrl() {
-  const url = document.getElementById('img-url-input').value.trim();
-  const prevWrap = document.getElementById('img-url-preview');
-  prevWrap.style.display = url ? 'block' : 'none';
-  document.getElementById('img-url-preview-img').src = url;
-}
-
-// Image upload zone drag
-const uz = () => document.getElementById('upload-zone');
-document.addEventListener('DOMContentLoaded', () => {
-  const zone = uz();
-  if (!zone) return;
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.classList.remove('drag');
-    const file = e.dataTransfer.files[0];
-    if (file) { document.getElementById('img-file-input').files = e.dataTransfer.files; handleFileUpload({target:{files:e.dataTransfer.files}}); }
-  });
-});
-
-function renderImgVarChips() {
-  const imgVars = ['{{BRIDE_PHOTO}}','{{GROOM_PHOTO}}','{{GALLERY_1}}','{{GALLERY_2}}','{{GALLERY_3}}','{{GALLERY_4}}','{{GALLERY_5}}'];
-  document.getElementById('img-var-chips').innerHTML = imgVars.map(v => `
-    <div class="var-chip" onclick="selectImgVar('${v}')" id="var-chip-${v.replace(/[{}]/g,'')}">${v}</div>`).join('');
-}
-
-function selectImgVar(v) {
-  pendingImg.selectedVar = v;
-  document.querySelectorAll('#img-var-chips .var-chip').forEach(c => c.style.background = '');
-  const chip = document.getElementById('var-chip-' + v.replace(/[{}]/g,''));
-  if (chip) { chip.style.background = 'var(--blue-dim)'; chip.style.borderColor = 'var(--blue)'; chip.style.color = 'var(--blue)'; }
-  document.getElementById('img-var-selected-label').textContent = '✓ Dipilih: ' + v;
-}
-
-// ═══════════════════════════════════════════════════════════
-// SECTION STYLE MODAL
-// ═══════════════════════════════════════════════════════════
-function openSectionStyleModal() {
-  buildSectionStyleList();
-  openModal('modal-section');
-}
-
-function buildSectionStyleList() {
-  const container = document.getElementById('section-style-list');
-  if (!container) return;
-  container.innerHTML = SECTIONS.map(sec => {
-    const current = state.sectionBgs[sec.id] || sec.bg;
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:var(--r)">
-      <div style="width:40px;height:40px;border-radius:6px;flex-shrink:0;border:1px solid var(--border);background:${current}"></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;margin-bottom:4px">${sec.label}</div>
-        <input class="field-input" type="text" value="${current}" placeholder="${sec.bg}"
-          oninput="setSectionBg('${sec.id}',this.value);this.previousElementSibling.style.background=this.value" style="font-size:11px;padding:5px 8px">
-      </div>
-      <button onclick="resetSectionBg('${sec.id}',this)" style="font-size:10px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 8px;border-radius:5px;cursor:pointer;font-family:inherit">Reset</button>
-    </div>`;
-  }).join('');
-}
-
-function setSectionBg(id, color) {
-  state.sectionBgs[id] = color;
-  buildCanvasBg();
-  saveToStorage();
-}
-function resetSectionBg(id, btn) {
-  delete state.sectionBgs[id];
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
-}
-function resetSectionStyles() {
-  state.sectionBgs = {};
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
-  toast('Style seksi direset ke default');
-}
-
-// ═══════════════════════════════════════════════════════════
-// TEMPLATE VARS CHIPS
-// ═══════════════════════════════════════════════════════════
-function renderVarChips() {
-  document.getElementById('var-list').innerHTML = TEMPLATE_VARS.map(v =>
-    `<div class="var-chip" onclick="copyVar('${v}')" title="Klik untuk salin">${v}</div>`
-  ).join('');
-}
-
-function copyVar(v) {
-  navigator.clipboard.writeText(v).then(() => toast('Tersalin: ' + v, 'info'));
-}
-
-// ═══════════════════════════════════════════════════════════
-// HISTORY (UNDO / REDO)
-// ═══════════════════════════════════════════════════════════
-function pushHistory() {
-  const snapshot = JSON.stringify(state.layers);
-  state.history = state.history.slice(0, state.histIndex + 1);
-  state.history.push(snapshot);
-  state.histIndex = state.history.length - 1;
-  updateHistoryBtns();
-}
-
-function saveHistory() {
-  pushHistory();
-}
-
-function undoAction() {
-  if (state.histIndex <= 0) return;
-  state.histIndex--;
-  state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
-  toast('↩ Undo');
-}
-
-function redoAction() {
-  if (state.histIndex >= state.history.length - 1) return;
-  state.histIndex++;
-  state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
-  toast('↪ Redo');
-}
-
-function updateHistoryBtns() {
-  document.getElementById('btn-undo').style.opacity = state.histIndex > 0 ? '1' : '.4';
-  document.getElementById('btn-redo').style.opacity = state.histIndex < state.history.length-1 ? '1' : '.4';
-}
-
-// ═══════════════════════════════════════════════════════════
-// KEYBOARD
-// ═══════════════════════════════════════════════════════════
-function onKeydown(e) {
-  const tag = e.target.tagName.toLowerCase();
-  const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
-
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); e.shiftKey ? redoAction() : undoAction(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redoAction(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); if (state.selected) duplicateLayer(state.selected); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveToGitHub(); return; }
-
-  if (isInput) return;
-
-  if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (state.selected) { deleteLayer(state.selected); }
-  }
-  if (e.key === 'Escape') deselectAll();
-  if (e.key === 'v') setTool('select');
-  if (e.key === 'b') { setTool('box'); addBoxLayer(); }
-  if (e.key === 't') { setTool('text'); addTextLayer(); }
-  if (e.key === 'i') { setTool('image'); openImageModal(); }
-
-  // Arrow keys: move selected
-  if (state.selected && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
-    const l = findLayer(state.selected);
-    if (!l || l.locked) return;
-    const step = e.shiftKey ? 10 : 1;
-    if (e.key === 'ArrowLeft')  l.x -= step;
-    if (e.key === 'ArrowRight') l.x += step;
-    if (e.key === 'ArrowUp')    l.y -= step;
-    if (e.key === 'ArrowDown')  l.y += step;
-    renderCanvas(); updatePropsPanel();
-    e.preventDefault();
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// ADD MENU
-// ═══════════════════════════════════════════════════════════
-function toggleAddMenu() {
-  document.getElementById('layer-add-menu').classList.toggle('open');
-}
-function closeAddMenu() {
-  document.getElementById('layer-add-menu').classList.remove('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('#add-menu-btn') && !e.target.closest('#layer-add-menu')) closeAddMenu();
-});
-
-// ═══════════════════════════════════════════════════════════
-// EXPORT / SAVE
-// ═══════════════════════════════════════════════════════════
-function generateDesignLayer() {
-  if (!state.layers.length && !Object.keys(state.sectionBgs).length && !state.customFonts.length) return '';
-
-  // Font links
-  const fontLinks = state.customFonts.map(f =>
-    `<link rel="stylesheet" href="${f.url.startsWith('http') ? f.url : 'https://fonts.googleapis.com/css2?family=' + f.url.replace(/\s+/g,'+')}">`)
-    .join('\n');
-
-  // Section bg overrides
-  const sectionOverrides = Object.entries(state.sectionBgs).map(([id, color]) => {
-    const sec = SECTIONS.find(s => s.id === id);
-    if (!sec) return '';
-    const top = SECTIONS.slice(0, SECTIONS.indexOf(sec)).reduce((s,x) => s+x.height, 0);
-    return `/* section: ${id} */ #__design-section-${id} { background: ${color} !important; }`;
-  }).join('\n');
-
-  // Element styles
-  const elStyles = state.layers.map(l => `
-  #__dl-${l.id} {
-    position: absolute;
-    left: ${(l.x / CANVAS_W * 100).toFixed(4)}%;
-    top: ${l.y}px;
-    width: ${(l.w / CANVAS_W * 100).toFixed(4)}%;
-    height: ${l.h}px;
-    opacity: ${l.opacity};
-    transform: rotate(${l.rotation}deg);
-    z-index: ${l.zIndex + 50};
-    pointer-events: none;
-    box-sizing: border-box;
-    ${l.type === 'box' ? `background: ${l.bgColor}; border: ${l.borderWidth}px solid ${l.borderColor}; border-radius: ${l.borderRadius}px;` : ''}
-  }`).join('\n');
-
-  // Element HTML
-  const elHtml = state.layers.filter(l => l.visible).map(l => {
-    if (l.type === 'image') {
-      return `<img id="__dl-${l.id}" src="${l.linkedVar ? l.linkedVar : l.src}" alt="" style="width:100%;height:100%;object-fit:${l.objectFit};display:block">`;
-    } else if (l.type === 'box') {
-      return `<div id="__dl-${l.id}"></div>`;
-    } else if (l.type === 'text') {
-      const fam = l.fontFamily.includes(' ') ? `'${l.fontFamily}'` : l.fontFamily;
-      return `<div id="__dl-${l.id}" style="display:flex;align-items:center;justify-content:${l.textAlign==='center'?'center':l.textAlign==='right'?'flex-end':'flex-start'};padding:4px"><span style="font-family:${fam},serif;font-size:${l.fontSize}px;color:${l.color};font-weight:${l.fontWeight};font-style:${l.fontStyle};text-decoration:${l.textDecoration};text-align:${l.textAlign};line-height:${l.lineHeight};word-break:break-word;width:100%">${l.linkedVar ? l.linkedVar : l.text}</span></div>`;
-    }
-    return '';
-  }).join('\n  ');
-
-  const designConfig = JSON.stringify({ layers: state.layers, sectionBgs: state.sectionBgs, customFonts: state.customFonts });
-
-  return `
-${fontLinks}
-<!-- ✏️ DESIGN LAYER – Generated by Template Editor -->
-<!-- Design Config: ${encodeURIComponent(designConfig)} -->
-<style>
-#__design-layer {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(390px, 100vw);
-  height: ${CANVAS_H}px;
-  pointer-events: none;
-  z-index: 50;
-  overflow: visible;
-}
-${elStyles}
-${sectionOverrides}
-</style>
-<div id="__design-layer">
-  ${elHtml}
-</div>
-<!-- END DESIGN LAYER -->`;
-}
-
-function downloadTemplate() {
-  const designLayer = generateDesignLayer();
-  // Base template HTML (minimal structure for download)
-  let html = `<!DOCTYPE html>
-<!-- Template with Design Layer – Edit with edit-template.html -->
-<!-- To regenerate: open edit-template.html in admin panel -->
-<html lang="id">
-<!-- [Base template content goes here] -->
-<!-- The design layer below is injected by the template editor -->
-${designLayer}
-</html>`;
-
-  // Alternatively, if you have the base template content, merge it
-  const blob = new Blob([designLayer], { type: 'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'design-layer.html';
-  a.click();
-  toast('⬇ Design layer didownload!', 'ok');
-}
-
-async function saveToGitHub() {
-  const secret = localStorage.getItem('ud_secret');
-  if (!secret) { toast('Set ADMIN_SECRET di Setup admin dulu!', 'err'); return; }
-
-  const btn = document.getElementById('btn-save');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Menyimpan...';
-
-  const designLayer = generateDesignLayer();
-  const designConfig = { layers: state.layers, sectionBgs: state.sectionBgs, customFonts: state.customFonts };
-
-  try {
-    const r = await fetch('/api/save-template', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
-      body: JSON.stringify({
-        templateId: state.currentTemplateId,
-        templateName: state.currentTemplateId,
-        designLayerHtml: designLayer,
-        designConfig: designConfig,
-      }),
-    });
-
-    if (r.ok) {
-      const data = await r.json();
-      toast('✅ Template disimpan ke GitHub! Deploy dalam ~30 detik.', 'ok');
-      saveToStorage();
-    } else {
-      const err = await r.text();
-      // If API not yet created, offer download instead
-      if (r.status === 404) {
-        toast('API /api/save-template belum ada – mengunduh file sebagai gantinya...', 'info');
-        setTimeout(downloadTemplate, 800);
-      } else {
-        toast('Gagal: ' + err, 'err');
-      }
-    }
-  } catch(e) {
-    toast('Gagal menghubungi server. File diunduh sebagai backup.', 'err');
-    setTimeout(downloadTemplate, 1000);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '💾 Simpan ke GitHub';
-  }
-}
-
-function previewTemplate() {
-  const designLayer = generateDesignLayer();
-  const sampleData = {
-    '{{BRIDE_NAME}}': 'Sarah Andini', '{{GROOM_NAME}}': 'Rizky Pratama',
-    '{{AKAD_DATE}}': '15', '{{AKAD_MONTH}}': 'Agustus', '{{AKAD_YEAR}}': '2025',
-    '{{AKAD_TIME}}': '09.00 – 11.00 WIB', '{{AKAD_VENUE}}': 'Masjid Al-Azhar',
-    '{{AKAD_ADDRESS}}': 'Jl. Sisingamangaraja No.1, Jakarta Selatan',
-  };
-  const win = window.open('', '_blank');
-  const previewHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview Template</title>
-  <style>body{background:#1a1208;color:#faf6f0;font-family:sans-serif;text-align:center;padding:40px}
-  .preview-box{max-width:390px;margin:0 auto;background:#100c07;padding:40px 20px;border-radius:12px;position:relative;overflow:hidden}
-  h1{font-size:32px;font-family:Georgia,serif;font-style:italic;margin-bottom:8px;color:#c9a96e}
-  p{color:rgba(250,246,240,.6);font-size:14px}
-  </style></head>
-  <body>
-  <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px">Preview Template – Data Contoh</div>
-  <div class="preview-box">
-    <h1>${sampleData['{{BRIDE_NAME}}']}<br>&<br>${sampleData['{{GROOM_NAME}}']}</h1>
-    <p>${sampleData['{{AKAD_DATE}}']} ${sampleData['{{AKAD_MONTH}}']} ${sampleData['{{AKAD_YEAR}}']}</p>
-    <p style="margin-top:8px">${sampleData['{{AKAD_VENUE}}']}</p>
-    <p style="font-size:12px;margin-top:4px">${sampleData['{{AKAD_ADDRESS}}']}</p>
-    ${state.layers.length ? '<div style="margin-top:16px;padding:12px;background:rgba(96,165,250,.05);border:1px dashed rgba(96,165,250,.2);border-radius:8px;font-size:11px;color:rgba(96,165,250,.7)">' + state.layers.length + ' design layer element(s) akan muncul di sini setelah diintegrasikan ke template utama</div>' : ''}
-  </div>
-  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.3)">
-    Ini adalah preview sederhana. Untuk preview penuh, integrasikan design layer ke template utama.
-  </div>
-  </body></html>`;
-  win.document.write(previewHtml);
-}
-
-// ═══════════════════════════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openFontModal() { renderFontPills(); openModal('modal-font'); }
-
-document.querySelectorAll('.overlay').forEach(ov => {
-  ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
-});
-
-// ═══════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════
-let toastTimer;
-function toast(msg, type = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.className = 'toast', 3500);
-}
-
-// ═══════════════════════════════════════════════════════════
-// UTILITY
-// ═══════════════════════════════════════════════════════════
-function rgbToHex(color) {
-  if (color.startsWith('#')) return color;
-  const m = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (!m) return '#ffffff';
-  return '#' + [m[1],m[2],m[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
-}
-
-// ═══════════════════════════════════════════════════════════
-// START
-// ═══════════════════════════════════════════════════════════
-init();
-pushHistory(); // initial empty state
-updateHistoryBtns();
-
-// Keyboard shortcut reminder in title area
-console.log('%c✏️ Template Editor\n%cShortcuts: V=Select B=Box T=Text I=Image Del=Delete Ctrl+Z=Undo Ctrl+Y=Redo Ctrl+D=Duplicate Ctrl+S=Save ←↑↓→=Move Shift+Arrow=Move 10px', 'font-size:16px;font-weight:bold;color:#f0c060', 'font-size:12px;color:#aaa');
 </script>
 </body>
 </html>
