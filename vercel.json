@@ -3,13 +3,8 @@
   "outputDirectory": ".",
   "rewrites": [
     { "source": "/admin", "destination": "/admin/index.html" },
-    {
-      "source": "/:slug([^/]+)",
-      "destination": "/invitations/:slug/index.html"
-    },
-    {
-      "source": "/:slug([^/]+)/:path+",
-      "destination": "/invitations/:slug/:path+"
-    }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/:slug([^/]+)", "destination": "/invitations/:slug/index.html" },
+    { "source": "/:slug([^/]+)/:path+", "destination": "/invitations/:slug/:path+" }
   ]
 }
