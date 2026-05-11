@@ -2,16 +2,16 @@
   "meta": {
     "id": "template-jawa",
     "displayName": "template-jawa",
-    "createdAt": "2026-05-11T18:22:42.702Z",
-    "updatedAt": "2026-05-11T18:22:42.702Z"
+    "createdAt": "2026-05-11T18:29:37.122Z",
+    "updatedAt": "2026-05-11T18:29:37.122Z"
   },
   "layers": [
     {
-      "id": "el_1_1778523706948",
+      "id": "el_1_1778524162185",
       "type": "image",
-      "name": "0FT1qbQoGpUGk7mGNgxR2Nw1vCI1mAxK2hsICsb4",
-      "x": 195,
-      "y": 218,
+      "name": "798479-gallery-bvfdFHNOQD",
+      "x": 95,
+      "y": 80,
       "w": 200,
       "h": 200,
       "rotation": 0,
@@ -19,7 +19,7 @@
       "visible": true,
       "locked": false,
       "zIndex": 1,
-      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-elegant/assets/1778523708231-0FT1qbQoGpUGk7mGNgxR2Nw1vCI1mAxK2hsICsb4.webp",
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-jawa/assets/1778524164526-798479-gallery-bvfdFHNOQD.webp",
       "objectFit": "cover",
       "linkedVar": ""
     }
