@@ -2,16 +2,16 @@
   "meta": {
     "id": "template-elegant",
     "displayName": "template-elegant",
-    "createdAt": "2026-05-11T18:25:29.260Z",
-    "updatedAt": "2026-05-11T18:25:29.260Z"
+    "createdAt": "2026-05-11T18:25:41.924Z",
+    "updatedAt": "2026-05-11T18:25:41.924Z"
   },
   "layers": [
     {
       "id": "el_1_1778523706948",
       "type": "image",
       "name": "0FT1qbQoGpUGk7mGNgxR2Nw1vCI1mAxK2hsICsb4",
-      "x": 243,
-      "y": 264,
+      "x": 27,
+      "y": 272,
       "w": 126,
       "h": 116,
       "rotation": 0,
