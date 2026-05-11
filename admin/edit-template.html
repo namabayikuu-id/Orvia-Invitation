@@ -587,13 +587,14 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
       <div id="img-tab-upload-body">
         <div class="upload-zone" id="upload-zone">
           <input type="file" id="img-file-input" accept="image/*,.webp" onchange="handleFileUpload(event)">
-          <div class="upload-zone-icon">📁</div>
-          <div class="upload-zone-text">Drag & drop atau klik untuk upload</div>
-          <div class="upload-zone-sub">WebP, PNG, JPG, SVG, GIF – max 5MB</div>
+          <div class="upload-zone-icon" id="upload-zone-icon">📁</div>
+          <div class="upload-zone-text" id="upload-zone-text">Drag & drop atau klik untuk upload</div>
+          <div class="upload-zone-sub" id="upload-zone-sub">WebP, PNG, JPG, SVG, GIF – max 5MB</div>
         </div>
         <div id="img-upload-preview" style="display:none;margin-top:12px">
           <div class="preview-img-wrap"><img id="img-upload-preview-img" src=""></div>
           <div style="font-size:11px;color:var(--muted)" id="img-upload-name"></div>
+          <div style="font-size:11px;margin-top:4px" id="img-upload-github-url"></div>
         </div>
       </div>
 
@@ -788,7 +789,13 @@ let state = {
 };
 
 // Pending image data for modal
-let pendingImg = { src: '', type: 'upload', selectedVar: '' };
+let pendingImg = { src: '', type: 'upload', selectedVar: '', uploading: false };
+
+// Ambil templateId dari URL param atau default
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  state.currentTemplateId = params.get('templateId') || 'template-elegant';
+})();
 
 // ═══════════════════════════════════════════════════════════
 // INIT
@@ -976,6 +983,7 @@ function addTextLayer() {
 }
 
 function confirmAddImage() {
+  if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
   let src = '';
   const tab = document.getElementById('img-tab-upload').classList.contains('btn-gold') ? 'upload'
     : document.getElementById('img-tab-url').classList.contains('btn-gold') ? 'url' : 'var';
@@ -1004,8 +1012,9 @@ function confirmAddImage() {
   setTool('select');
   toast('Gambar ditambahkan ✓');
   // reset
-  pendingImg = { src:'', type:'upload', selectedVar:'' };
+  pendingImg = { src:'', type:'upload', selectedVar:'', uploading: false };
   document.getElementById('img-upload-preview').style.display = 'none';
+  document.getElementById('img-upload-github-url').textContent = '';
   document.getElementById('img-url-input').value = '';
 }
 
@@ -1553,22 +1562,79 @@ function switchImgTab(tab) {
   });
 }
 
-function handleFileUpload(e) {
+async function handleFileUpload(e) {
   const file = e.target.files[0];
   if (!file) return;
   if (file.size > 5*1024*1024) { toast('File terlalu besar (max 5MB)', 'err'); return; }
+
+  // Tampilkan preview lokal dulu (biar user bisa lihat gambarnya)
   const reader = new FileReader();
   reader.onload = ev => {
-    pendingImg.src = ev.target.result;
+    pendingImg.src = ev.target.result; // sementara pakai base64
+    pendingImg.uploading = true;
     const preview = document.getElementById('img-upload-preview');
     preview.style.display = 'block';
     document.getElementById('img-upload-preview-img').src = ev.target.result;
     document.getElementById('img-upload-name').textContent = file.name + ' – ' + Math.round(file.size/1024) + 'KB';
+    document.getElementById('img-upload-github-url').innerHTML = '<span style="color:var(--gold)">⏳ Mengupload ke GitHub...</span>';
     if (!document.getElementById('img-name').value) {
       document.getElementById('img-name').value = file.name.replace(/\.[^.]+$/,'');
     }
   };
   reader.readAsDataURL(file);
+
+  // Upload ke GitHub via API
+  const secret = localStorage.getItem('ud_secret');
+  if (!secret) {
+    toast('Set ADMIN_SECRET dulu sebelum upload!', 'err');
+    return;
+  }
+
+  // Konversi file ke base64 untuk dikirim ke API
+  const toBase64 = f => new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = ev => res(ev.target.result.split(',')[1]); // strip data:...;base64,
+    r.onerror = rej;
+    r.readAsDataURL(f);
+  });
+
+  try {
+    const b64 = await toBase64(file);
+    const templateId = state.currentTemplateId || 'template-elegant';
+    const r = await fetch('/api/upload-asset', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
+      body: JSON.stringify({
+        templateId,
+        filename: file.name,
+        contentBase64: b64,
+        mimeType: file.type,
+      }),
+    });
+
+    if (r.ok) {
+      const data = await r.json();
+      // Ganti src dari base64 ke URL GitHub
+      pendingImg.src = data.url;
+      pendingImg.uploading = false;
+      document.getElementById('img-upload-preview-img').src = data.url;
+      document.getElementById('img-upload-github-url').innerHTML =
+        '<span style="color:var(--green)">✅ Tersimpan di GitHub:</span> <span style="color:var(--muted2);word-break:break-all">' + data.url + '</span>';
+      toast('✅ Asset diupload ke GitHub!', 'ok');
+    } else {
+      const err = await r.text();
+      pendingImg.uploading = false;
+      document.getElementById('img-upload-github-url').innerHTML =
+        '<span style="color:var(--red)">⚠ Gagal upload ke GitHub – menggunakan base64 lokal. (' + err + ')</span>';
+      toast('Gagal upload asset: ' + err, 'err');
+      // Fallback: tetap pakai base64 yang sudah di-set sebelumnya
+    }
+  } catch(err) {
+    pendingImg.uploading = false;
+    document.getElementById('img-upload-github-url').innerHTML =
+      '<span style="color:var(--red)">⚠ Tidak bisa menghubungi server – menggunakan base64 lokal.</span>';
+    toast('Gagal upload asset ke GitHub', 'err');
+  }
 }
 
 function previewImgUrl() {
@@ -1857,8 +1923,8 @@ async function saveToGitHub() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
       body: JSON.stringify({
-        templateId: 'template-elegant',
-        templateName: 'template-elegant',
+        templateId: state.currentTemplateId,
+        templateName: state.currentTemplateId,
         designLayerHtml: designLayer,
         designConfig: designConfig,
       }),
