@@ -40,8 +40,11 @@ export default async function handler(req, res) {
   }
 
   // ── Path tujuan di repo ───────────────────────────────────
-  // Contoh: templates/template-elegant/assets/foto-1234567890.jpg
-  const safeTemplateId = (templateId || 'template-elegant').replace(/[^a-zA-Z0-9_-]/g, '');
+  // Contoh: templates/template-jawa/assets/foto-1234567890.jpg
+  if (!templateId) {
+    return res.status(400).json({ error: 'templateId wajib diisi – pastikan URL mengandung ?templateId=template-jawa' });
+  }
+  const safeTemplateId = templateId.replace(/[^a-zA-Z0-9_-]/g, '');
   const safeFilename   = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
   const timestamp      = Date.now();
   const finalFilename  = `${timestamp}-${safeFilename}`;
