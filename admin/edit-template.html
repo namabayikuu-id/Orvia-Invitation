@@ -453,7 +453,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
   <div class="tb-logo">
     <a href="index.html">← Admin</a>
     <span class="tb-logo-divider">/</span>
-    <span class="tb-logo-name">✏ Edit Template</span>
+    <span class="tb-logo-name" id="tb-tpl-name">✏ Edit Template</span>
   </div>
 
   <!-- Tools -->
@@ -809,15 +809,24 @@ function init() {
   loadFromStorage();
   buildSectionStyleList();
 
+  // Tampilkan nama template aktif di topbar
+  const nameEl = document.getElementById('tb-tpl-name');
+  if (nameEl) nameEl.textContent = '✏ ' + (state.currentTemplateId || 'Edit Template');
+
   // Keyboard shortcuts
   document.addEventListener('keydown', onKeydown);
   // Prevent browser zoom
   document.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); adjustZoom(e.deltaY < 0 ? .1 : -.1); } }, {passive:false});
 }
 
+// Key unik per template — mencegah template saling menimpa data
+function storageKey() {
+  return 'ud_tpl__' + (state.currentTemplateId || 'default');
+}
+
 function loadFromStorage() {
   try {
-    const saved = localStorage.getItem('ud_template_design');
+    const saved = localStorage.getItem(storageKey());
     if (saved) {
       const data = JSON.parse(saved);
       state.layers = data.layers || [];
@@ -830,13 +839,13 @@ function loadFromStorage() {
       buildCanvasBg();
       renderLayers();
       renderCanvas();
-      toast('💾 Design terakhir dimuat dari storage');
+      toast('💾 Design [' + state.currentTemplateId + '] dimuat');
     }
   } catch(e) {}
 }
 
 function saveToStorage() {
-  localStorage.setItem('ud_template_design', JSON.stringify({
+  localStorage.setItem(storageKey(), JSON.stringify({
     layers: state.layers,
     sectionBgs: state.sectionBgs,
     customFonts: state.customFonts,
