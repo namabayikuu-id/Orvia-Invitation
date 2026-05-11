@@ -1,724 +1,437 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>✏️ Edit Template – Admin Undangan</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0b0d13;--surf:#13161f;--surf2:#1c2030;--surf3:#252a3a;
-  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.12);
-  --gold:#f0c060;--gold-dim:rgba(240,192,96,0.1);--gold-glow:rgba(240,192,96,0.25);
-  --blue:#60a5fa;--blue-dim:rgba(96,165,250,0.1);
-  --green:#34d399;--red:#f87171;--purple:#a78bfa;
-  --text:#e2e6f0;--muted:rgba(226,230,240,0.4);--muted2:rgba(226,230,240,0.65);
-  --r:8px;--r2:12px;
-  --panel-left:240px;--panel-right:288px;--topbar:52px;
-  --handle:8px;
-  --canvas-w:390px;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px}
-::selection{background:var(--gold-dim);color:var(--gold)}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin – Undangan Digital</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#0f1117; --surface:#1a1d27; --surface2:#22263a;
+      --border:rgba(255,255,255,0.07); --gold:#f0c060; --gold-dim:rgba(240,192,96,0.12);
+      --text:#e8eaf0; --muted:rgba(232,234,240,0.45);
+      --green:#34d399; --red:#f87171; --blue:#60a5fa; --r:12px;
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex}
 
-/* ── TOPBAR ── */
-.topbar{
-  height:var(--topbar);display:flex;align-items:center;gap:0;
-  background:var(--surf);border-bottom:1px solid var(--border);
-  position:relative;z-index:20;flex-shrink:0;
-}
-.tb-logo{padding:0 16px;display:flex;align-items:center;gap:8px;border-right:1px solid var(--border);height:100%;flex-shrink:0}
-.tb-logo a{font-size:11px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s}
-.tb-logo a:hover{color:var(--text)}
-.tb-logo-divider{color:var(--border2);font-size:16px}
-.tb-logo-name{font-weight:700;font-size:13px;color:var(--gold)}
+    /* ─ Sidebar ─ */
+    .sidebar{width:230px;min-height:100vh;background:var(--surface);border-right:1px solid var(--border);padding:24px 0;display:flex;flex-direction:column;flex-shrink:0}
+    .logo{padding:0 20px 24px;border-bottom:1px solid var(--border)}
+    .logo-mark{font-size:18px;font-weight:700;color:var(--gold)}
+    .logo-sub{font-size:9px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+    .nav{padding:16px 10px;flex:1}
+    .nav-label{font-size:9px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);padding:0 10px;margin:12px 0 6px}
+    .nav-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;transition:all .2s;font-size:13px;font-weight:500;color:var(--muted);margin-bottom:1px}
+    .nav-item:hover{background:var(--surface2);color:var(--text)}
+    .nav-item.active{background:var(--gold-dim);color:var(--gold)}
+    .nav-item .ic{font-size:15px;width:18px;text-align:center}
+    .badge{margin-left:auto;background:var(--gold);color:var(--bg);font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px}
+    .sidebar-foot{padding:16px 20px;border-top:1px solid var(--border)}
+    .admin-row{display:flex;align-items:center;gap:8px}
+    .av{width:30px;height:30px;background:var(--gold-dim);border:1px solid rgba(240,192,96,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--gold)}
+    .an{font-size:12px;font-weight:600}
+    .ar{font-size:10px;color:var(--muted)}
 
-.tb-tools{display:flex;align-items:center;gap:2px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.tb-tool{width:34px;height:34px;border:none;background:transparent;color:var(--muted);border-radius:var(--r);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .15s;position:relative}
-.tb-tool:hover{background:var(--surf2);color:var(--text)}
-.tb-tool.active{background:var(--gold-dim);color:var(--gold)}
-.tb-tool[title]:hover::after{content:attr(title);position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#000;color:var(--text);font-size:11px;padding:3px 7px;border-radius:5px;white-space:nowrap;pointer-events:none;z-index:99}
+    /* ─ Main ─ */
+    .main{flex:1;overflow-y:auto}
+    .topbar{padding:18px 28px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--surface);position:sticky;top:0;z-index:10}
+    .page-title{font-size:17px;font-weight:700}
+    .topbar-right{display:flex;gap:10px;align-items:center}
 
-.tb-toggles{display:flex;align-items:center;gap:4px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.tb-toggle{padding:5px 10px;border:1px solid var(--border2);border-radius:var(--r);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;display:flex;align-items:center;gap:5px;white-space:nowrap}
-.tb-toggle:hover{border-color:var(--gold);color:var(--gold)}
-.tb-toggle.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+    /* Buttons */
+    .btn{padding:8px 16px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:inherit}
+    .btn-gold{background:var(--gold);color:#0f1117}
+    .btn-gold:hover{background:#f5d080}
+    .btn-ghost{background:transparent;border:1px solid var(--border);color:var(--muted)}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--gold)}
+    .btn-green{background:rgba(52,211,153,.15);color:var(--green);border:none}
+    .btn-blue{background:rgba(96,165,250,.15);color:var(--blue);border:none}
+    .btn-red{background:rgba(248,113,113,.12);color:var(--red);border:none}
 
-.tb-zoom{display:flex;align-items:center;gap:4px;padding:0 12px;border-right:1px solid var(--border);height:100%}
-.zoom-btn{width:26px;height:26px;border:1px solid var(--border2);border-radius:5px;background:transparent;color:var(--muted);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:inherit}
-.zoom-btn:hover{border-color:var(--gold);color:var(--gold)}
-.zoom-val{font-size:12px;font-weight:600;color:var(--muted2);min-width:38px;text-align:center;cursor:pointer;padding:4px 6px;border-radius:5px}
-.zoom-val:hover{background:var(--surf2);color:var(--text)}
+    .content{padding:28px}
+    .page{display:none}.page.active{display:block}
 
-.tb-actions{margin-left:auto;display:flex;align-items:center;gap:6px;padding:0 14px;height:100%}
-.btn{padding:7px 14px;border-radius:var(--r);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;border:none;font-family:inherit;display:flex;align-items:center;gap:6px;white-space:nowrap}
-.btn-ghost{background:transparent;border:1px solid var(--border2);color:var(--muted2)}
-.btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-.btn-gold{background:var(--gold);color:#0b0d13;font-weight:700}
-.btn-gold:hover{background:#f5d280;transform:translateY(-1px)}
-.btn-blue{background:var(--blue-dim);color:var(--blue);border:none}
-.btn-blue:hover{background:rgba(96,165,250,0.2)}
-.btn-red{background:rgba(248,113,113,0.1);color:var(--red);border:none}
-.btn-red:hover{background:rgba(248,113,113,0.2)}
-.spin{width:13px;height:13px;border:2px solid rgba(11,13,19,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
+    /* Stats */
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+    .stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+    .stat-l{font-size:10px;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+    .stat-v{font-size:34px;font-weight:700;margin:6px 0 3px;line-height:1}
+    .stat-c{font-size:11px;color:var(--muted)}
 
-/* ── LAYOUT ── */
-.editor{display:flex;height:calc(100vh - var(--topbar));overflow:hidden}
+    /* Card */
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:20px}
+    .card-head{padding:16px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+    .card-title{font-size:13px;font-weight:700}
+    table{width:100%;border-collapse:collapse}
+    th{padding:11px 22px;text-align:left;font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+    td{padding:14px 22px;font-size:12px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:rgba(255,255,255,.015)}
+    .status-sel{background:transparent;border:none;font-size:10px;font-weight:700;color:inherit;cursor:pointer;font-family:inherit;padding:3px 8px;border-radius:100px}
+    .s-baru{color:var(--blue);background:rgba(96,165,250,.12)}
+    .s-proses{color:var(--gold);background:rgba(240,192,96,.12)}
+    .s-selesai{color:var(--green);background:rgba(52,211,153,.12)}
+    .s-batal{color:var(--red);background:rgba(248,113,113,.1)}
 
-/* ── LEFT PANEL ── */
-.panel-left{
-  width:var(--panel-left);flex-shrink:0;
-  background:var(--surf);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.pane-head{
-  padding:12px 14px 10px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
-}
-.pane-title{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase}
-.pane-add-btn{
-  width:24px;height:24px;border-radius:6px;background:var(--gold-dim);
-  border:1px solid rgba(240,192,96,0.2);color:var(--gold);font-size:16px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;position:relative;
-}
-.pane-add-btn:hover{background:var(--gold-glow)}
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:100;display:none;align-items:center;justify-content:center}
+    .overlay.open{display:flex}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:640px;max-height:92vh;overflow-y:auto;padding:28px}
+    .modal-title{font-size:17px;font-weight:700;margin-bottom:22px}
+    .fg{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .fg-full{grid-column:span 2}
+    .fg-head{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--gold);grid-column:span 2;margin-top:6px}
+    label{display:block;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+    input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-family:inherit;font-size:13px;outline:none;transition:border-color .2s}
+    input:focus,select:focus,textarea:focus{border-color:rgba(240,192,96,.5)}
+    select option{background:var(--surface)}
+    textarea{resize:vertical;min-height:70px}
+    .modal-foot{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
 
-.layer-add-menu{
-  position:absolute;top:calc(100% + 4px);right:0;
-  background:var(--surf2);border:1px solid var(--border2);
-  border-radius:var(--r);padding:4px;z-index:50;
-  min-width:160px;box-shadow:0 8px 32px rgba(0,0,0,.5);
-  display:none;
-}
-.layer-add-menu.open{display:block}
-.lam-item{
-  padding:8px 12px;border-radius:6px;cursor:pointer;
-  display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted2);
-  transition:all .15s;
-}
-.lam-item:hover{background:var(--surf3);color:var(--text)}
-.lam-item .ic{font-size:15px;width:18px;text-align:center}
+    /* Toast */
+    .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);padding:12px 24px;border-radius:100px;font-size:13px;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+    .toast.show{opacity:1}
+    .toast.ok{border-color:rgba(52,211,153,.4);color:var(--green)}
+    .toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
 
-.layer-search{padding:8px 12px;flex-shrink:0}
-.layer-search input{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:var(--r);padding:6px 10px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;transition:border-color .2s;
-}
-.layer-search input:focus{border-color:rgba(240,192,96,.4)}
-.layer-search input::placeholder{color:var(--muted)}
+    /* Deploy guide */
+    .guide-step{display:flex;gap:12px;padding:14px;background:var(--bg);border-radius:8px;margin-bottom:8px}
+    .gs-num{width:24px;height:24px;border-radius:50%;background:var(--gold-dim);color:var(--gold);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .gs-text{font-size:12px;color:var(--muted);line-height:1.6}
+    .gs-text strong{color:var(--text)}
+    .code{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 16px;font-family:monospace;font-size:12px;color:var(--green);line-height:1.8;margin-top:8px;overflow-x:auto}
 
-.layers-list{flex:1;overflow-y:auto;padding:4px 8px 8px}
-.layers-list::-webkit-scrollbar{width:4px}
-.layers-list::-webkit-scrollbar-track{background:transparent}
-.layers-list::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
+    /* Link gen */
+    .link-gen{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:20px}
+    .link-gen h3{font-size:13px;font-weight:700;margin-bottom:14px}
+    .link-row{display:flex;gap:10px;align-items:flex-end}
+    .link-out{margin-top:12px;display:none}
+    .link-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:12px;color:var(--blue);cursor:pointer;word-break:break-all}
+    .link-box:hover{border-color:var(--blue)}
 
-.layer-item{
-  display:flex;align-items:center;gap:6px;
-  padding:7px 8px;border-radius:var(--r);cursor:pointer;
-  transition:background .15s;border:1px solid transparent;margin-bottom:2px;
-  user-select:none;
-}
-.layer-item:hover{background:var(--surf2)}
-.layer-item.selected{background:var(--gold-dim);border-color:rgba(240,192,96,.2)}
-.layer-item.dragging{opacity:.4}
-.layer-item.drag-over{border-color:var(--blue)!important;background:var(--blue-dim)!important}
+    /* Loading spinner */
+    .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(15,17,23,.3);border-top-color:var(--bg);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px}
+    @keyframes spin{to{transform:rotate(360deg)}}
 
-.li-vis,.li-lock{
-  width:18px;height:18px;border:none;background:transparent;
-  color:var(--muted);cursor:pointer;font-size:13px;
-  border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;padding:0;
-}
-.li-vis:hover,.li-lock:hover{background:var(--surf3);color:var(--text)}
-.li-vis.off,.li-lock.on{color:var(--red)!important}
+    /* Env setup */
+    .env-card{background:var(--surface);border:1px solid rgba(240,192,96,.3);border-radius:var(--r);padding:22px;margin-bottom:20px}
+    .env-title{font-size:13px;font-weight:700;color:var(--gold);margin-bottom:14px}
+    .env-row{display:flex;gap:10px;margin-bottom:10px;align-items:center}
+    .env-key{font-family:monospace;font-size:11px;color:var(--gold);background:var(--bg);padding:4px 10px;border-radius:6px;flex-shrink:0;min-width:140px}
+    .env-val{flex:1}
+    .env-saved{font-size:10px;color:var(--green);margin-top:4px}
 
-.li-thumb{
-  width:22px;height:22px;border-radius:4px;flex-shrink:0;
-  background:var(--surf3);border:1px solid var(--border);
-  display:flex;align-items:center;justify-content:center;font-size:11px;
-  overflow:hidden;
-}
-.li-thumb img{width:100%;height:100%;object-fit:cover}
-
-.li-name{flex:1;font-size:12px;color:var(--muted2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.layer-item.selected .li-name{color:var(--text)}
-.li-name input{background:transparent;border:none;outline:none;color:inherit;font-family:inherit;font-size:inherit;width:100%}
-
-.li-del{
-  width:18px;height:18px;border:none;background:transparent;color:var(--muted);
-  cursor:pointer;font-size:12px;border-radius:4px;flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;
-  opacity:0;transition:all .15s;padding:0;
-}
-.layer-item:hover .li-del{opacity:1}
-.li-del:hover{background:rgba(248,113,113,.15);color:var(--red)}
-
-.layers-empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
-
-/* ── CANVAS AREA ── */
-.canvas-area{
-  flex:1;overflow:auto;background:#080a10;
-  position:relative;display:flex;align-items:flex-start;justify-content:center;
-  padding:32px;
-}
-.canvas-area::-webkit-scrollbar{width:8px;height:8px}
-.canvas-area::-webkit-scrollbar-track{background:var(--bg)}
-.canvas-area::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
-
-.canvas-wrap{
-  position:relative;flex-shrink:0;
-}
-.canvas-scaler{
-  transform-origin:top left;
-  /* width/height set dynamically */
-}
-.canvas{
-  width:var(--canvas-w);
-  position:relative;
-  overflow:visible;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 24px 80px rgba(0,0,0,.8);
-}
-/* Section backgrounds */
-.section-block{
-  width:100%;position:relative;overflow:hidden;display:flex;
-  align-items:center;justify-content:center;flex-direction:column;
-  user-select:none;pointer-events:none;
-}
-.section-label{
-  font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  opacity:.25;color:#fff;text-align:center;
-  font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  white-space:nowrap;
-}
-.section-accent{
-  position:absolute;bottom:0;left:0;right:0;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(201,169,110,.15),transparent);
-}
-
-/* Canvas elements */
-.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
-.canvas-el{
-  position:absolute;pointer-events:all;
-  box-sizing:border-box;
-  transform-origin:center center;
-}
-.canvas-el.selected{outline:2px solid #f0c060!important;outline-offset:1px}
-.canvas-el.locked-el{cursor:default!important}
-.canvas-el img{display:block;pointer-events:none;-webkit-user-drag:none}
-.canvas-el .el-inner{width:100%;height:100%;overflow:hidden;pointer-events:none}
-
-/* Selection handles */
-.h{
-  position:absolute;width:var(--handle);height:var(--handle);
-  background:#fff;border:1.5px solid #f0c060;border-radius:2px;z-index:5;
-}
-.h-nw{top:calc(var(--handle)/-2);left:calc(var(--handle)/-2);cursor:nw-resize}
-.h-n {top:calc(var(--handle)/-2);left:calc(50% - var(--handle)/2);cursor:n-resize}
-.h-ne{top:calc(var(--handle)/-2);right:calc(var(--handle)/-2);cursor:ne-resize}
-.h-e {top:calc(50% - var(--handle)/2);right:calc(var(--handle)/-2);cursor:e-resize}
-.h-se{bottom:calc(var(--handle)/-2);right:calc(var(--handle)/-2);cursor:se-resize}
-.h-s {bottom:calc(var(--handle)/-2);left:calc(50% - var(--handle)/2);cursor:s-resize}
-.h-sw{bottom:calc(var(--handle)/-2);left:calc(var(--handle)/-2);cursor:sw-resize}
-.h-w {top:calc(50% - var(--handle)/2);left:calc(var(--handle)/-2);cursor:w-resize}
-
-/* Grid overlay */
-.canvas-grid{
-  position:absolute;inset:0;pointer-events:none;z-index:8;
-  background-image:
-    linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
-  background-size:20px 20px;
-}
-/* Center guides */
-.canvas-guide-h,.canvas-guide-v{position:absolute;pointer-events:none;z-index:9}
-.canvas-guide-h{left:0;right:0;height:1px;background:rgba(96,165,250,.35);top:50%}
-.canvas-guide-v{top:0;bottom:0;width:1px;background:rgba(96,165,250,.35);left:50%}
-
-/* var badge on linked elements */
-.var-badge{
-  position:absolute;bottom:2px;left:2px;
-  background:rgba(96,165,250,.9);color:#fff;
-  font-size:8px;padding:1px 5px;border-radius:3px;
-  font-family:monospace;pointer-events:none;white-space:nowrap;z-index:1;
-}
-
-/* Rubber-band selection */
-.rubber-band{
-  position:absolute;border:1px dashed var(--blue);
-  background:rgba(96,165,250,.07);z-index:11;pointer-events:none;
-}
-
-/* ── RIGHT PANEL ── */
-.panel-right{
-  width:var(--panel-right);flex-shrink:0;
-  background:var(--surf);border-left:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
-}
-.panel-right .pane-head{flex-shrink:0}
-.props-body{flex:1;overflow-y:auto;padding:14px}
-.props-body::-webkit-scrollbar{width:4px}
-.props-body::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
-
-.prop-group{margin-bottom:16px}
-.prop-group-title{
-  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:6px;
-}
-.prop-group-title::after{content:'';flex:1;height:1px;background:var(--border)}
-
-.prop-row{display:flex;gap:8px;margin-bottom:8px}
-.prop-col{flex:1;min-width:0}
-.prop-label{font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:500}
-.prop-input{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;transition:border-color .2s;
-}
-.prop-input:focus{border-color:rgba(240,192,96,.5)}
-.prop-input[type=color]{padding:3px;height:32px;cursor:pointer}
-.prop-input[type=range]{padding:0;height:32px;accent-color:var(--gold)}
-
-.prop-row-label{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.prop-row-label .prop-label{margin-bottom:0;flex:1}
-
-.prop-select{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;cursor:pointer;
-}
-.prop-select:focus{border-color:rgba(240,192,96,.5)}
-.prop-select option{background:var(--surf)}
-
-.prop-textarea{
-  width:100%;background:var(--surf2);border:1px solid var(--border);
-  border-radius:6px;padding:6px 8px;color:var(--text);
-  font-family:inherit;font-size:12px;outline:none;resize:vertical;min-height:60px;
-  transition:border-color .2s;
-}
-.prop-textarea:focus{border-color:rgba(240,192,96,.5)}
-
-.text-btns{display:flex;gap:4px}
-.text-btn{
-  width:28px;height:28px;border:1px solid var(--border2);border-radius:5px;
-  background:transparent;color:var(--muted);cursor:pointer;font-size:13px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-  font-family:inherit;
-}
-.text-btn:hover{border-color:var(--gold);color:var(--gold)}
-.text-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
-
-.action-row{display:flex;gap:6px;flex-wrap:wrap}
-.action-btn{
-  flex:1;min-width:0;padding:6px 8px;border:1px solid var(--border2);
-  border-radius:var(--r);background:transparent;color:var(--muted2);
-  font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;
-  transition:all .15s;text-align:center;
-}
-.action-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
-.action-btn.red:hover{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.1)}
-
-.no-sel{
-  padding:40px 20px;text-align:center;color:var(--muted);
-  display:flex;flex-direction:column;align-items:center;gap:12px;
-}
-.no-sel-icon{font-size:40px;opacity:.3}
-.no-sel-text{font-size:12px;line-height:1.6}
-
-/* ── VARS PANEL (bottom of right) ── */
-.vars-panel{
-  border-top:1px solid var(--border);flex-shrink:0;max-height:200px;
-  overflow-y:auto;
-}
-.vars-panel::-webkit-scrollbar{width:4px}
-.vars-panel::-webkit-scrollbar-thumb{background:var(--surf3);border-radius:4px}
-.vars-panel .pane-head{border-bottom:1px solid var(--border)}
-.var-list{padding:8px}
-.var-chip{
-  display:inline-flex;align-items:center;gap:4px;
-  background:var(--surf3);border:1px solid var(--border);
-  border-radius:5px;padding:3px 8px;margin:2px;
-  font-size:10px;font-family:monospace;color:var(--muted2);
-  cursor:pointer;transition:all .15s;
-}
-.var-chip:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-dim)}
-
-/* ── MODALS ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:none;align-items:center;justify-content:center}
-.overlay.open{display:flex}
-.modal{
-  background:var(--surf);border:1px solid var(--border2);
-  border-radius:16px;width:100%;max-width:520px;
-  max-height:88vh;overflow-y:auto;padding:0;
-  box-shadow:0 24px 80px rgba(0,0,0,.7);
-}
-.modal-head{
-  padding:20px 24px 16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;background:var(--surf);z-index:1;
-}
-.modal-title{font-size:16px;font-weight:700}
-.modal-close{
-  width:30px;height:30px;border:none;background:var(--surf2);
-  border-radius:50%;color:var(--muted);cursor:pointer;font-size:18px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.modal-close:hover{background:var(--surf3);color:var(--text)}
-.modal-body{padding:20px 24px}
-.modal-foot{padding:16px 24px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
-
-.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.fg-full{grid-column:span 2}
-.field-label{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:600}
-.field-input{
-  width:100%;background:var(--bg);border:1px solid var(--border);
-  border-radius:var(--r);padding:8px 12px;color:var(--text);
-  font-family:inherit;font-size:13px;outline:none;transition:border-color .2s;
-}
-.field-input:focus{border-color:rgba(240,192,96,.5)}
-.field-input::placeholder{color:var(--muted)}
-
-.upload-zone{
-  border:2px dashed var(--border2);border-radius:var(--r2);
-  padding:28px 20px;text-align:center;cursor:pointer;transition:all .2s;
-  position:relative;
-}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--gold);background:var(--gold-dim)}
-.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer}
-.upload-zone-icon{font-size:28px;margin-bottom:8px;opacity:.5}
-.upload-zone-text{font-size:12px;color:var(--muted2)}
-.upload-zone-sub{font-size:11px;color:var(--muted);margin-top:4px}
-
-.preview-img-wrap{
-  background:var(--bg);border:1px solid var(--border);border-radius:var(--r);
-  overflow:hidden;margin-bottom:12px;max-height:160px;display:flex;align-items:center;justify-content:center;
-}
-.preview-img-wrap img{max-width:100%;max-height:160px;object-fit:contain}
-
-.font-pill{
-  display:inline-flex;align-items:center;gap:6px;
-  background:var(--surf2);border:1px solid var(--border);
-  border-radius:100px;padding:5px 10px 5px 12px;margin:3px;font-size:12px;
-}
-.font-pill-del{
-  width:16px;height:16px;border:none;background:var(--surf3);
-  border-radius:50%;color:var(--muted);cursor:pointer;font-size:10px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.font-pill-del:hover{background:rgba(248,113,113,.2);color:var(--red)}
-
-/* ── TOAST ── */
-.toast{
-  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(12px);
-  background:var(--surf);border:1px solid var(--border2);padding:10px 20px;
-  border-radius:100px;font-size:12px;z-index:9999;
-  opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;white-space:nowrap;
-  box-shadow:0 8px 24px rgba(0,0,0,.5);
-}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-.toast.ok{border-color:rgba(52,211,153,.4);color:var(--green)}
-.toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
-.toast.info{border-color:rgba(96,165,250,.4);color:var(--blue)}
-
-/* ── MISC ── */
-.divider{height:1px;background:var(--border);margin:12px 0}
-.flex-center{display:flex;align-items:center;justify-content:center}
-.gap-6{gap:6px}
-.section-tag{
-  display:inline-block;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  padding:2px 8px;border-radius:4px;background:var(--surf3);border:1px solid var(--border);
-  color:var(--muted);margin-bottom:8px;
-}
-.badge-img{background:rgba(96,165,250,.12);color:var(--blue);border-color:rgba(96,165,250,.2)}
-.badge-box{background:rgba(167,139,250,.12);color:var(--purple);border-color:rgba(167,139,250,.2)}
-.badge-txt{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.2)}
-
-/* ── Responsive ── */
-@media(max-width:1100px){
-  :root{--panel-right:260px}
-}
-@media(max-width:880px){
-  .panel-right{display:none}
-}
-</style>
+    @media(max-width:900px){
+      .stats{grid-template-columns:repeat(2,1fr)}
+      .sidebar{width:56px}
+      .logo-sub,.nav-item span,.nav-label,.an,.ar{display:none}
+      .nav-item{justify-content:center}
+      .fg{grid-template-columns:1fr}
+      .fg-full,.fg-head{grid-column:span 1}
+    }
+  </style>
 </head>
 <body>
 
-<!-- ── TOPBAR ───────────────────────────────────────────── -->
-<div class="topbar">
-  <div class="tb-logo">
-    <a href="index.html">← Admin</a>
-    <span class="tb-logo-divider">/</span>
-    <span class="tb-logo-name" id="tb-tpl-name">✏ Edit Template</span>
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-mark">✦ Admin</div>
+    <div class="logo-sub">Undangan Digital</div>
+  </div>
+  <div class="nav">
+    <div class="nav-label">Menu</div>
+    <div class="nav-item active" onclick="go('dashboard',this)"><span class="ic">◉</span><span>Dashboard</span></div>
+    <div class="nav-item" onclick="go('orders',this)"><span class="ic">📋</span><span>Undangan</span><span class="badge" id="new-badge">0</span></div>
+    <div class="nav-item" onclick="go('create',this)"><span class="ic">✨</span><span>Buat Baru</span></div>
+    <div class="nav-item" onclick="go('links',this)"><span class="ic">🔗</span><span>Generator Link</span></div>
+    <div class="nav-label">Template</div>
+    <div class="nav-item" onclick="go('templates',this)"><span class="ic">🎨</span><span>Kelola Template</span></div>
+    <div class="nav-item" onclick="window.location='edit-template.html'"><span class="ic">✏️</span><span>Edit Template</span></div>
+    <div class="nav-label">Sistem</div>
+    <div class="nav-item" onclick="go('setup',this)"><span class="ic">⚙</span><span>Setup & Env</span></div>
+  </div>
+  <div class="sidebar-foot">
+    <div class="admin-row">
+      <div class="av">A</div>
+      <div><div class="an">Admin</div><div class="ar">Super Admin</div></div>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="ptitle">Dashboard</div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost" onclick="loadOrders()">↻ Refresh</button>
+      <button class="btn btn-gold" onclick="go('create', document.querySelectorAll('.nav-item')[2])">+ Buat Undangan</button>
+    </div>
   </div>
 
-  <!-- Tools -->
-  <div class="tb-tools">
-    <button class="tb-tool active" id="tool-select" title="Pilih & Geser (V)" onclick="setTool('select')">⬡</button>
-    <button class="tb-tool" id="tool-box"    title="Tambah Box (B)"    onclick="setTool('box')">▭</button>
-    <button class="tb-tool" id="tool-image"  title="Tambah Gambar (I)" onclick="setTool('image');openImageModal()">🖼</button>
-    <button class="tb-tool" id="tool-text"   title="Tambah Teks (T)"   onclick="setTool('text');addTextLayer()">T</button>
-  </div>
+  <div class="content">
 
-  <!-- Toggles -->
-  <div class="tb-toggles">
-    <button class="tb-toggle" id="btn-grid"   onclick="toggleGrid()"   title="Grid">⊞ Grid</button>
-    <button class="tb-toggle" id="btn-guides" onclick="toggleGuides()" title="Garis Bantu">⊟ Guides</button>
-    <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
-    <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
-  </div>
-
-  <!-- Zoom -->
-  <div class="tb-zoom">
-    <button class="zoom-btn" onclick="adjustZoom(-0.1)">−</button>
-    <span class="zoom-val" id="zoom-label" onclick="resetZoom()">50%</span>
-    <button class="zoom-btn" onclick="adjustZoom(+0.1)">+</button>
-  </div>
-
-  <!-- Actions -->
-  <div class="tb-actions">
-    <button class="btn btn-ghost" onclick="undoAction()" id="btn-undo" title="Undo (Ctrl+Z)">↩ Undo</button>
-    <button class="btn btn-ghost" onclick="redoAction()" id="btn-redo" title="Redo (Ctrl+Y)">↪ Redo</button>
-    <button class="btn btn-ghost" onclick="previewTemplate()">👁 Preview</button>
-    <button class="btn btn-blue"  onclick="downloadTemplate()">⬇ Download</button>
-    <button class="btn btn-gold"  id="btn-save" onclick="saveToGitHub()">💾 Simpan ke GitHub</button>
-  </div>
-</div>
-
-<!-- ── EDITOR ──────────────────────────────────────────── -->
-<div class="editor">
-
-  <!-- LEFT: Layers -->
-  <div class="panel-left">
-    <div class="pane-head">
-      <span class="pane-title">Layers</span>
-      <div style="position:relative">
-        <button class="pane-add-btn" onclick="toggleAddMenu()" id="add-menu-btn">+</button>
-        <div class="layer-add-menu" id="layer-add-menu">
-          <div class="lam-item" onclick="closeAddMenu();openImageModal()"><span class="ic">🖼</span> Upload Gambar</div>
-          <div class="lam-item" onclick="closeAddMenu();addBoxLayer()"><span class="ic">▭</span> Tambah Box</div>
-          <div class="lam-item" onclick="closeAddMenu();addTextLayer()"><span class="ic">T</span> Tambah Teks</div>
-          <div style="height:1px;background:var(--border);margin:4px 0"></div>
-          <div class="lam-item" onclick="closeAddMenu();openSectionStyleModal()"><span class="ic">🎨</span> Style Seksi</div>
-        </div>
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats">
+        <div class="stat"><div class="stat-l">Total Undangan</div><div class="stat-v" id="s-total" style="color:var(--text)">–</div><div class="stat-c">Semua waktu</div></div>
+        <div class="stat"><div class="stat-l">Baru / Proses</div><div class="stat-v" id="s-active" style="color:var(--blue)">–</div><div class="stat-c">Perlu perhatian</div></div>
+        <div class="stat"><div class="stat-l">Selesai</div><div class="stat-v" id="s-done" style="color:var(--green)">–</div><div class="stat-c">Live di website</div></div>
+        <div class="stat"><div class="stat-l">Bulan Ini</div><div class="stat-v" id="s-month" style="color:var(--gold)">–</div><div class="stat-c">Undangan baru</div></div>
+      </div>
+      <div class="card">
+        <div class="card-head"><div class="card-title">Undangan Terbaru</div></div>
+        <table><thead><tr><th>Mempelai</th><th>Klien</th><th>Tanggal Akad</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="dash-table"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Memuat data...</td></tr></tbody>
+        </table>
       </div>
     </div>
 
-    <div class="layer-search">
-      <input type="text" id="layer-search" placeholder="🔍 Cari layer..." oninput="renderLayers()">
-    </div>
-
-    <div class="layers-list" id="layers-list">
-      <div class="layers-empty">
-        <div>📦</div>
-        <div>Belum ada layer.<br>Klik <strong>+</strong> untuk menambah elemen desain.</div>
+    <!-- ORDERS -->
+    <div class="page" id="page-orders">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <div><div style="font-size:18px;font-weight:700">Semua Undangan</div><div style="font-size:12px;color:var(--muted);margin-top:3px">Data dari GitHub JSON</div></div>
+        <input style="width:220px" placeholder="🔍 Cari nama..." id="search-input" oninput="renderOrders()">
       </div>
-    </div>
-  </div>
-
-  <!-- CENTER: Canvas -->
-  <div class="canvas-area" id="canvas-area" onmousedown="canvasBgMousedown(event)">
-    <div class="canvas-wrap" id="canvas-wrap">
-      <div class="canvas-scaler" id="canvas-scaler">
-        <div class="canvas" id="canvas">
-          <!-- Section backgrounds (static) -->
-          <div id="canvas-bg"></div>
-          <!-- Grid -->
-          <div class="canvas-grid" id="canvas-grid" style="display:none"></div>
-          <!-- Center guides -->
-          <div id="canvas-guides" style="display:none">
-            <div class="canvas-guide-h"></div>
-            <div class="canvas-guide-v"></div>
+      <div class="card">
+        <div class="card-head">
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('all')">Semua</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('baru')">Baru</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('proses')">Proses</button>
+            <button class="btn btn-ghost" style="font-size:10px" onclick="setFilter('selesai')">Selesai</button>
           </div>
-          <!-- Elements -->
-          <div class="canvas-els" id="canvas-els"></div>
+        </div>
+        <table><thead><tr><th>#</th><th>Mempelai</th><th>Klien</th><th>Template</th><th>Tanggal</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="orders-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CREATE -->
+    <div class="page" id="page-create">
+      <div style="max-width:680px">
+        <div style="font-size:18px;font-weight:700;margin-bottom:6px">✨ Buat Undangan Baru</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Isi form di bawah → klik Buat → selesai! Link langsung aktif ±30 detik.</div>
+
+        <div class="card" style="padding:24px;overflow:visible">
+          <div class="fg">
+            <div class="fg-head">👫 Data Mempelai</div>
+            <div><label>Nama Pengantin Wanita *</label><input id="c-bride" placeholder="Sari Dewi Kusuma"></div>
+            <div><label>Nama Pengantin Pria *</label><input id="c-groom" placeholder="Andi Pratama Santoso"></div>
+            <div><label>Ayah Pengantin Wanita</label><input id="c-bride-father" placeholder="Bpk. Hendra Kusuma"></div>
+            <div><label>Ibu Pengantin Wanita</label><input id="c-bride-mother" placeholder="Ibu Ria Kusuma"></div>
+            <div><label>Ayah Pengantin Pria</label><input id="c-groom-father" placeholder="Bpk. Agus Santoso"></div>
+            <div><label>Ibu Pengantin Pria</label><input id="c-groom-mother" placeholder="Ibu Yuli Santoso"></div>
+            <div><label>URL Foto Pengantin Wanita</label><input id="c-bride-photo" placeholder="https://..."></div>
+            <div><label>URL Foto Pengantin Pria</label><input id="c-groom-photo" placeholder="https://..."></div>
+
+            <div class="fg-head">📅 Akad Nikah</div>
+            <div><label>Tanggal (angka)</label><input id="c-akad-date" placeholder="15"></div>
+            <div><label>Bulan</label><input id="c-akad-month" placeholder="Juni"></div>
+            <div><label>Tahun</label><input id="c-akad-year" placeholder="2024"></div>
+            <div><label>Hari</label><input id="c-akad-day" placeholder="Sabtu"></div>
+            <div><label>Jam</label><input id="c-akad-time" placeholder="09.00 – 11.00 WIB"></div>
+            <div><label>Tanggal ISO (untuk countdown)</label><input id="c-akad-iso" placeholder="2024-06-15T09:00:00"></div>
+            <div><label>Nama Venue</label><input id="c-akad-venue" placeholder="Masjid Al-Azhar"></div>
+            <div><label>Alamat</label><input id="c-akad-address" placeholder="Jl. Sisingamangaraja, Jakarta"></div>
+            <div class="fg-full"><label>Link Google Maps</label><input id="c-akad-maps" placeholder="https://maps.google.com/?q=..."></div>
+
+            <div class="fg-head">🥂 Resepsi (kosongkan jika sama dengan akad)</div>
+            <div><label>Tanggal Resepsi</label><input id="c-res-date" placeholder="15"></div>
+            <div><label>Bulan Resepsi</label><input id="c-res-month" placeholder="Juni"></div>
+            <div><label>Tahun Resepsi</label><input id="c-res-year" placeholder="2024"></div>
+            <div><label>Jam Resepsi</label><input id="c-res-time" placeholder="11.00 – 14.00 WIB"></div>
+            <div><label>Venue Resepsi</label><input id="c-res-venue" placeholder="Ballroom Hotel Mulia"></div>
+            <div><label>Alamat Resepsi</label><input id="c-res-address" placeholder="Jl. Asia Afrika, Jakarta"></div>
+            <div class="fg-full"><label>Link Maps Resepsi</label><input id="c-res-maps" placeholder="https://maps.google.com/?q=..."></div>
+
+            <div class="fg-head">🖼 Galeri Foto</div>
+            <div><label>Foto 1 (banner utama)</label><input id="c-g1" placeholder="https://..."></div>
+            <div><label>Foto 2</label><input id="c-g2" placeholder="https://..."></div>
+            <div><label>Foto 3</label><input id="c-g3" placeholder="https://..."></div>
+            <div><label>Foto 4</label><input id="c-g4" placeholder="https://..."></div>
+            <div class="fg-full"><label>Foto 5</label><input id="c-g5" placeholder="https://..."></div>
+
+            <div class="fg-head">💌 Love Story</div>
+            <div><label>Tahun 1</label><input id="c-s1y" placeholder="2020"></div>
+            <div><label>Cerita 1</label><input id="c-s1t" placeholder="Pertama bertemu..."></div>
+            <div><label>Tahun 2</label><input id="c-s2y" placeholder="2022"></div>
+            <div><label>Cerita 2</label><input id="c-s2t" placeholder="Mulai menjalin hubungan..."></div>
+            <div><label>Tahun 3</label><input id="c-s3y" placeholder="2024"></div>
+            <div><label>Cerita 3</label><input id="c-s3t" placeholder="Memutuskan untuk menikah..."></div>
+
+            <div class="fg-head">💳 Amplop Digital</div>
+            <div><label>Bank 1</label><input id="c-bank1" placeholder="Bank BCA"></div>
+            <div><label>No. Rekening 1</label><input id="c-acc1" placeholder="1234567890"></div>
+            <div><label>A/N Rekening 1</label><input id="c-acc1n" placeholder="Sari Dewi"></div>
+            <div></div>
+            <div><label>Bank 2</label><input id="c-bank2" placeholder="Bank Mandiri"></div>
+            <div><label>No. Rekening 2</label><input id="c-acc2" placeholder="0987654321"></div>
+            <div class="fg-full"><label>A/N Rekening 2</label><input id="c-acc2n" placeholder="Andi Pratama"></div>
+
+            <div class="fg-head">⚙ Pengaturan</div>
+            <div><label>Template *</label>
+              <select id="c-template">
+                <option value="template-elegant">template-elegant (memuat...)</option>
+              </select>
+              <div style="font-size:10px;color:var(--muted);margin-top:4px">Template dimuat otomatis dari daftar. Kelola di menu 🎨 Template.</div>
+            </div>
+            <div><label>Slug URL (auto jika kosong)</label><input id="c-slug" placeholder="andi-sari (→ /andi-sari/)"></div>
+            <div><label>Deadline RSVP</label><input id="c-rsvp" placeholder="1 Juni 2024"></div>
+            <div><label>URL Musik Latar (MP3)</label><input id="c-music" placeholder="https://..."></div>
+            <div><label>Nama Klien (pemesan) *</label><input id="c-client" placeholder="Nama klien/pemesan"></div>
+            <div><label>WA Klien</label><input id="c-client-wa" placeholder="08xxxxxxxxxx"></div>
+            <div><label>No. WA Tamu (untuk RSVP)</label><input id="c-wa" placeholder="628xxxxxxxxxx"></div>
+          </div>
+
+          <div style="margin-top:20px;display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-ghost" onclick="clearCreate()">Reset</button>
+            <button class="btn btn-gold" id="create-btn" onclick="createInvitation()">✨ Buat Undangan</button>
+          </div>
+        </div>
+
+        <div id="create-result" style="display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(52,211,153,.3);border-radius:var(--r);padding:20px">
+          <div style="color:var(--green);font-weight:700;margin-bottom:8px">✅ Undangan berhasil dibuat!</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Vercel sedang deploy otomatis. Live dalam ±30 detik.</div>
+          <div style="font-family:monospace;font-size:13px;color:var(--blue);background:var(--bg);padding:10px 14px;border-radius:8px;cursor:pointer" id="result-link" onclick="copyResult()"></div>
+          <div style="display:flex;gap:8px;margin-top:12px">
+            <button class="btn btn-green" onclick="copyResult()">📋 Salin Link</button>
+            <button class="btn btn-blue" onclick="shareResultWA()">💬 Kirim ke Klien via WA</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- RIGHT: Properties + Vars -->
-  <div class="panel-right">
-    <div class="pane-head" style="border-bottom:1px solid var(--border)">
-      <span class="pane-title">Properti</span>
-      <span id="props-type-badge" class="section-tag" style="display:none"></span>
-    </div>
+    <!-- LINK GENERATOR -->
+    <div class="page" id="page-links">
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">🔗 Generator Link Tamu</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Generate link personal untuk setiap tamu undangan.</div>
 
-    <div class="props-body" id="props-body">
-      <div class="no-sel" id="no-sel">
-        <div class="no-sel-icon">🖱</div>
-        <div class="no-sel-text">Pilih elemen di canvas<br>untuk mengedit propertinya</div>
-      </div>
-      <!-- Dynamic props inserted here -->
-    </div>
-
-    <!-- Template vars -->
-    <div class="vars-panel">
-      <div class="pane-head">
-        <span class="pane-title">Template Variables</span>
-      </div>
-      <div class="var-list" id="var-list">
-        <!-- chips rendered by JS -->
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Add Image ─────────────────────────────────── -->
-<div class="overlay" id="modal-image">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title">🖼 Tambah Gambar</span>
-      <button class="modal-close" onclick="closeModal('modal-image')">×</button>
-    </div>
-    <div class="modal-body">
-      <!-- Tabs -->
-      <div style="display:flex;gap:4px;margin-bottom:16px">
-        <button class="btn btn-gold" id="img-tab-upload" onclick="switchImgTab('upload')">Upload File</button>
-        <button class="btn btn-ghost" id="img-tab-url" onclick="switchImgTab('url')">URL / Link</button>
-        <button class="btn btn-ghost" id="img-tab-var" onclick="switchImgTab('var')">Variable Template</button>
-      </div>
-
-      <!-- Upload tab -->
-      <div id="img-tab-upload-body">
-        <div class="upload-zone" id="upload-zone">
-          <input type="file" id="img-file-input" accept="image/*,.webp" onchange="handleFileUpload(event)">
-          <div class="upload-zone-icon" id="upload-zone-icon">📁</div>
-          <div class="upload-zone-text" id="upload-zone-text">Drag & drop atau klik untuk upload</div>
-          <div class="upload-zone-sub" id="upload-zone-sub">WebP, PNG, JPG, SVG, GIF – max 5MB</div>
+      <div class="link-gen">
+        <h3>Generate dari daftar undangan</h3>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="flex:1"><label>Pilih Undangan</label>
+            <select id="lg-inv"><option value="">-- Pilih undangan --</option></select>
+          </div>
+          <div style="flex:1"><label>Nama Tamu</label><input id="lg-guest" placeholder="Bapak/Ibu Santoso"></div>
         </div>
-        <div id="img-upload-preview" style="display:none;margin-top:12px">
-          <div class="preview-img-wrap"><img id="img-upload-preview-img" src=""></div>
-          <div style="font-size:11px;color:var(--muted)" id="img-upload-name"></div>
-          <div style="font-size:11px;margin-top:4px" id="img-upload-github-url"></div>
+        <button class="btn btn-gold" onclick="genLink()">Generate Link</button>
+        <div class="link-out" id="link-out">
+          <div class="link-box" id="link-box" onclick="copyLink()"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-blue" style="font-size:11px" onclick="copyLink()">📋 Salin</button>
+            <button class="btn btn-green" style="font-size:11px" onclick="shareLink()">💬 WA</button>
+          </div>
         </div>
       </div>
 
-      <!-- URL tab -->
-      <div id="img-tab-url-body" style="display:none">
-        <div class="field-label">URL Gambar</div>
-        <input class="field-input" id="img-url-input" placeholder="https://..." oninput="previewImgUrl()">
-        <div id="img-url-preview" style="display:none;margin-top:12px">
-          <div class="preview-img-wrap"><img id="img-url-preview-img" src="" onerror="this.parentElement.parentElement.style.display='none'"></div>
+      <div class="link-gen">
+        <h3>Generate manual</h3>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div style="flex:2"><label>Base URL</label><input id="lg-base" placeholder="https://undanganku.com/andi-sari"></div>
+          <div style="flex:2"><label>Nama Tamu</label><input id="lg-manual-guest" placeholder="Pak Budi Santoso"></div>
+          <button class="btn btn-gold" style="flex-shrink:0;margin-top:18px" onclick="genManualLink()">Generate</button>
+        </div>
+        <div class="link-out" id="manual-link-out">
+          <div class="link-box" id="manual-link-box" onclick="copyManualLink()"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn btn-blue" style="font-size:11px" onclick="copyManualLink()">📋 Salin</button>
+            <button class="btn btn-green" style="font-size:11px" onclick="shareManualLink()">💬 WA</button>
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- Variable tab -->
-      <div id="img-tab-var-body" style="display:none">
-        <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.6">
-          Pilih variable template. Gambar akan menggunakan URL yang diisi admin saat membuat undangan.
-        </div>
-        <div id="img-var-chips" style="margin-bottom:8px"></div>
-        <div style="font-size:11px;color:var(--muted)" id="img-var-selected-label">Belum dipilih</div>
-      </div>
-
-      <!-- Size input -->
-      <div style="margin-top:16px" class="fg">
+    <!-- TEMPLATES -->
+    <div class="page" id="page-templates">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;flex-wrap:wrap;gap:12px">
         <div>
-          <div class="field-label">Lebar (px)</div>
-          <input class="field-input" id="img-w" type="number" value="200">
+          <div style="font-size:18px;font-weight:700">🎨 Manajemen Template</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Tambah, edit, duplikat, atau hapus template undangan</div>
         </div>
-        <div>
-          <div class="field-label">Tinggi (px)</div>
-          <input class="field-input" id="img-h" type="number" value="200">
+        <button class="btn btn-gold" onclick="openNewTemplateModal()">+ Tambah Template</button>
+      </div>
+      <div id="tpl-loading" style="text-align:center;padding:48px;color:var(--muted)">
+        <div class="spin" style="width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px"></div>
+        Memuat template...
+      </div>
+      <div id="tpl-grid" style="display:none;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px"></div>
+    </div>
+
+    <!-- SETUP -->
+    <div class="page" id="page-setup">
+      <div style="font-size:18px;font-weight:700;margin-bottom:6px">⚙ Setup Sistem</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:24px">Konfigurasi sekali saja. Data disimpan di browser.</div>
+
+      <div class="env-card">
+        <div class="env-title">🔑 Konfigurasi API (simpan di browser)</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+          Data ini digunakan admin panel untuk menghubungi API Vercel. <strong style="color:var(--gold)">Jangan share ke orang lain!</strong><br>
+          Untuk keamanan production, simpan sebagai Environment Variables di Vercel, bukan di sini.
         </div>
-        <div>
-          <div class="field-label">Object Fit</div>
-          <select class="field-input" id="img-fit">
-            <option value="cover">Cover</option>
-            <option value="contain">Contain</option>
-            <option value="fill">Fill</option>
-          </select>
+        <div class="env-row">
+          <div class="env-key">ADMIN_SECRET</div>
+          <div class="env-val"><input type="password" id="env-secret" placeholder="Password admin panel Anda"></div>
         </div>
-        <div>
-          <div class="field-label">Nama Layer</div>
-          <input class="field-input" id="img-name" placeholder="Image 1">
+        <div class="env-row">
+          <div class="env-key">Base URL</div>
+          <div class="env-val"><input id="env-baseurl" placeholder="https://undanganku.com (tanpa slash)"></div>
+        </div>
+        <div class="env-row">
+          <div class="env-key">WA Vendor</div>
+          <div class="env-val"><input id="env-wa" placeholder="6281234567890"></div>
+        </div>
+        <button class="btn btn-gold" style="margin-top:8px" onclick="saveEnv()">Simpan Konfigurasi</button>
+        <div id="env-saved" class="env-saved" style="margin-top:8px;display:none">✓ Tersimpan!</div>
+      </div>
+
+      <div class="card" style="overflow:visible">
+        <div class="card-head"><div class="card-title">📘 Panduan Setup Vercel Environment Variables</div></div>
+        <div style="padding:20px">
+          <div style="font-size:12px;color:var(--muted);margin-bottom:16px">
+            Set environment variables berikut di <strong style="color:var(--text)">Vercel → Project → Settings → Environment Variables</strong>:
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">1</div>
+            <div class="gs-text">
+              <strong>GITHUB_TOKEN</strong> — Personal Access Token GitHub dengan scope <code style="color:var(--gold)">repo</code><br>
+              Buat di: <a href="https://github.com/settings/tokens/new" target="_blank" style="color:var(--blue)">github.com/settings/tokens/new</a>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">2</div>
+            <div class="gs-text">
+              <strong>GITHUB_OWNER</strong> — Username GitHub kamu, contoh: <code style="color:var(--gold)">samueljkt</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">3</div>
+            <div class="gs-text">
+              <strong>GITHUB_REPO</strong> — Nama repository, contoh: <code style="color:var(--gold)">undangan-digital</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">4</div>
+            <div class="gs-text">
+              <strong>ADMIN_SECRET</strong> — Password bebas untuk proteksi API admin, contoh: <code style="color:var(--gold)">rahasia123</code>
+            </div>
+          </div>
+          <div class="guide-step">
+            <div class="gs-num">5</div>
+            <div class="gs-text">
+              <strong>GITHUB_BRANCH</strong> — Branch utama repo, biasanya: <code style="color:var(--gold)">main</code>
+            </div>
+          </div>
+          <div class="code">
+# vercel.json — routing agar /andi-sari/ → /invitations/andi-sari/index.html<br>
+# (sudah ada di file vercel.json yang disertakan)
+          </div>
         </div>
       </div>
     </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="closeModal('modal-image')">Batal</button>
-      <button class="btn btn-gold" onclick="confirmAddImage()">Tambah ke Canvas</button>
-    </div>
-  </div>
-</div>
 
-<!-- ── MODAL: Font Manager ──────────────────────────────── -->
-<div class="overlay" id="modal-font">
-  <div class="modal">
-    <div class="modal-head">
-      <span class="modal-title">🔤 Kelola Font</span>
-      <button class="modal-close" onclick="closeModal('modal-font')">×</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
-        Tempel link Google Fonts atau isi nama font. Font yang ditambahkan bisa dipakai di semua elemen teks.
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
-        <div style="flex:1">
-          <div class="field-label">Google Fonts URL atau nama font</div>
-          <input class="field-input" id="font-url-input" placeholder="https://fonts.googleapis.com/css2?family=Playfair+Display atau Playfair+Display">
-        </div>
-        <button class="btn btn-gold" onclick="addFont()">Tambah</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
-        Contoh: Playfair+Display, Great+Vibes, Sacramento, Dancing+Script
-      </div>
-
-      <div class="field-label" style="margin-bottom:8px">Font Terpasang</div>
-      <div id="font-pills-list">
-        <div style="font-size:12px;color:var(--muted)">Belum ada font tambahan</div>
-      </div>
-
-      <div class="divider"></div>
-      <div class="field-label" style="margin-bottom:8px">Preview Font</div>
-      <div id="font-preview-list" style="font-size:18px;line-height:2;color:var(--text)">
-        <div style="font-family:'Cormorant Garamond',serif;font-style:italic">Cormorant Garamond – Built-in</div>
-        <div style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans – Built-in</div>
-      </div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-gold" onclick="closeModal('modal-font')">Selesai</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Section Style ─────────────────────────────── -->
-<div class="overlay" id="modal-section">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-head">
-      <span class="modal-title">🎨 Style Seksi Template</span>
-      <button class="modal-close" onclick="closeModal('modal-section')">×</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
-        Ubah warna latar belakang setiap seksi template. Perubahan akan terlihat di canvas dan diterapkan ke template.
-      </div>
-      <div id="section-style-list"></div>
-    </div>
-    <div class="modal-foot">
-      <button class="btn btn-ghost" onclick="resetSectionStyles()">Reset Default</button>
-      <button class="btn btn-gold" onclick="closeModal('modal-section')">Terapkan</button>
-    </div>
-  </div>
-</div>
-
-<!-- ── MODAL: Save Result ───────────────────────────────── -->
-<div class="overlay" id="modal-save">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-head">
-      <span class="modal-title" id="save-modal-title">Menyimpan...</span>
-      <button class="modal-close" onclick="closeModal('modal-save')">×</button>
-    </div>
-    <div class="modal-body" id="save-modal-body" style="text-align:center;padding:32px">
-      <div class="spin" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div>
-      <div style="font-size:13px;color:var(--muted)">Menghubungi GitHub API...</div>
-    </div>
   </div>
 </div>
 
@@ -726,1315 +439,515 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════════════════════════════
-// CONSTANTS
-// ═══════════════════════════════════════════════════════════
-const CANVAS_W = 390;
-
-const SECTIONS = [
-  { id:'cover',    label:'Cover / Landing Page',     height:420, bg:'#100c07', accent:'#c9a96e' },
-  { id:'hero',     label:'Hero – Nama Mempelai',     height:360, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'quote',    label:'Quote / Ayat Suci',        height:100, bg:'#0d0a06', accent:'#8a9b7e' },
-  { id:'countdown',label:'Countdown Timer',          height:200, bg:'#111008', accent:'#c9a96e' },
-  { id:'couple',   label:'Profil Mempelai',          height:380, bg:'#1a1208', accent:'#e8c4b8' },
-  { id:'events',   label:'Akad Nikah & Resepsi',     height:280, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'story',    label:'Love Story Timeline',      height:320, bg:'#1a1208', accent:'#8a9b7e' },
-  { id:'gallery',  label:'Gallery Foto',             height:260, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'rsvp',     label:'RSVP Form',                height:320, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'gift',     label:'Amplop Digital',           height:220, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'footer',   label:'Footer',                   height:120, bg:'#090704', accent:'#c9a96e' },
-];
-const CANVAS_H = SECTIONS.reduce((s,sec) => s + sec.height, 0);
-
-const HANDLES = [
-  {dir:'nw',cur:'nw-resize'},{dir:'n',cur:'n-resize'},{dir:'ne',cur:'ne-resize'},
-  {dir:'e',cur:'e-resize'},{dir:'se',cur:'se-resize'},{dir:'s',cur:'s-resize'},
-  {dir:'sw',cur:'sw-resize'},{dir:'w',cur:'w-resize'}
-];
-
-const TEMPLATE_VARS = [
-  '{{BRIDE_NAME}}','{{GROOM_NAME}}','{{BRIDE_FATHER}}','{{BRIDE_MOTHER}}',
-  '{{GROOM_FATHER}}','{{GROOM_MOTHER}}','{{BRIDE_PHOTO}}','{{GROOM_PHOTO}}',
-  '{{AKAD_DATE}}','{{AKAD_MONTH}}','{{AKAD_YEAR}}','{{AKAD_DAY}}',
-  '{{AKAD_TIME}}','{{AKAD_VENUE}}','{{AKAD_ADDRESS}}','{{AKAD_MAPS}}',
-  '{{RESEPSI_DATE}}','{{RESEPSI_MONTH}}','{{RESEPSI_YEAR}}','{{RESEPSI_TIME}}',
-  '{{RESEPSI_VENUE}}','{{RESEPSI_ADDRESS}}','{{RESEPSI_MAPS}}',
-  '{{GALLERY_1}}','{{GALLERY_2}}','{{GALLERY_3}}','{{GALLERY_4}}','{{GALLERY_5}}',
-  '{{STORY_1_YEAR}}','{{STORY_1_TEXT}}','{{STORY_2_YEAR}}','{{STORY_2_TEXT}}',
-  '{{STORY_3_YEAR}}','{{STORY_3_TEXT}}',
-  '{{BANK_1}}','{{ACCOUNT_1}}','{{ACCOUNT_NAME_1}}',
-  '{{BANK_2}}','{{ACCOUNT_2}}','{{ACCOUNT_NAME_2}}',
-  '{{RSVP_DEADLINE}}','{{WA_NUMBER}}','{{WEDDING_DATE_ISO}}',
-  '{{VENDOR_NAME}}','{{GUEST_NAME}}'
-];
-
-const BUILT_IN_FONTS = ['Cormorant Garamond','Plus Jakarta Sans'];
-
-// ═══════════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════════
-let state = {
-  layers: [],
-  selected: null,
-  tool: 'select',
-  zoom: 0.5,
-  showGrid: false,
-  showGuides: false,
-  snapToGrid: false,
-  gridSize: 20,
-  sectionBgs: {},    // overrides for section backgrounds
-  customFonts: [],   // { name, url }
-  history: [],
-  histIndex: -1,
+// ── CONFIG ────────────────────────────────────────────────────────────────────
+const cfg = {
+  get secret()  { return localStorage.getItem('ud_secret')  || '' },
+  get baseUrl() { return localStorage.getItem('ud_baseurl') || '' },
+  get wa()      { return localStorage.getItem('ud_wa')      || '' },
 };
 
-// Pending image data for modal
-let pendingImg = { src: '', type: 'upload', selectedVar: '', uploading: false };
-
-// Ambil templateId dari URL param atau default
-(function() {
-  const params = new URLSearchParams(window.location.search);
-  state.currentTemplateId = params.get('templateId') || 'template-elegant';
-})();
-
-// ═══════════════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════════════
-function init() {
-  buildCanvasBg();
-  setZoom(0.5);
-  renderVarChips();
-  renderLayers();
-  renderCanvas();
-  loadFromStorage();
-  buildSectionStyleList();
-
-  // Tampilkan nama template aktif di topbar
-  const nameEl = document.getElementById('tb-tpl-name');
-  if (nameEl) nameEl.textContent = '✏ ' + (state.currentTemplateId || 'Edit Template');
-
-  // Keyboard shortcuts
-  document.addEventListener('keydown', onKeydown);
-  // Prevent browser zoom
-  document.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); adjustZoom(e.deltaY < 0 ? .1 : -.1); } }, {passive:false});
-}
-
-// Key unik per template — mencegah template saling menimpa data
-function storageKey() {
-  return 'ud_tpl__' + (state.currentTemplateId || 'default');
-}
-
-function loadFromStorage() {
-  try {
-    const saved = localStorage.getItem(storageKey());
-    if (saved) {
-      const data = JSON.parse(saved);
-      state.layers = data.layers || [];
-      state.sectionBgs = data.sectionBgs || {};
-      state.customFonts = data.customFonts || [];
-      if (state.customFonts.length) {
-        state.customFonts.forEach(f => injectFont(f));
-        renderFontPills();
-      }
-      buildCanvasBg();
-      renderLayers();
-      renderCanvas();
-      toast('💾 Design [' + state.currentTemplateId + '] dimuat');
-    }
-  } catch(e) {}
-}
-
-function saveToStorage() {
-  localStorage.setItem(storageKey(), JSON.stringify({
-    layers: state.layers,
-    sectionBgs: state.sectionBgs,
-    customFonts: state.customFonts,
-  }));
-}
-
-// ═══════════════════════════════════════════════════════════
-// CANVAS BACKGROUND
-// ═══════════════════════════════════════════════════════════
-function buildCanvasBg() {
-  const bg = document.getElementById('canvas-bg');
-  bg.innerHTML = '';
-  SECTIONS.forEach(sec => {
-    const bgColor = state.sectionBgs[sec.id] || sec.bg;
-    const div = document.createElement('div');
-    div.className = 'section-block';
-    div.dataset.section = sec.id;
-    div.style.cssText = `height:${sec.height}px;background:${bgColor};`;
-    div.innerHTML = `
-      <div class="section-label">${sec.label}</div>
-      <div class="section-accent" style="background:linear-gradient(90deg,transparent,${sec.accent}33,transparent)"></div>
-    `;
-    bg.appendChild(div);
-  });
-  document.getElementById('canvas').style.height = CANVAS_H + 'px';
-}
-
-// ═══════════════════════════════════════════════════════════
-// ZOOM
-// ═══════════════════════════════════════════════════════════
-function setZoom(z) {
-  state.zoom = Math.max(0.2, Math.min(2, z));
-  const scaler = document.getElementById('canvas-scaler');
-  const wrap   = document.getElementById('canvas-wrap');
-  scaler.style.transform = `scale(${state.zoom})`;
-  scaler.style.width  = CANVAS_W + 'px';
-  scaler.style.height = CANVAS_H + 'px';
-  wrap.style.width    = (CANVAS_W * state.zoom) + 'px';
-  wrap.style.height   = (CANVAS_H * state.zoom) + 'px';
-  document.getElementById('zoom-label').textContent = Math.round(state.zoom*100) + '%';
-}
-function adjustZoom(delta) { setZoom(state.zoom + delta); }
-function resetZoom() { setZoom(0.5); }
-
-// ═══════════════════════════════════════════════════════════
-// TOOLS
-// ═══════════════════════════════════════════════════════════
-function setTool(t) {
-  state.tool = t;
-  document.querySelectorAll('.tb-tool').forEach(el => el.classList.remove('active'));
-  const btn = document.getElementById('tool-' + t);
-  if (btn) btn.classList.add('active');
-  document.getElementById('canvas').style.cursor = t === 'select' ? 'default' : 'crosshair';
-}
-
-// ═══════════════════════════════════════════════════════════
-// LAYER CRUD
-// ═══════════════════════════════════════════════════════════
-let _idCounter = 1;
-function newId() { return 'el_' + (_idCounter++) + '_' + Date.now(); }
-
-function nextZ() {
-  return state.layers.length ? Math.max(...state.layers.map(l => l.zIndex)) + 1 : 1;
-}
-
-function findLayer(id) { return state.layers.find(l => l.id === id); }
-
-function addLayer(layer) {
-  pushHistory();
-  state.layers.push(layer);
-  state.selected = layer.id;
-  renderLayers();
-  renderCanvas();
-  updatePropsPanel();
-  saveToStorage();
-}
-
-function deleteLayer(id) {
-  pushHistory();
-  state.layers = state.layers.filter(l => l.id !== id);
-  if (state.selected === id) { state.selected = null; updatePropsPanel(); }
-  renderLayers();
-  renderCanvas();
-  saveToStorage();
-}
-
-function duplicateLayer(id) {
-  const src = findLayer(id);
-  if (!src) return;
-  const copy = JSON.parse(JSON.stringify(src));
-  copy.id = newId();
-  copy.name = src.name + ' copy';
-  copy.x += 16; copy.y += 16;
-  copy.zIndex = nextZ();
-  addLayer(copy);
-  toast('Layer diduplikasi');
-}
-
-function selectLayer(id) {
-  state.selected = id;
-  renderCanvas();
-  renderLayers();
-  updatePropsPanel();
-}
-
-function deselectAll() {
-  state.selected = null;
-  renderCanvas();
-  renderLayers();
-  updatePropsPanel();
-}
-
-// ═══════════════════════════════════════════════════════════
-// ADD ELEMENT HELPERS
-// ═══════════════════════════════════════════════════════════
-function addBoxLayer() {
-  const centerX = Math.round((CANVAS_W - 160) / 2);
-  addLayer({
-    id: newId(), type: 'box', name: 'Box ' + (state.layers.length+1),
-    x: centerX, y: 100, w: 160, h: 80, rotation: 0,
-    opacity: 0.5, visible: true, locked: false, zIndex: nextZ(),
-    bgColor: 'rgba(201,169,110,0.25)',
-    borderColor: 'rgba(201,169,110,0.6)', borderWidth: 1, borderRadius: 0,
-    linkedVar: '',
-  });
-  setTool('select');
-  toast('Box ditambahkan');
-}
-
-function addTextLayer() {
-  const centerX = Math.round((CANVAS_W - 200) / 2);
-  addLayer({
-    id: newId(), type: 'text', name: 'Teks ' + (state.layers.length+1),
-    x: centerX, y: 120, w: 200, h: 60, rotation: 0,
-    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
-    text: 'Teks di sini',
-    fontFamily: 'Cormorant Garamond', fontSize: 24,
-    fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
-    textAlign: 'center', color: '#f0c060', lineHeight: 1.4,
-    linkedVar: '',
-  });
-  setTool('select');
-  toast('Teks ditambahkan');
-}
-
-function confirmAddImage() {
-  if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
-  let src = '';
-  const tab = document.getElementById('img-tab-upload').classList.contains('btn-gold') ? 'upload'
-    : document.getElementById('img-tab-url').classList.contains('btn-gold') ? 'url' : 'var';
-
-  if (tab === 'upload') src = pendingImg.src;
-  else if (tab === 'url') src = document.getElementById('img-url-input').value.trim();
-  else if (tab === 'var') src = pendingImg.selectedVar;
-
-  if (!src) { toast('Pilih gambar atau masukkan URL dulu!', 'err'); return; }
-
-  const w = parseInt(document.getElementById('img-w').value) || 200;
-  const h = parseInt(document.getElementById('img-h').value) || 200;
-  const fit = document.getElementById('img-fit').value;
-  const name = document.getElementById('img-name').value.trim() || ('Gambar ' + (state.layers.length+1));
-  const cx = Math.round((CANVAS_W - w) / 2);
-  const isVar = tab === 'var';
-
-  addLayer({
-    id: newId(), type: 'image', name,
-    x: cx, y: 80, w, h, rotation: 0,
-    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
-    src: src, objectFit: fit,
-    linkedVar: isVar ? src : '',
-  });
-  closeModal('modal-image');
-  setTool('select');
-  toast('Gambar ditambahkan ✓');
-  // reset
-  pendingImg = { src:'', type:'upload', selectedVar:'', uploading: false };
-  document.getElementById('img-upload-preview').style.display = 'none';
-  document.getElementById('img-upload-github-url').textContent = '';
-  document.getElementById('img-url-input').value = '';
-}
-
-// ═══════════════════════════════════════════════════════════
-// CANVAS RENDER
-// ═══════════════════════════════════════════════════════════
-function renderCanvas() {
-  const container = document.getElementById('canvas-els');
-  if (!state.layers.length) { container.innerHTML = ''; return; }
-
-  const sorted = [...state.layers]
-    .filter(l => l.visible)
-    .sort((a, b) => a.zIndex - b.zIndex);
-
-  container.innerHTML = sorted.map(layer => {
-    const isSel = layer.id === state.selected;
-    let inner = '';
-
-    if (layer.type === 'image') {
-      const src = layer.src.startsWith('{{') ? '' : escH(layer.src);
-      inner = src
-        ? `<img src="${src}" style="width:100%;height:100%;object-fit:${layer.objectFit};display:block" draggable="false" onerror="this.style.opacity='0'">`
-        : `<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:rgba(96,165,250,.08);border:1px dashed rgba(96,165,250,.3)"><span style="font-size:11px;color:rgba(96,165,250,.8);font-family:monospace">${escH(layer.src)}</span></div>`;
-      if (layer.linkedVar) inner += `<div class="var-badge">${escH(layer.linkedVar)}</div>`;
-    } else if (layer.type === 'box') {
-      // styled by parent div
-    } else if (layer.type === 'text') {
-      const fam = layer.fontFamily.includes(' ') ? `'${layer.fontFamily}'` : layer.fontFamily;
-      inner = `<div class="el-inner" style="display:flex;align-items:center;justify-content:${layer.textAlign==='center'?'center':layer.textAlign==='right'?'flex-end':'flex-start'};padding:4px">
-        <span style="font-family:${fam},serif;font-size:${layer.fontSize}px;color:${escH(layer.color)};font-weight:${layer.fontWeight};font-style:${layer.fontStyle};text-decoration:${layer.textDecoration};text-align:${layer.textAlign};line-height:${layer.lineHeight};display:block;word-break:break-word;width:100%">${escH(layer.text)}</span></div>`;
-    }
-
-    const handles = isSel && !layer.locked
-      ? HANDLES.map(h => `<div class="h h-${h.dir}" data-dir="${h.dir}" style="cursor:${h.cur}" onmousedown="hMousedown(event,'${layer.id}','${h.dir}')"></div>`).join('')
-      : '';
-
-    const bSt = layer.type === 'box'
-      ? `background:${layer.bgColor};border:${layer.borderWidth}px solid ${escH(layer.borderColor)};border-radius:${layer.borderRadius}px;`
-      : '';
-
-    return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
-      data-id="${layer.id}"
-      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}cursor:${layer.locked?'default':'move'}"
-      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${inner}${handles}</div>`;
-  }).join('');
-}
-
-function escH(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ═══════════════════════════════════════════════════════════
-// MOUSE EVENTS (drag / resize)
-// ═══════════════════════════════════════════════════════════
-function getCanvasPos(e) {
-  const scaler = document.getElementById('canvas-scaler');
-  const rect = scaler.getBoundingClientRect();
-  return {
-    x: (e.clientX - rect.left) / state.zoom,
-    y: (e.clientY - rect.top)  / state.zoom
-  };
-}
-
-function elMousedown(e, el) {
-  e.stopPropagation();
-  if (e.target.classList.contains('h')) return;
-  const id = el.dataset.id;
-  selectLayer(id);
-  const layer = findLayer(id);
-  if (!layer || layer.locked) return;
-
-  const start = getCanvasPos(e);
-  const ox = layer.x - start.x, oy = layer.y - start.y;
-  let moved = false;
-
-  function onMove(e) {
-    const pos = getCanvasPos(e);
-    let nx = pos.x + ox, ny = pos.y + oy;
-    if (state.snapToGrid) {
-      nx = Math.round(nx / state.gridSize) * state.gridSize;
-      ny = Math.round(ny / state.gridSize) * state.gridSize;
-    }
-    layer.x = nx; layer.y = ny;
-    moved = true;
-    renderCanvas(); updatePropsPanel();
-  }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    if (moved) { saveHistory(); saveToStorage(); }
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
-
-function hMousedown(e, id, dir) {
-  e.stopPropagation(); e.preventDefault();
-  const layer = findLayer(id);
-  if (!layer) return;
-  pushHistory();
-
-  const start = getCanvasPos(e);
-  const s = { x: layer.x, y: layer.y, w: layer.w, h: layer.h };
-
-  function onMove(e) {
-    const pos = getCanvasPos(e);
-    const dx = pos.x - start.x, dy = pos.y - start.y;
-    let {x,y,w,h} = s;
-    if (dir.includes('e')) w = Math.max(20, s.w + dx);
-    if (dir.includes('s')) h = Math.max(20, s.h + dy);
-    if (dir.includes('w')) { const nw = Math.max(20, s.w - dx); x = s.x + s.w - nw; w = nw; }
-    if (dir.includes('n')) { const nh = Math.max(20, s.h - dy); y = s.y + s.h - nh; h = nh; }
-    layer.x=x; layer.y=y; layer.w=w; layer.h=h;
-    renderCanvas(); updatePropsPanel();
-  }
-  function onUp() {
-    document.removeEventListener('mousemove', onMove);
-    document.removeEventListener('mouseup', onUp);
-    saveToStorage();
-  }
-  document.addEventListener('mousemove', onMove);
-  document.addEventListener('mouseup', onUp);
-}
-
-function canvasBgMousedown(e) {
-  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent')) {
-    deselectAll();
-  }
-  if (state.tool === 'box' && (e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target.classList.contains('section-block'))) {
-    const pos = getCanvasPos(e);
-    addLayer({
-      id:newId(), type:'box', name:'Box '+(state.layers.length+1),
-      x:Math.round(pos.x), y:Math.round(pos.y), w:140, h:80,
-      rotation:0, opacity:0.5, visible:true, locked:false, zIndex:nextZ(),
-      bgColor:'rgba(201,169,110,0.25)', borderColor:'rgba(201,169,110,0.5)', borderWidth:1, borderRadius:0,
-      linkedVar:'',
-    });
-    setTool('select');
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// LAYERS PANEL
-// ═══════════════════════════════════════════════════════════
-let dragLayerId = null, dragOverId = null;
-
-function renderLayers() {
-  const container = document.getElementById('layers-list');
-  const q = (document.getElementById('layer-search')?.value || '').toLowerCase();
-  const list = [...state.layers].reverse(); // top layer first
-  const filtered = q ? list.filter(l => l.name.toLowerCase().includes(q)) : list;
-
-  if (!state.layers.length) {
-    container.innerHTML = `<div class="layers-empty"><div>📦</div><div>Belum ada layer.<br>Klik <strong>+</strong> untuk menambah elemen desain.</div></div>`;
-    return;
-  }
-
-  container.innerHTML = filtered.map(layer => {
-    const isSel = layer.id === state.selected;
-    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : 'T';
-    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : 'badge-txt';
-
-    let thumb = `<span>${typeIcon}</span>`;
-    if (layer.type === 'image' && layer.src && !layer.src.startsWith('{{')) {
-      thumb = `<img src="${escH(layer.src)}" onerror="this.style.display='none'">`;
-    }
-
-    return `<div class="layer-item${isSel?' selected':''}"
-      data-id="${layer.id}" draggable="true"
-      onclick="selectLayer('${layer.id}')"
-      ondragstart="layerDragStart(event,'${layer.id}')"
-      ondragover="layerDragOver(event,'${layer.id}')"
-      ondrop="layerDrop(event,'${layer.id}')"
-      ondragleave="layerDragLeave(event)">
-      <button class="li-vis${!layer.visible?' off':''}" onclick="toggleVis('${layer.id}',event)" title="${layer.visible?'Sembunyikan':'Tampilkan'}">${layer.visible?'👁':'🚫'}</button>
-      <button class="li-lock${layer.locked?' on':''}" onclick="toggleLock('${layer.id}',event)" title="${layer.locked?'Buka kunci':'Kunci'}">${layer.locked?'🔒':'🔓'}</button>
-      <div class="li-thumb ${typeBadge}">${thumb}</div>
-      <span class="li-name" title="${escH(layer.name)}">${escH(layer.name)}</span>
-      <button class="li-del" onclick="deleteLayer('${layer.id}');event.stopPropagation()" title="Hapus">✕</button>
-    </div>`;
-  }).join('');
-}
-
-function toggleVis(id, e) {
-  e.stopPropagation();
-  const l = findLayer(id);
-  if (l) { l.visible = !l.visible; renderCanvas(); renderLayers(); saveToStorage(); }
-}
-function toggleLock(id, e) {
-  e.stopPropagation();
-  const l = findLayer(id);
-  if (l) { l.locked = !l.locked; renderCanvas(); renderLayers(); }
-}
-
-// Layer drag-to-reorder
-function layerDragStart(e, id) {
-  dragLayerId = id;
-  e.dataTransfer.effectAllowed = 'move';
-  setTimeout(() => document.querySelector(`.layer-item[data-id="${id}"]`)?.classList.add('dragging'), 0);
-}
-function layerDragOver(e, id) {
-  e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-  document.querySelectorAll('.layer-item').forEach(el => el.classList.remove('drag-over'));
-  if (id !== dragLayerId) {
-    document.querySelector(`.layer-item[data-id="${id}"]`)?.classList.add('drag-over');
-    dragOverId = id;
-  }
-}
-function layerDragLeave(e) {
-  e.target.closest('.layer-item')?.classList.remove('drag-over');
-}
-function layerDrop(e, id) {
-  e.preventDefault();
-  document.querySelectorAll('.layer-item').forEach(el => { el.classList.remove('dragging','drag-over'); });
-  if (!dragLayerId || dragLayerId === id) return;
-  pushHistory();
-  const fromIdx = state.layers.findIndex(l => l.id === dragLayerId);
-  const toIdx   = state.layers.findIndex(l => l.id === id);
-  if (fromIdx < 0 || toIdx < 0) return;
-  const [moved] = state.layers.splice(fromIdx, 1);
-  state.layers.splice(toIdx, 0, moved);
-  // reassign zIndex
-  state.layers.forEach((l, i) => l.zIndex = i + 1);
-  renderLayers(); renderCanvas(); saveToStorage();
-  dragLayerId = null; dragOverId = null;
-}
-
-// ═══════════════════════════════════════════════════════════
-// PROPERTIES PANEL
-// ═══════════════════════════════════════════════════════════
-function updatePropsPanel() {
-  const body = document.getElementById('props-body');
-  const badge = document.getElementById('props-type-badge');
-  const noSel = document.getElementById('no-sel');
-
-  if (!state.selected) {
-    body.innerHTML = `<div class="no-sel"><div class="no-sel-icon">🖱</div><div class="no-sel-text">Pilih elemen di canvas<br>untuk mengedit propertinya</div></div>`;
-    badge.style.display = 'none';
-    return;
-  }
-
-  const l = findLayer(state.selected);
-  if (!l) return;
-
-  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : 'TEKS';
-  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : 'badge-txt';
-  badge.textContent = typeLabel;
-  badge.className = 'section-tag ' + typeCls;
-  badge.style.display = 'inline-block';
-
-  const allFonts = [...BUILT_IN_FONTS, ...state.customFonts.map(f => f.name)];
-  const fontOpts = allFonts.map(f => `<option value="${escH(f)}" ${l.fontFamily===f?'selected':''}>${f}</option>`).join('');
-
-  const varOpts = `<option value="">— Tidak ada —</option>` + TEMPLATE_VARS.map(v => `<option value="${escH(v)}" ${l.linkedVar===v?'selected':''}>${v}</option>`).join('');
-
-  let typeSpecific = '';
-
-  if (l.type === 'image') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Gambar</div>
-        <div class="prop-label">Sumber (URL / base64)</div>
-        <input class="prop-input" value="${l.src.startsWith('data:') ? '[Base64 Upload]' : escH(l.src)}" ${l.src.startsWith('data:') ? 'readonly style="color:var(--muted)"' : ''} oninput="setProp('src',this.value)" style="margin-bottom:6px">
-        <div class="prop-label">Object Fit</div>
-        <select class="prop-select" onchange="setProp('objectFit',this.value)">
-          <option value="cover" ${l.objectFit==='cover'?'selected':''}>Cover</option>
-          <option value="contain" ${l.objectFit==='contain'?'selected':''}>Contain</option>
-          <option value="fill" ${l.objectFit==='fill'?'selected':''}>Fill</option>
-        </select>
-      </div>`;
-  } else if (l.type === 'box') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Tampilan Box</div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna Isi</div>
-            <input class="prop-input" type="text" value="${escH(l.bgColor)}" oninput="setProp('bgColor',this.value)" placeholder="rgba(0,0,0,0.5)">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Preview</div>
-            <div style="height:32px;border-radius:6px;background:${l.bgColor};border:1px solid var(--border)"></div>
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna Border</div>
-            <input class="prop-input" type="text" value="${escH(l.borderColor)}" oninput="setProp('borderColor',this.value)" placeholder="transparent">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Tebal Border</div>
-            <input class="prop-input" type="number" value="${l.borderWidth}" min="0" oninput="setProp('borderWidth',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Border Radius</div>
-            <input class="prop-input" type="range" min="0" max="100" value="${l.borderRadius}" oninput="setProp('borderRadius',+this.value)">
-          </div>
-          <div class="prop-col flex-center" style="font-size:12px;color:var(--muted2)">${l.borderRadius}px</div>
-        </div>
-      </div>`;
-  } else if (l.type === 'text') {
-    typeSpecific = `
-      <div class="prop-group">
-        <div class="prop-group-title">Teks</div>
-        <div class="prop-label">Konten</div>
-        <textarea class="prop-textarea" oninput="setProp('text',this.value)">${escH(l.text)}</textarea>
-        <div class="prop-row" style="margin-top:8px">
-          <div class="prop-col">
-            <div class="prop-label">Font</div>
-            <select class="prop-select" onchange="setProp('fontFamily',this.value)">${fontOpts}</select>
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Ukuran (px)</div>
-            <input class="prop-input" type="number" value="${l.fontSize}" min="8" oninput="setProp('fontSize',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row">
-          <div class="prop-col">
-            <div class="prop-label">Warna</div>
-            <input class="prop-input" type="color" value="${rgbToHex(l.color)}" oninput="setProp('color',this.value)">
-          </div>
-          <div class="prop-col">
-            <div class="prop-label">Line Height</div>
-            <input class="prop-input" type="number" value="${l.lineHeight}" step="0.1" min="0.8" max="3" oninput="setProp('lineHeight',+this.value)">
-          </div>
-        </div>
-        <div class="prop-row" style="align-items:center;margin-top:4px">
-          <div class="prop-col">
-            <div class="prop-label" style="margin-bottom:6px">Gaya</div>
-            <div class="text-btns">
-              <button class="text-btn${l.fontWeight==='700'?' active':''}" onclick="toggleTextProp('fontWeight','700','400')" title="Bold"><b>B</b></button>
-              <button class="text-btn${l.fontStyle==='italic'?' active':''}" onclick="toggleTextProp('fontStyle','italic','normal')" title="Italic"><i>I</i></button>
-              <button class="text-btn${l.textDecoration==='underline'?' active':''}" onclick="toggleTextProp('textDecoration','underline','none')" title="Underline"><u>U</u></button>
-            </div>
-          </div>
-          <div class="prop-col">
-            <div class="prop-label" style="margin-bottom:6px">Rata</div>
-            <div class="text-btns">
-              <button class="text-btn${l.textAlign==='left'?' active':''}"   onclick="setProp('textAlign','left');updatePropsPanel()" title="Kiri">⬤</button>
-              <button class="text-btn${l.textAlign==='center'?' active':''}" onclick="setProp('textAlign','center');updatePropsPanel()" title="Tengah">≡</button>
-              <button class="text-btn${l.textAlign==='right'?' active':''}"  onclick="setProp('textAlign','right');updatePropsPanel()" title="Kanan">⬤</button>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  body.innerHTML = `
-    <!-- Position & Size -->
-    <div class="prop-group">
-      <div class="prop-group-title">Posisi & Ukuran</div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">X (px)</div><input class="prop-input" type="number" value="${Math.round(l.x)}" oninput="setProp('x',+this.value)"></div>
-        <div class="prop-col"><div class="prop-label">Y (px)</div><input class="prop-input" type="number" value="${Math.round(l.y)}" oninput="setProp('y',+this.value)"></div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">Lebar (px)</div><input class="prop-input" type="number" value="${Math.round(l.w)}" min="1" oninput="setProp('w',+this.value)"></div>
-        <div class="prop-col"><div class="prop-label">Tinggi (px)</div><input class="prop-input" type="number" value="${Math.round(l.h)}" min="1" oninput="setProp('h',+this.value)"></div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">Rotasi (°)</div><input class="prop-input" type="number" value="${l.rotation}" oninput="setProp('rotation',+this.value)"></div>
-        <div class="prop-col" style="display:flex;flex-direction:column;gap:4px">
-          <div class="prop-label">Transparansi</div>
-          <input class="prop-input" type="range" min="0" max="1" step="0.01" value="${l.opacity}" oninput="setProp('opacity',+this.value);this.nextElementSibling.textContent=Math.round(+this.value*100)+'%'">
-          <span style="font-size:11px;color:var(--muted)">${Math.round(l.opacity*100)}%</span>
-        </div>
-      </div>
-      <div class="prop-row">
-        <div class="prop-col">
-          <div class="prop-label">Nama Layer</div>
-          <input class="prop-input" value="${escH(l.name)}" oninput="setProp('name',this.value);renderLayers()">
-        </div>
-      </div>
-    </div>
-
-    ${typeSpecific}
-
-    <!-- Variable binding -->
-    <div class="prop-group">
-      <div class="prop-group-title">Link ke Variable</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">Hubungkan elemen ini ke data klien. Konten akan diisi otomatis saat admin buat undangan.</div>
-      <select class="prop-select" onchange="setProp('linkedVar',this.value);renderCanvas()">${varOpts}</select>
-    </div>
-
-    <!-- Z-order & actions -->
-    <div class="prop-group">
-      <div class="prop-group-title">Layer & Aksi</div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Z-Index: ${l.zIndex}</div>
-      <div class="action-row" style="margin-bottom:6px">
-        <button class="action-btn" onclick="bringToFront('${l.id}')">Paling Atas</button>
-        <button class="action-btn" onclick="sendToBack('${l.id}')">Paling Bawah</button>
-      </div>
-      <div class="action-row" style="margin-bottom:6px">
-        <button class="action-btn" onclick="moveUp('${l.id}')">↑ Naik</button>
-        <button class="action-btn" onclick="moveDown('${l.id}')">↓ Turun</button>
-      </div>
-      <div class="action-row">
-        <button class="action-btn" onclick="duplicateLayer('${l.id}')">⊕ Duplikat</button>
-        <button class="action-btn red" onclick="deleteLayer('${l.id}')">🗑 Hapus</button>
-      </div>
-    </div>`;
-}
-
-function setProp(key, val) {
-  const l = findLayer(state.selected);
-  if (!l) return;
-  l[key] = val;
-  renderCanvas();
-  saveToStorage();
-}
-
-function toggleTextProp(key, on, off) {
-  const l = findLayer(state.selected);
-  if (!l) return;
-  l[key] = l[key] === on ? off : on;
-  renderCanvas(); updatePropsPanel(); saveToStorage();
-}
-
-// Z-order helpers
-function bringToFront(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  l.zIndex = nextZ();
-  renderCanvas(); renderLayers(); saveToStorage();
-  toast('Layer dibawa ke depan');
-}
-function sendToBack(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const min = Math.min(...state.layers.map(x => x.zIndex));
-  l.zIndex = min - 1;
-  renderCanvas(); renderLayers(); saveToStorage();
-  toast('Layer dibawa ke belakang');
-}
-function moveUp(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const above = state.layers.filter(x => x.id !== id && x.zIndex > l.zIndex).sort((a,b) => a.zIndex-b.zIndex)[0];
-  if (above) { const tmp = l.zIndex; l.zIndex = above.zIndex; above.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
-}
-function moveDown(id) {
-  const l = findLayer(id);
-  if (!l) return;
-  const below = state.layers.filter(x => x.id !== id && x.zIndex < l.zIndex).sort((a,b) => b.zIndex-a.zIndex)[0];
-  if (below) { const tmp = l.zIndex; l.zIndex = below.zIndex; below.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
-}
-
-// ═══════════════════════════════════════════════════════════
-// GRID / GUIDES
-// ═══════════════════════════════════════════════════════════
-function toggleGrid() {
-  state.showGrid = !state.showGrid;
-  document.getElementById('canvas-grid').style.display = state.showGrid ? 'block' : 'none';
-  document.getElementById('btn-grid').classList.toggle('on', state.showGrid);
-}
-function toggleGuides() {
-  state.showGuides = !state.showGuides;
-  document.getElementById('canvas-guides').style.display = state.showGuides ? 'block' : 'none';
-  document.getElementById('btn-guides').classList.toggle('on', state.showGuides);
-}
-function toggleSnap() {
-  state.snapToGrid = !state.snapToGrid;
-  document.getElementById('btn-snap').classList.toggle('on', state.snapToGrid);
-  toast(state.snapToGrid ? 'Snap to grid: ON' : 'Snap to grid: OFF');
-}
-
-// ═══════════════════════════════════════════════════════════
-// FONT MANAGER
-// ═══════════════════════════════════════════════════════════
-function injectFont(f) {
-  const linkId = 'font-' + f.name.replace(/\s+/g, '-');
-  if (!document.getElementById(linkId)) {
-    const link = document.createElement('link');
-    link.id = linkId; link.rel = 'stylesheet';
-    link.href = f.url.startsWith('http') ? f.url
-      : `https://fonts.googleapis.com/css2?family=${f.url.replace(/\s+/g, '+')}`;
-    document.head.appendChild(link);
-  }
-}
-
-function addFont() {
-  let raw = document.getElementById('font-url-input').value.trim();
-  if (!raw) return;
-  let name = '', url = raw;
-
-  if (raw.startsWith('http')) {
-    // extract family name from Google Fonts URL
-    const match = raw.match(/family=([^:&]+)/);
-    if (match) name = decodeURIComponent(match[1]).replace(/\+/g, ' ').split(':')[0];
-    else name = 'Custom Font';
-  } else {
-    name = raw.replace(/\+/g, ' ');
-    url = `https://fonts.googleapis.com/css2?family=${raw.replace(/\s+/g, '+')}`;
-  }
-
-  if (state.customFonts.find(f => f.name === name)) { toast('Font sudah ada!', 'err'); return; }
-  state.customFonts.push({ name, url });
-  injectFont({ name, url });
-  saveToStorage();
-  renderFontPills();
-  toast(`✓ Font "${name}" ditambahkan`);
-  document.getElementById('font-url-input').value = '';
-}
-
-function removeFont(name) {
-  state.customFonts = state.customFonts.filter(f => f.name !== name);
-  saveToStorage(); renderFontPills();
-}
-
-function renderFontPills() {
-  const container = document.getElementById('font-pills-list');
-  const preview   = document.getElementById('font-preview-list');
-  if (!state.customFonts.length) {
-    container.innerHTML = '<div style="font-size:12px;color:var(--muted)">Belum ada font tambahan</div>';
-    return;
-  }
-  container.innerHTML = state.customFonts.map(f => `
-    <div class="font-pill">
-      <span style="font-family:'${f.name}'">${f.name}</span>
-      <button class="font-pill-del" onclick="removeFont('${escH(f.name)}')">✕</button>
-    </div>`).join('');
-  preview.innerHTML = `
-    <div style="font-family:'Cormorant Garamond',serif;font-style:italic">Cormorant Garamond – Built-in</div>
-    <div style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans – Built-in</div>
-    ${state.customFonts.map(f => `<div style="font-family:'${f.name}'">${f.name} – Custom</div>`).join('')}
-  `;
-}
-
-// ═══════════════════════════════════════════════════════════
-// IMAGE MODAL
-// ═══════════════════════════════════════════════════════════
-function openImageModal() {
-  openModal('modal-image');
-  renderImgVarChips();
-}
-
-function switchImgTab(tab) {
-  ['upload','url','var'].forEach(t => {
-    document.getElementById(`img-tab-${t}-body`).style.display = t===tab ? 'block' : 'none';
-    document.getElementById(`img-tab-${t}`).className = `btn ${t===tab?'btn-gold':'btn-ghost'}`;
-  });
-}
-
-async function handleFileUpload(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  if (file.size > 5*1024*1024) { toast('File terlalu besar (max 5MB)', 'err'); return; }
-
-  // Tampilkan preview lokal dulu (biar user bisa lihat gambarnya)
-  const reader = new FileReader();
-  reader.onload = ev => {
-    pendingImg.src = ev.target.result; // sementara pakai base64
-    pendingImg.uploading = true;
-    const preview = document.getElementById('img-upload-preview');
-    preview.style.display = 'block';
-    document.getElementById('img-upload-preview-img').src = ev.target.result;
-    document.getElementById('img-upload-name').textContent = file.name + ' – ' + Math.round(file.size/1024) + 'KB';
-    document.getElementById('img-upload-github-url').innerHTML = '<span style="color:var(--gold)">⏳ Mengupload ke GitHub...</span>';
-    if (!document.getElementById('img-name').value) {
-      document.getElementById('img-name').value = file.name.replace(/\.[^.]+$/,'');
-    }
-  };
-  reader.readAsDataURL(file);
-
-  // Upload ke GitHub via API
-  const secret = localStorage.getItem('ud_secret');
-  if (!secret) {
-    toast('Set ADMIN_SECRET dulu sebelum upload!', 'err');
-    return;
-  }
-
-  // Konversi file ke base64 untuk dikirim ke API
-  const toBase64 = f => new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = ev => res(ev.target.result.split(',')[1]); // strip data:...;base64,
-    r.onerror = rej;
-    r.readAsDataURL(f);
-  });
-
-  try {
-    const b64 = await toBase64(file);
-    const templateId = state.currentTemplateId || 'template-elegant';
-    const r = await fetch('/api/upload-asset', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
-      body: JSON.stringify({
-        templateId,
-        filename: file.name,
-        contentBase64: b64,
-        mimeType: file.type,
-      }),
-    });
-
-    if (r.ok) {
-      const data = await r.json();
-      // Ganti src dari base64 ke URL GitHub
-      pendingImg.src = data.url;
-      pendingImg.uploading = false;
-      document.getElementById('img-upload-preview-img').src = data.url;
-      document.getElementById('img-upload-github-url').innerHTML =
-        '<span style="color:var(--green)">✅ Tersimpan di GitHub:</span> <span style="color:var(--muted2);word-break:break-all">' + data.url + '</span>';
-      toast('✅ Asset diupload ke GitHub!', 'ok');
-    } else {
-      const err = await r.text();
-      pendingImg.uploading = false;
-      document.getElementById('img-upload-github-url').innerHTML =
-        '<span style="color:var(--red)">⚠ Gagal upload ke GitHub – menggunakan base64 lokal. (' + err + ')</span>';
-      toast('Gagal upload asset: ' + err, 'err');
-      // Fallback: tetap pakai base64 yang sudah di-set sebelumnya
-    }
-  } catch(err) {
-    pendingImg.uploading = false;
-    document.getElementById('img-upload-github-url').innerHTML =
-      '<span style="color:var(--red)">⚠ Tidak bisa menghubungi server – menggunakan base64 lokal.</span>';
-    toast('Gagal upload asset ke GitHub', 'err');
-  }
-}
-
-function previewImgUrl() {
-  const url = document.getElementById('img-url-input').value.trim();
-  const prevWrap = document.getElementById('img-url-preview');
-  prevWrap.style.display = url ? 'block' : 'none';
-  document.getElementById('img-url-preview-img').src = url;
-}
-
-// Image upload zone drag
-const uz = () => document.getElementById('upload-zone');
-document.addEventListener('DOMContentLoaded', () => {
-  const zone = uz();
-  if (!zone) return;
-  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag'); });
-  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
-  zone.addEventListener('drop', e => {
-    e.preventDefault(); zone.classList.remove('drag');
-    const file = e.dataTransfer.files[0];
-    if (file) { document.getElementById('img-file-input').files = e.dataTransfer.files; handleFileUpload({target:{files:e.dataTransfer.files}}); }
-  });
-});
-
-function renderImgVarChips() {
-  const imgVars = ['{{BRIDE_PHOTO}}','{{GROOM_PHOTO}}','{{GALLERY_1}}','{{GALLERY_2}}','{{GALLERY_3}}','{{GALLERY_4}}','{{GALLERY_5}}'];
-  document.getElementById('img-var-chips').innerHTML = imgVars.map(v => `
-    <div class="var-chip" onclick="selectImgVar('${v}')" id="var-chip-${v.replace(/[{}]/g,'')}">${v}</div>`).join('');
-}
-
-function selectImgVar(v) {
-  pendingImg.selectedVar = v;
-  document.querySelectorAll('#img-var-chips .var-chip').forEach(c => c.style.background = '');
-  const chip = document.getElementById('var-chip-' + v.replace(/[{}]/g,''));
-  if (chip) { chip.style.background = 'var(--blue-dim)'; chip.style.borderColor = 'var(--blue)'; chip.style.color = 'var(--blue)'; }
-  document.getElementById('img-var-selected-label').textContent = '✓ Dipilih: ' + v;
-}
-
-// ═══════════════════════════════════════════════════════════
-// SECTION STYLE MODAL
-// ═══════════════════════════════════════════════════════════
-function openSectionStyleModal() {
-  buildSectionStyleList();
-  openModal('modal-section');
-}
-
-function buildSectionStyleList() {
-  const container = document.getElementById('section-style-list');
-  if (!container) return;
-  container.innerHTML = SECTIONS.map(sec => {
-    const current = state.sectionBgs[sec.id] || sec.bg;
-    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;padding:10px;background:var(--bg);border-radius:var(--r)">
-      <div style="width:40px;height:40px;border-radius:6px;flex-shrink:0;border:1px solid var(--border);background:${current}"></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:600;margin-bottom:4px">${sec.label}</div>
-        <input class="field-input" type="text" value="${current}" placeholder="${sec.bg}"
-          oninput="setSectionBg('${sec.id}',this.value);this.previousElementSibling.style.background=this.value" style="font-size:11px;padding:5px 8px">
-      </div>
-      <button onclick="resetSectionBg('${sec.id}',this)" style="font-size:10px;background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 8px;border-radius:5px;cursor:pointer;font-family:inherit">Reset</button>
-    </div>`;
-  }).join('');
-}
-
-function setSectionBg(id, color) {
-  state.sectionBgs[id] = color;
-  buildCanvasBg();
-  saveToStorage();
+function apiHeaders() {
+  return { 'Content-Type': 'application/json', 'x-admin-key': cfg.secret };
 }
-function resetSectionBg(id, btn) {
-  delete state.sectionBgs[id];
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
-}
-function resetSectionStyles() {
-  state.sectionBgs = {};
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
-  toast('Style seksi direset ke default');
-}
-
-// ═══════════════════════════════════════════════════════════
-// TEMPLATE VARS CHIPS
-// ═══════════════════════════════════════════════════════════
-function renderVarChips() {
-  document.getElementById('var-list').innerHTML = TEMPLATE_VARS.map(v =>
-    `<div class="var-chip" onclick="copyVar('${v}')" title="Klik untuk salin">${v}</div>`
-  ).join('');
-}
-
-function copyVar(v) {
-  navigator.clipboard.writeText(v).then(() => toast('Tersalin: ' + v, 'info'));
-}
-
-// ═══════════════════════════════════════════════════════════
-// HISTORY (UNDO / REDO)
-// ═══════════════════════════════════════════════════════════
-function pushHistory() {
-  const snapshot = JSON.stringify(state.layers);
-  state.history = state.history.slice(0, state.histIndex + 1);
-  state.history.push(snapshot);
-  state.histIndex = state.history.length - 1;
-  updateHistoryBtns();
-}
-
-function saveHistory() {
-  pushHistory();
-}
-
-function undoAction() {
-  if (state.histIndex <= 0) return;
-  state.histIndex--;
-  state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
-  toast('↩ Undo');
-}
-
-function redoAction() {
-  if (state.histIndex >= state.history.length - 1) return;
-  state.histIndex++;
-  state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
-  toast('↪ Redo');
-}
-
-function updateHistoryBtns() {
-  document.getElementById('btn-undo').style.opacity = state.histIndex > 0 ? '1' : '.4';
-  document.getElementById('btn-redo').style.opacity = state.histIndex < state.history.length-1 ? '1' : '.4';
-}
-
-// ═══════════════════════════════════════════════════════════
-// KEYBOARD
-// ═══════════════════════════════════════════════════════════
-function onKeydown(e) {
-  const tag = e.target.tagName.toLowerCase();
-  const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
-
-  if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); e.shiftKey ? redoAction() : undoAction(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'y') { e.preventDefault(); redoAction(); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'd') { e.preventDefault(); if (state.selected) duplicateLayer(state.selected); return; }
-  if ((e.ctrlKey || e.metaKey) && e.key === 's') { e.preventDefault(); saveToGitHub(); return; }
-
-  if (isInput) return;
-
-  if (e.key === 'Delete' || e.key === 'Backspace') {
-    if (state.selected) { deleteLayer(state.selected); }
-  }
-  if (e.key === 'Escape') deselectAll();
-  if (e.key === 'v') setTool('select');
-  if (e.key === 'b') { setTool('box'); addBoxLayer(); }
-  if (e.key === 't') { setTool('text'); addTextLayer(); }
-  if (e.key === 'i') { setTool('image'); openImageModal(); }
-
-  // Arrow keys: move selected
-  if (state.selected && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
-    const l = findLayer(state.selected);
-    if (!l || l.locked) return;
-    const step = e.shiftKey ? 10 : 1;
-    if (e.key === 'ArrowLeft')  l.x -= step;
-    if (e.key === 'ArrowRight') l.x += step;
-    if (e.key === 'ArrowUp')    l.y -= step;
-    if (e.key === 'ArrowDown')  l.y += step;
-    renderCanvas(); updatePropsPanel();
-    e.preventDefault();
-  }
-}
-
-// ═══════════════════════════════════════════════════════════
-// ADD MENU
-// ═══════════════════════════════════════════════════════════
-function toggleAddMenu() {
-  document.getElementById('layer-add-menu').classList.toggle('open');
-}
-function closeAddMenu() {
-  document.getElementById('layer-add-menu').classList.remove('open');
-}
-document.addEventListener('click', e => {
-  if (!e.target.closest('#add-menu-btn') && !e.target.closest('#layer-add-menu')) closeAddMenu();
-});
-
-// ═══════════════════════════════════════════════════════════
-// EXPORT / SAVE
-// ═══════════════════════════════════════════════════════════
-function generateDesignLayer() {
-  if (!state.layers.length && !Object.keys(state.sectionBgs).length && !state.customFonts.length) return '';
-
-  // Font links
-  const fontLinks = state.customFonts.map(f =>
-    `<link rel="stylesheet" href="${f.url.startsWith('http') ? f.url : 'https://fonts.googleapis.com/css2?family=' + f.url.replace(/\s+/g,'+')}">`)
-    .join('\n');
-
-  // Section bg overrides
-  const sectionOverrides = Object.entries(state.sectionBgs).map(([id, color]) => {
-    const sec = SECTIONS.find(s => s.id === id);
-    if (!sec) return '';
-    const top = SECTIONS.slice(0, SECTIONS.indexOf(sec)).reduce((s,x) => s+x.height, 0);
-    return `/* section: ${id} */ #__design-section-${id} { background: ${color} !important; }`;
-  }).join('\n');
-
-  // Element styles
-  const elStyles = state.layers.map(l => `
-  #__dl-${l.id} {
-    position: absolute;
-    left: ${(l.x / CANVAS_W * 100).toFixed(4)}%;
-    top: ${l.y}px;
-    width: ${(l.w / CANVAS_W * 100).toFixed(4)}%;
-    height: ${l.h}px;
-    opacity: ${l.opacity};
-    transform: rotate(${l.rotation}deg);
-    z-index: ${l.zIndex + 50};
-    pointer-events: none;
-    box-sizing: border-box;
-    ${l.type === 'box' ? `background: ${l.bgColor}; border: ${l.borderWidth}px solid ${l.borderColor}; border-radius: ${l.borderRadius}px;` : ''}
-  }`).join('\n');
-
-  // Element HTML
-  const elHtml = state.layers.filter(l => l.visible).map(l => {
-    if (l.type === 'image') {
-      return `<img id="__dl-${l.id}" src="${l.linkedVar ? l.linkedVar : l.src}" alt="" style="width:100%;height:100%;object-fit:${l.objectFit};display:block">`;
-    } else if (l.type === 'box') {
-      return `<div id="__dl-${l.id}"></div>`;
-    } else if (l.type === 'text') {
-      const fam = l.fontFamily.includes(' ') ? `'${l.fontFamily}'` : l.fontFamily;
-      return `<div id="__dl-${l.id}" style="display:flex;align-items:center;justify-content:${l.textAlign==='center'?'center':l.textAlign==='right'?'flex-end':'flex-start'};padding:4px"><span style="font-family:${fam},serif;font-size:${l.fontSize}px;color:${l.color};font-weight:${l.fontWeight};font-style:${l.fontStyle};text-decoration:${l.textDecoration};text-align:${l.textAlign};line-height:${l.lineHeight};word-break:break-word;width:100%">${l.linkedVar ? l.linkedVar : l.text}</span></div>`;
-    }
-    return '';
-  }).join('\n  ');
-
-  const designConfig = JSON.stringify({ layers: state.layers, sectionBgs: state.sectionBgs, customFonts: state.customFonts });
-
-  return `
-${fontLinks}
-<!-- ✏️ DESIGN LAYER – Generated by Template Editor -->
-<!-- Design Config: ${encodeURIComponent(designConfig)} -->
-<style>
-#__design-layer {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: min(390px, 100vw);
-  height: ${CANVAS_H}px;
-  pointer-events: none;
-  z-index: 50;
-  overflow: visible;
-}
-${elStyles}
-${sectionOverrides}
-</style>
-<div id="__design-layer">
-  ${elHtml}
-</div>
-<!-- END DESIGN LAYER -->`;
-}
-
-function downloadTemplate() {
-  const designLayer = generateDesignLayer();
-  // Base template HTML (minimal structure for download)
-  let html = `<!DOCTYPE html>
-<!-- Template with Design Layer – Edit with edit-template.html -->
-<!-- To regenerate: open edit-template.html in admin panel -->
-<html lang="id">
-<!-- [Base template content goes here] -->
-<!-- The design layer below is injected by the template editor -->
-${designLayer}
-</html>`;
-
-  // Alternatively, if you have the base template content, merge it
-  const blob = new Blob([designLayer], { type: 'text/html' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'design-layer.html';
-  a.click();
-  toast('⬇ Design layer didownload!', 'ok');
-}
-
-async function saveToGitHub() {
-  const secret = localStorage.getItem('ud_secret');
-  if (!secret) { toast('Set ADMIN_SECRET di Setup admin dulu!', 'err'); return; }
-
-  const btn = document.getElementById('btn-save');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spin"></span>Menyimpan...';
-
-  const designLayer = generateDesignLayer();
-  const designConfig = { layers: state.layers, sectionBgs: state.sectionBgs, customFonts: state.customFonts };
-
-  try {
-    const r = await fetch('/api/save-template', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-admin-key': secret },
-      body: JSON.stringify({
-        templateId: state.currentTemplateId,
-        templateName: state.currentTemplateId,
-        designLayerHtml: designLayer,
-        designConfig: designConfig,
-      }),
-    });
-
-    if (r.ok) {
-      const data = await r.json();
-      toast('✅ Template disimpan ke GitHub! Deploy dalam ~30 detik.', 'ok');
-      saveToStorage();
-    } else {
-      const err = await r.text();
-      // If API not yet created, offer download instead
-      if (r.status === 404) {
-        toast('API /api/save-template belum ada – mengunduh file sebagai gantinya...', 'info');
-        setTimeout(downloadTemplate, 800);
-      } else {
-        toast('Gagal: ' + err, 'err');
-      }
-    }
-  } catch(e) {
-    toast('Gagal menghubungi server. File diunduh sebagai backup.', 'err');
-    setTimeout(downloadTemplate, 1000);
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '💾 Simpan ke GitHub';
-  }
-}
-
-function previewTemplate() {
-  const designLayer = generateDesignLayer();
-  const sampleData = {
-    '{{BRIDE_NAME}}': 'Sarah Andini', '{{GROOM_NAME}}': 'Rizky Pratama',
-    '{{AKAD_DATE}}': '15', '{{AKAD_MONTH}}': 'Agustus', '{{AKAD_YEAR}}': '2025',
-    '{{AKAD_TIME}}': '09.00 – 11.00 WIB', '{{AKAD_VENUE}}': 'Masjid Al-Azhar',
-    '{{AKAD_ADDRESS}}': 'Jl. Sisingamangaraja No.1, Jakarta Selatan',
-  };
-  const win = window.open('', '_blank');
-  const previewHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview Template</title>
-  <style>body{background:#1a1208;color:#faf6f0;font-family:sans-serif;text-align:center;padding:40px}
-  .preview-box{max-width:390px;margin:0 auto;background:#100c07;padding:40px 20px;border-radius:12px;position:relative;overflow:hidden}
-  h1{font-size:32px;font-family:Georgia,serif;font-style:italic;margin-bottom:8px;color:#c9a96e}
-  p{color:rgba(250,246,240,.6);font-size:14px}
-  </style></head>
-  <body>
-  <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px">Preview Template – Data Contoh</div>
-  <div class="preview-box">
-    <h1>${sampleData['{{BRIDE_NAME}}']}<br>&<br>${sampleData['{{GROOM_NAME}}']}</h1>
-    <p>${sampleData['{{AKAD_DATE}}']} ${sampleData['{{AKAD_MONTH}}']} ${sampleData['{{AKAD_YEAR}}']}</p>
-    <p style="margin-top:8px">${sampleData['{{AKAD_VENUE}}']}</p>
-    <p style="font-size:12px;margin-top:4px">${sampleData['{{AKAD_ADDRESS}}']}</p>
-    ${state.layers.length ? '<div style="margin-top:16px;padding:12px;background:rgba(96,165,250,.05);border:1px dashed rgba(96,165,250,.2);border-radius:8px;font-size:11px;color:rgba(96,165,250,.7)">' + state.layers.length + ' design layer element(s) akan muncul di sini setelah diintegrasikan ke template utama</div>' : ''}
-  </div>
-  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.3)">
-    Ini adalah preview sederhana. Untuk preview penuh, integrasikan design layer ke template utama.
-  </div>
-  </body></html>`;
-  win.document.write(previewHtml);
-}
-
-// ═══════════════════════════════════════════════════════════
-// MODAL HELPERS
-// ═══════════════════════════════════════════════════════════
-function openModal(id) { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openFontModal() { renderFontPills(); openModal('modal-font'); }
 
-document.querySelectorAll('.overlay').forEach(ov => {
-  ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
-});
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let allOrders = [];
+let currentFilter = 'all';
 
-// ═══════════════════════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════════════════════
-let toastTimer;
+// ── TOAST ─────────────────────────────────────────────────────────────────────
 function toast(msg, type = 'ok') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast show ${type}`;
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.className = 'toast', 3500);
+  t.textContent = msg; t.className = `toast show ${type}`;
+  setTimeout(() => t.className = 'toast', 3000);
 }
 
-// ═══════════════════════════════════════════════════════════
-// UTILITY
-// ═══════════════════════════════════════════════════════════
-function rgbToHex(color) {
-  if (color.startsWith('#')) return color;
-  const m = color.match(/^rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (!m) return '#ffffff';
-  return '#' + [m[1],m[2],m[3]].map(x => parseInt(x).toString(16).padStart(2,'0')).join('');
+// ── NAV ───────────────────────────────────────────────────────────────────────
+const titles = { dashboard:'Dashboard', orders:'Semua Undangan', create:'Buat Undangan Baru', links:'Generator Link', templates:'Manajemen Template', setup:'Setup Sistem' };
+function go(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('ptitle').textContent = titles[page] || page;
+  if (page === 'dashboard' || page === 'orders') loadOrders();
+  if (page === 'setup') loadEnv();
+  if (page === 'links') populateLinkSel();
+  if (page === 'templates') loadTemplates();
 }
 
-// ═══════════════════════════════════════════════════════════
-// START
-// ═══════════════════════════════════════════════════════════
-init();
-pushHistory(); // initial empty state
-updateHistoryBtns();
+// ── LOAD ORDERS ───────────────────────────────────────────────────────────────
+async function loadOrders() {
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+  try {
+    const r = await fetch('/api/get-invitations', { headers: apiHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    allOrders = await r.json();
+    renderDash();
+    renderOrders();
+    populateLinkSel();
+  } catch (e) {
+    toast('Gagal load: ' + e.message, 'err');
+  }
+}
 
-// Keyboard shortcut reminder in title area
-console.log('%c✏️ Template Editor\n%cShortcuts: V=Select B=Box T=Text I=Image Del=Delete Ctrl+Z=Undo Ctrl+Y=Redo Ctrl+D=Duplicate Ctrl+S=Save ←↑↓→=Move Shift+Arrow=Move 10px', 'font-size:16px;font-weight:bold;color:#f0c060', 'font-size:12px;color:#aaa');
+// ── DASHBOARD ─────────────────────────────────────────────────────────────────
+function renderDash() {
+  const now = new Date();
+  const thisMonth = now.getMonth() + '-' + now.getFullYear();
+  document.getElementById('s-total').textContent = allOrders.length;
+  document.getElementById('s-active').textContent = allOrders.filter(o => o.status === 'baru' || o.status === 'proses').length;
+  document.getElementById('s-done').textContent = allOrders.filter(o => o.status === 'selesai').length;
+  document.getElementById('s-month').textContent = allOrders.filter(o => {
+    const d = new Date(o.created_at);
+    return d.getMonth() + '-' + d.getFullYear() === thisMonth;
+  }).length;
+  document.getElementById('new-badge').textContent = allOrders.filter(o => o.status === 'baru').length;
+
+  const recent = allOrders.slice(0, 6);
+  document.getElementById('dash-table').innerHTML = recent.map(o => `
+    <tr>
+      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--muted);font-size:10px">${cfg.baseUrl}/${o.slug}/index.html</span></td>
+      <td>${o.client_name}<br><small style="color:var(--muted)">${o.client_wa}</small></td>
+      <td>${o.akad_date}</td>
+      <td><select class="status-sel s-${o.status}" onchange="updateStatus('${o.slug}',this.value,this)">
+        <option value="baru" ${o.status==='baru'?'selected':''}>BARU</option>
+        <option value="proses" ${o.status==='proses'?'selected':''}>PROSES</option>
+        <option value="selesai" ${o.status==='selesai'?'selected':''}>SELESAI</option>
+        <option value="batal" ${o.status==='batal'?'selected':''}>BATAL</option>
+      </select></td>
+      <td>
+        <button class="btn btn-blue" style="font-size:10px;padding:5px 10px" onclick="openInv('${o.slug}')">🔗 Buka</button>
+        <button class="btn btn-green" style="font-size:10px;padding:5px 10px" onclick="waClient('${o.client_wa}','${o.bride_name}','${o.groom_name}','${o.slug}')">💬 WA</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:32px">Belum ada undangan</td></tr>';
+}
+
+// ── ORDERS TABLE ─────────────────────────────────────────────────────────────
+function setFilter(f) { currentFilter = f; renderOrders(); }
+function renderOrders() {
+  const q = (document.getElementById('search-input')?.value || '').toLowerCase();
+  let list = allOrders;
+  if (currentFilter !== 'all') list = list.filter(o => o.status === currentFilter);
+  if (q) list = list.filter(o =>
+    (o.bride_name+o.groom_name+o.client_name+o.slug).toLowerCase().includes(q)
+  );
+  document.getElementById('orders-table').innerHTML = list.map((o, i) => `
+    <tr>
+      <td style="color:var(--muted)">${i+1}</td>
+      <td><b style="font-style:italic">${o.bride_name} & ${o.groom_name}</b><br><span style="color:var(--blue);font-size:10px;font-family:monospace">/${o.slug}/</span></td>
+      <td>${o.client_name}<br><small style="color:var(--muted)">${o.client_wa}</small></td>
+      <td style="color:var(--muted);font-size:11px">${o.template}</td>
+      <td style="font-size:11px">${o.akad_date}</td>
+      <td><select class="status-sel s-${o.status}" onchange="updateStatus('${o.slug}',this.value,this)">
+        <option value="baru" ${o.status==='baru'?'selected':''}>BARU</option>
+        <option value="proses" ${o.status==='proses'?'selected':''}>PROSES</option>
+        <option value="selesai" ${o.status==='selesai'?'selected':''}>SELESAI</option>
+        <option value="batal" ${o.status==='batal'?'selected':''}>BATAL</option>
+      </select></td>
+      <td>
+        <button class="btn btn-blue" style="font-size:10px;padding:4px 8px" onclick="openInv('${o.slug}')">🔗</button>
+        <button class="btn btn-green" style="font-size:10px;padding:4px 8px" onclick="waClient('${o.client_wa}','${o.bride_name}','${o.groom_name}','${o.slug}')">💬</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px">Tidak ada data</td></tr>';
+}
+
+// ── STATUS UPDATE ─────────────────────────────────────────────────────────────
+async function updateStatus(slug, status, el) {
+  el.className = 'status-sel s-' + status;
+  try {
+    const r = await fetch('/api/update-status', {
+      method: 'PATCH',
+      headers: apiHeaders(),
+      body: JSON.stringify({ slug, status }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    const o = allOrders.find(x => x.slug === slug);
+    if (o) o.status = status;
+    toast('Status diperbarui → ' + status.toUpperCase());
+    document.getElementById('new-badge').textContent = allOrders.filter(o => o.status === 'baru').length;
+  } catch (e) {
+    toast('Gagal update: ' + e.message, 'err');
+  }
+}
+
+// ── CREATE ────────────────────────────────────────────────────────────────────
+async function createInvitation() {
+  const btn = document.getElementById('create-btn');
+  const bride = document.getElementById('c-bride').value.trim();
+  const groom = document.getElementById('c-groom').value.trim();
+  const client = document.getElementById('c-client').value.trim();
+  const template = document.getElementById('c-template').value;
+
+  if (!bride || !groom || !client) {
+    toast('Nama mempelai dan klien wajib diisi!', 'err'); return;
+  }
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Membuat...';
+
+  const payload = {
+    bride_name: bride, groom_name: groom, client_name: client,
+    client_wa: document.getElementById('c-client-wa').value,
+    template_folder: template,
+    slug: document.getElementById('c-slug').value.trim(),
+    bride_father: document.getElementById('c-bride-father').value,
+    bride_mother: document.getElementById('c-bride-mother').value,
+    groom_father: document.getElementById('c-groom-father').value,
+    groom_mother: document.getElementById('c-groom-mother').value,
+    bride_photo: document.getElementById('c-bride-photo').value,
+    groom_photo: document.getElementById('c-groom-photo').value,
+    akad_date: document.getElementById('c-akad-date').value,
+    akad_month: document.getElementById('c-akad-month').value,
+    akad_year: document.getElementById('c-akad-year').value,
+    akad_day: document.getElementById('c-akad-day').value,
+    akad_time: document.getElementById('c-akad-time').value,
+    wedding_date_iso: document.getElementById('c-akad-iso').value,
+    akad_venue: document.getElementById('c-akad-venue').value,
+    akad_address: document.getElementById('c-akad-address').value,
+    akad_maps: document.getElementById('c-akad-maps').value,
+    resepsi_date: document.getElementById('c-res-date').value,
+    resepsi_month: document.getElementById('c-res-month').value,
+    resepsi_year: document.getElementById('c-res-year').value,
+    resepsi_time: document.getElementById('c-res-time').value,
+    resepsi_venue: document.getElementById('c-res-venue').value,
+    resepsi_address: document.getElementById('c-res-address').value,
+    resepsi_maps: document.getElementById('c-res-maps').value,
+    gallery_1: document.getElementById('c-g1').value,
+    gallery_2: document.getElementById('c-g2').value,
+    gallery_3: document.getElementById('c-g3').value,
+    gallery_4: document.getElementById('c-g4').value,
+    gallery_5: document.getElementById('c-g5').value,
+    story_1_year: document.getElementById('c-s1y').value,
+    story_1_text: document.getElementById('c-s1t').value,
+    story_2_year: document.getElementById('c-s2y').value,
+    story_2_text: document.getElementById('c-s2t').value,
+    story_3_year: document.getElementById('c-s3y').value,
+    story_3_text: document.getElementById('c-s3t').value,
+    bank_1: document.getElementById('c-bank1').value,
+    account_1: document.getElementById('c-acc1').value,
+    account_name_1: document.getElementById('c-acc1n').value,
+    bank_2: document.getElementById('c-bank2').value,
+    account_2: document.getElementById('c-acc2').value,
+    account_name_2: document.getElementById('c-acc2n').value,
+    rsvp_deadline: document.getElementById('c-rsvp').value,
+    music_url: document.getElementById('c-music').value,
+    wa_number: document.getElementById('c-wa').value,
+    vendor_name: 'Undangan Digital',
+  };
+
+  try {
+    const r = await fetch('/api/create-invitation', {
+      method: 'POST', headers: apiHeaders(), body: JSON.stringify(payload),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'Gagal');
+
+    const fullLink = `${cfg.baseUrl}/${data.slug}/`;
+    document.getElementById('result-link').textContent = fullLink;
+    document.getElementById('result-link').dataset.link = fullLink;
+    document.getElementById('result-link').dataset.bride = bride;
+    document.getElementById('result-link').dataset.groom = groom;
+    document.getElementById('result-link').dataset.wa = document.getElementById('c-client-wa').value;
+    document.getElementById('create-result').style.display = 'block';
+    document.getElementById('create-result').scrollIntoView({ behavior: 'smooth' });
+    toast('✅ Undangan berhasil dibuat!');
+    allOrders.unshift(data.record);
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '✨ Buat Undangan';
+  }
+}
+
+function clearCreate() {
+  document.querySelectorAll('#page-create input, #page-create select, #page-create textarea')
+    .forEach(el => { if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = ''; });
+  document.getElementById('create-result').style.display = 'none';
+}
+
+function copyResult() {
+  const link = document.getElementById('result-link').dataset.link;
+  navigator.clipboard.writeText(link).then(() => toast('Link tersalin!'));
+}
+
+function shareResultWA() {
+  const el = document.getElementById('result-link');
+  const link = el.dataset.link;
+  const bride = el.dataset.bride;
+  const groom = el.dataset.groom;
+  const wa = el.dataset.wa?.replace(/^0/, '62').replace(/\D/g, '');
+  const msg = `Halo! 👋\n\nUndangan digital *${bride} & ${groom}* sudah siap! 🎉\n\n🔗 ${link}\n\nBisa langsung dibagikan ke tamu dengan menambahkan nama tamu:\n${link}?to=Nama+Tamu\n\nSelamat menuju hari bahagia! 💍`;
+  window.open(`https://wa.me/${wa}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── LINK GENERATOR ────────────────────────────────────────────────────────────
+function populateLinkSel() {
+  const sel = document.getElementById('lg-inv');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">-- Pilih undangan --</option>' +
+    allOrders.map(o => `<option value="${o.slug}">${o.bride_name} & ${o.groom_name} (/${o.slug}/)</option>`).join('');
+}
+
+function genLink() {
+  const slug = document.getElementById('lg-inv').value;
+  const guest = document.getElementById('lg-guest').value;
+  if (!slug) { toast('Pilih undangan dulu', 'err'); return; }
+  const url = `${cfg.baseUrl}/${slug}/${guest ? '?to=' + encodeURIComponent(guest) : ''}`;
+  document.getElementById('link-box').textContent = url;
+  document.getElementById('link-box').dataset.url = url;
+  document.getElementById('link-box').dataset.guest = guest;
+  document.getElementById('link-box').dataset.slug = slug;
+  document.getElementById('link-out').style.display = 'block';
+}
+
+function copyLink() { navigator.clipboard.writeText(document.getElementById('link-box').dataset.url).then(() => toast('Link tersalin!')); }
+function shareLink() {
+  const { url, guest, slug } = document.getElementById('link-box').dataset;
+  const o = allOrders.find(x => x.slug === slug);
+  const msg = `Kepada Yth.\n${guest || 'Bapak/Ibu'}\n\nBersama ini kami mengundang kehadiran Anda dalam pernikahan${o ? ' *'+o.bride_name+' & '+o.groom_name+'*' : ''}.\n\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+function genManualLink() {
+  const base = document.getElementById('lg-base').value.trim().replace(/\/$/, '');
+  const guest = document.getElementById('lg-manual-guest').value.trim();
+  if (!base) { toast('Masukkan base URL', 'err'); return; }
+  const url = guest ? `${base}?to=${encodeURIComponent(guest)}` : base;
+  document.getElementById('manual-link-box').textContent = url;
+  document.getElementById('manual-link-box').dataset.url = url;
+  document.getElementById('manual-link-box').dataset.guest = guest;
+  document.getElementById('manual-link-out').style.display = 'block';
+}
+function copyManualLink() { navigator.clipboard.writeText(document.getElementById('manual-link-box').dataset.url).then(() => toast('Link tersalin!')); }
+function shareManualLink() {
+  const { url, guest } = document.getElementById('manual-link-box').dataset;
+  const msg = `Kepada Yth.\n${guest || 'Bapak/Ibu'}\n\nKami mengundang kehadiran Anda.\n\n${url}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── HELPERS ───────────────────────────────────────────────────────────────────
+function openInv(slug) { window.open(`${cfg.baseUrl}/${slug}/`, '_blank'); }
+function waClient(wa, bride, groom, slug) {
+  const num = wa.replace(/^0/, '62').replace(/\D/g, '');
+  const link = `${cfg.baseUrl}/${slug}/`;
+  const msg = `Halo! 👋 Undangan digital *${bride} & ${groom}* sudah selesai!\n\n🔗 ${link}\n\nLink per tamu: ${link}?to=Nama+Tamu\n\nKabar baik ya! 🎉`;
+  window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+// ── SETUP ─────────────────────────────────────────────────────────────────────
+function saveEnv() {
+  localStorage.setItem('ud_secret',  document.getElementById('env-secret').value);
+  localStorage.setItem('ud_baseurl', document.getElementById('env-baseurl').value.trim().replace(/\/$/, ''));
+  localStorage.setItem('ud_wa',      document.getElementById('env-wa').value);
+  document.getElementById('env-saved').style.display = 'block';
+  toast('Konfigurasi tersimpan!');
+}
+function loadEnv() {
+  document.getElementById('env-secret').value  = cfg.secret;
+  document.getElementById('env-baseurl').value = cfg.baseUrl;
+  document.getElementById('env-wa').value      = cfg.wa;
+}
+
+// ── TEMPLATES ─────────────────────────────────────────────────────────────────
+let allTemplates = [];
+
+async function loadTemplates() {
+  if (!cfg.secret) { toast('Set ADMIN_SECRET di Setup dulu!', 'err'); return; }
+  document.getElementById('tpl-loading').style.display = 'block';
+  document.getElementById('tpl-grid').style.display = 'none';
+  try {
+    const r = await fetch('/api/get-templates', { headers: apiHeaders() });
+    if (!r.ok) throw new Error(await r.text());
+    allTemplates = await r.json();
+    renderTemplates();
+    updateTemplateSelector();
+  } catch (e) {
+    document.getElementById('tpl-loading').innerHTML = `<div style="color:var(--red)">Gagal memuat: ${e.message}<br><button class="btn btn-ghost" style="margin-top:12px;font-size:11px" onclick="loadTemplates()">↻ Coba lagi</button></div>`;
+  }
+}
+
+function renderTemplates() {
+  const grid = document.getElementById('tpl-grid');
+  document.getElementById('tpl-loading').style.display = 'none';
+  grid.style.display = 'grid';
+  if (!allTemplates.length) {
+    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--muted)">
+      Belum ada template. Klik <strong>+ Tambah Template</strong> untuk membuat yang pertama.
+    </div>`;
+    return;
+  }
+  grid.innerHTML = allTemplates.map(t => `
+    <div class="card" style="padding:0;overflow:hidden;transition:transform .2s" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="height:160px;background:linear-gradient(135deg,#1a1208,#2c2416);display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer" onclick="editTemplate('${t.id}')">
+        <div style="text-align:center">
+          <div style="font-size:32px;margin-bottom:8px">🎨</div>
+          <div style="font-size:10px;color:rgba(201,169,110,.5);font-family:monospace">${t.id}</div>
+        </div>
+        <div style="position:absolute;top:8px;right:8px;font-size:9px;background:rgba(52,211,153,.12);color:var(--green);padding:2px 8px;border-radius:4px;border:1px solid rgba(52,211,153,.2)">AKTIF</div>
+        <div style="position:absolute;bottom:0;left:0;right:0;height:40px;background:linear-gradient(transparent,rgba(0,0,0,.5))"></div>
+      </div>
+      <div style="padding:14px">
+        <div style="font-weight:700;margin-bottom:2px">${t.displayName || t.id}</div>
+        <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Diperbarui: ${t.updatedAt ? new Date(t.updatedAt).toLocaleDateString('id-ID') : '–'}</div>
+        <div style="display:flex;gap:5px">
+          <button class="btn btn-gold" style="font-size:10px;flex:1;padding:6px 8px" onclick="editTemplate('${t.id}')">✏ Edit</button>
+          <button class="btn btn-blue" style="font-size:10px;flex:1;padding:6px 8px" onclick="previewTemplate('${t.id}')">👁 Preview</button>
+          <button class="btn btn-ghost" style="font-size:10px;padding:6px 8px" title="Duplikat" onclick="duplicateTemplate('${t.id}','${(t.displayName||t.id).replace(/'/g,'')}')">⊕</button>
+          <button style="font-size:10px;padding:6px 8px;background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.2);border-radius:var(--r);cursor:pointer;font-family:inherit;transition:all .15s" onmouseover="this.style.background='rgba(248,113,113,.2)'" onmouseout="this.style.background='rgba(248,113,113,.1)'" title="Hapus" onclick="deleteTemplate('${t.id}','${(t.displayName||t.id).replace(/'/g,'')}')">🗑</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function updateTemplateSelector() {
+  const sel = document.getElementById('c-template');
+  if (!sel) return;
+  const cur = sel.value;
+  sel.innerHTML = allTemplates.length
+    ? allTemplates.map(t => `<option value="${t.id}" ${t.id===cur?'selected':''}>${t.displayName || t.id}</option>`).join('')
+    : '<option value="template-elegant">template-elegant (default)</option>';
+}
+
+function editTemplate(id) {
+  window.location.href = `edit-template.html?templateId=${encodeURIComponent(id)}`;
+}
+
+function previewTemplate(id) {
+  window.open(`/templates/${id}/index.html`, '_blank');
+}
+
+async function deleteTemplate(id, name) {
+  if (!confirm(`Hapus template "${name}"?\n\nUndangan yang sudah dibuat dengan template ini tidak terpengaruh.`)) return;
+  try {
+    const r = await fetch('/api/delete-template', {
+      method: 'DELETE', headers: apiHeaders(),
+      body: JSON.stringify({ templateId: id }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    allTemplates = allTemplates.filter(t => t.id !== id);
+    renderTemplates();
+    updateTemplateSelector();
+    toast('✅ Template dihapus');
+  } catch (e) {
+    toast('Gagal hapus: ' + e.message, 'err');
+  }
+}
+
+async function duplicateTemplate(id, name) {
+  const suffix = Date.now().toString().slice(-4);
+  const newId = id.replace(/-copy-\d+$/, '') + '-copy-' + suffix;
+  const newName = name + ' (Salinan)';
+  try {
+    const r = await fetch('/api/duplicate-template', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ sourceId: id, newId, displayName: newName }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    toast('Template diduplikat! Membuka editor...', 'ok');
+    setTimeout(() => editTemplate(newId), 900);
+  } catch (e) {
+    toast('Gagal duplikat: ' + e.message, 'err');
+  }
+}
+
+function openNewTemplateModal() {
+  const modal = document.getElementById('modal-new-template');
+  modal.style.display = 'flex';
+  const baseSel = document.getElementById('new-tpl-base');
+  baseSel.innerHTML = allTemplates.length
+    ? allTemplates.map(t => `<option value="${t.id}">${t.displayName || t.id}</option>`).join('')
+    : '<option value="template-elegant">template-elegant</option>';
+  document.getElementById('new-tpl-name').value = '';
+  document.getElementById('new-tpl-id').value = '';
+}
+function closeNewTemplateModal() {
+  document.getElementById('modal-new-template').style.display = 'none';
+}
+document.getElementById('modal-new-template')?.addEventListener('click', e => {
+  if (e.target === document.getElementById('modal-new-template')) closeNewTemplateModal();
+});
+
+// Auto-generate ID from name
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('new-tpl-name')?.addEventListener('input', function() {
+    const auto = this.value.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const idField = document.getElementById('new-tpl-id');
+    if (!idField._manual) idField.value = 'template-' + auto;
+  });
+  document.getElementById('new-tpl-id')?.addEventListener('input', function() {
+    this._manual = !!this.value;
+  });
+  // Load templates for selector when create page opens
+  loadTemplatesForSelector();
+});
+
+async function loadTemplatesForSelector() {
+  if (!cfg.secret) return;
+  try {
+    const r = await fetch('/api/get-templates', { headers: apiHeaders() });
+    if (r.ok) { allTemplates = await r.json(); updateTemplateSelector(); }
+  } catch {}
+}
+
+async function createNewTemplate() {
+  const name = document.getElementById('new-tpl-name').value.trim();
+  const rawId = document.getElementById('new-tpl-id').value.trim();
+  const baseId = document.getElementById('new-tpl-base').value;
+  if (!name) { toast('Nama template wajib diisi!', 'err'); return; }
+  const id = rawId || ('template-' + name.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''));
+  if (!/^[a-z0-9-]+$/.test(id)) { toast('ID hanya boleh huruf kecil, angka, dan strip', 'err'); return; }
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Membuat...';
+  try {
+    const r = await fetch('/api/duplicate-template', {
+      method: 'POST', headers: apiHeaders(),
+      body: JSON.stringify({ sourceId: baseId, newId: id, displayName: name }),
+    });
+    if (!r.ok) throw new Error(await r.text());
+    closeNewTemplateModal();
+    toast('✅ Template dibuat! Membuka editor...', 'ok');
+    setTimeout(() => editTemplate(id), 700);
+  } catch (e) {
+    toast('Gagal: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Buat & Edit Template';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+loadOrders();
 </script>
+<!-- MODAL: Tambah Template Baru -->
+<div id="modal-new-template" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:460px;padding:28px;box-shadow:0 24px 80px rgba(0,0,0,.7)">
+    <div style="font-size:18px;font-weight:700;margin-bottom:6px">🎨 Tambah Template Baru</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:20px;line-height:1.6">Template baru dibuat dari salinan template yang ada, kemudian bisa diedit bebas di editor visual.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div style="grid-column:span 2">
+        <label>Nama Template *</label>
+        <input id="new-tpl-name" placeholder="Contoh: Elegant Dark Floral">
+      </div>
+      <div style="grid-column:span 2">
+        <label>ID Template (auto dari nama)</label>
+        <input id="new-tpl-id" placeholder="template-elegant-dark-floral" style="font-family:monospace;font-size:12px">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">Hanya huruf kecil, angka, dan strip (-). Tidak bisa diubah setelah dibuat.</div>
+      </div>
+      <div style="grid-column:span 2">
+        <label>Salin desain dari template</label>
+        <select id="new-tpl-base"></select>
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">Template baru akan menggunakan HTML yang sama, dengan canvas desain kosong.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px">
+      <button class="btn btn-ghost" onclick="closeNewTemplateModal()">Batal</button>
+      <button class="btn btn-gold" onclick="createNewTemplate()">✨ Buat & Buka Editor</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
