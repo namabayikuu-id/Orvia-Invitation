@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-minang",
     "displayName": "template-minang",
-    "createdAt": "2026-05-12T15:54:02.971Z",
-    "updatedAt": "2026-05-12T15:54:02.971Z"
+    "createdAt": "2026-05-12T16:10:18.416Z",
+    "updatedAt": "2026-05-12T16:10:18.416Z"
   },
   "layers": [
     {
@@ -82,8 +82,8 @@
       "id": "el_1_1778573512768",
       "type": "image",
       "name": "tr",
-      "x": 206,
-      "y": 678,
+      "x": 205,
+      "y": 679,
       "w": 184,
       "h": 182,
       "rotation": 0,
@@ -96,7 +96,7 @@
       "linkedVar": "",
       "anim": {
         "name": "anim-wave",
-        "duration": 10,
+        "duration": 8,
         "delay": 0,
         "iteration": "infinite",
         "easing": "ease"
