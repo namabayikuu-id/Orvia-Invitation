@@ -768,20 +768,32 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 // ═══════════════════════════════════════════════════════════
 const CANVAS_W = 390;
 
-const SECTIONS = [
-  { id:'cover',    label:'Cover / Landing Page',     height:420, bg:'#100c07', accent:'#c9a96e' },
-  { id:'hero',     label:'Hero – Nama Mempelai',     height:360, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'quote',    label:'Quote / Ayat Suci',        height:100, bg:'#0d0a06', accent:'#8a9b7e' },
-  { id:'countdown',label:'Countdown Timer',          height:200, bg:'#111008', accent:'#c9a96e' },
-  { id:'couple',   label:'Profil Mempelai',          height:380, bg:'#1a1208', accent:'#e8c4b8' },
-  { id:'events',   label:'Akad Nikah & Resepsi',     height:280, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'story',    label:'Love Story Timeline',      height:320, bg:'#1a1208', accent:'#8a9b7e' },
-  { id:'gallery',  label:'Gallery Foto',             height:260, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'rsvp',     label:'RSVP Form',                height:320, bg:'#1a1208', accent:'#c9a96e' },
-  { id:'gift',     label:'Amplop Digital',           height:220, bg:'#0e0b07', accent:'#c9a96e' },
-  { id:'footer',   label:'Footer',                   height:120, bg:'#090704', accent:'#c9a96e' },
+// Tinggi 1 "halaman" = tinggi viewport dikurangi topbar (52px)
+// Setiap seksi full = 1 halaman, seksi kecil = proporsi dari 1 halaman
+const TOPBAR_H = 52;
+function calcPageH() { return Math.max(600, window.innerHeight - TOPBAR_H); }
+
+const SECTION_DEFS = [
+  { id:'cover',    label:'Cover / Landing Page',  ratio:1,    bg:'#100c07', accent:'#c9a96e' },
+  { id:'hero',     label:'Hero – Nama Mempelai',  ratio:1,    bg:'#1a1208', accent:'#c9a96e' },
+  { id:'quote',    label:'Quote / Ayat Suci',     ratio:0.25, bg:'#0d0a06', accent:'#8a9b7e' },
+  { id:'countdown',label:'Countdown Timer',       ratio:0.45, bg:'#111008', accent:'#c9a96e' },
+  { id:'couple',   label:'Profil Mempelai',       ratio:1,    bg:'#1a1208', accent:'#e8c4b8' },
+  { id:'events',   label:'Akad Nikah & Resepsi',  ratio:0.75, bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'story',    label:'Love Story Timeline',   ratio:1,    bg:'#1a1208', accent:'#8a9b7e' },
+  { id:'gallery',  label:'Gallery Foto',          ratio:0.75, bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'rsvp',     label:'RSVP Form',             ratio:1,    bg:'#1a1208', accent:'#c9a96e' },
+  { id:'gift',     label:'Amplop Digital',        ratio:0.6,  bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'footer',   label:'Footer',                ratio:0.25, bg:'#090704', accent:'#c9a96e' },
 ];
-const CANVAS_H = SECTIONS.reduce((s,sec) => s + sec.height, 0);
+
+function buildSections() {
+  const ph = calcPageH();
+  return SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+}
+
+let SECTIONS = buildSections();
+let CANVAS_H  = SECTIONS.reduce((s,sec) => s + sec.height, 0);
 
 const HANDLES = [
   {dir:'nw',cur:'nw-resize'},{dir:'n',cur:'n-resize'},{dir:'ne',cur:'ne-resize'},
@@ -839,7 +851,7 @@ let pendingImg = { src: '', type: 'upload', selectedVar: '', uploading: false };
 // ═══════════════════════════════════════════════════════════
 async function init() {
   buildCanvasBg();
-  setZoom(0.5);
+  setZoom(1);
   renderVarChips();
   renderLayers();
   renderCanvas();
@@ -958,7 +970,24 @@ function setZoom(z) {
   document.getElementById('zoom-label').textContent = Math.round(state.zoom*100) + '%';
 }
 function adjustZoom(delta) { setZoom(state.zoom + delta); }
-function resetZoom() { setZoom(0.5); }
+function resetZoom() { setZoom(1); }
+
+// Hitung zoom agar canvas pas di dalam canvas-area (dengan padding 32px kiri-kanan)
+function fitZoom() {
+  const area = document.getElementById('canvas-area');
+  if (!area) return;
+  const availW = area.clientWidth - 64; // 32px padding kiri + kanan
+  const z = Math.min(1, availW / CANVAS_W); // max 100%, tidak diperbesar
+  setZoom(Math.max(0.2, z));
+}
+
+window.addEventListener('resize', () => {
+  // Rebuild section heights berdasarkan viewport baru
+  SECTIONS = buildSections();
+  CANVAS_H = SECTIONS.reduce((s,sec) => s + sec.height, 0);
+  buildCanvasBg();
+  setZoom(state.zoom); // refresh scaler size
+});
 
 // ═══════════════════════════════════════════════════════════
 // TOOLS
