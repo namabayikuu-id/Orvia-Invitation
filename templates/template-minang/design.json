@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-minang",
     "displayName": "template-minang",
-    "createdAt": "2026-05-12T08:04:59.153Z",
-    "updatedAt": "2026-05-12T08:04:59.153Z"
+    "createdAt": "2026-05-12T08:12:13.197Z",
+    "updatedAt": "2026-05-12T08:12:13.197Z"
   },
   "layers": [
     {
@@ -77,6 +77,23 @@
       "color": "#f0c060",
       "lineHeight": 1.4,
       "linkedVar": "{{GROOM_NAME}}"
+    },
+    {
+      "id": "el_1_1778573512768",
+      "type": "image",
+      "name": "tr",
+      "x": 227,
+      "y": -18,
+      "w": 184,
+      "h": 182,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 4,
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-minang/assets/1778573515398-tr.webp",
+      "objectFit": "cover",
+      "linkedVar": ""
     }
   ],
   "sectionBgs": {},
