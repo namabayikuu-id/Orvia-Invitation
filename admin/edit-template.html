@@ -161,7 +161,11 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 
 /* ── CANVAS AREA ── */
 .canvas-area{
-  flex:1;overflow:auto;background:#080a10;
+  flex:1;overflow:auto;background:#2a2d3a;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px);
+  background-size:24px 24px;
   position:relative;display:flex;align-items:flex-start;justify-content:center;
   padding:32px;
 }
@@ -179,8 +183,8 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .canvas{
   width:var(--canvas-w);
   position:relative;
-  overflow:visible;
-  box-shadow:0 0 0 1px rgba(255,255,255,0.08), 0 24px 80px rgba(0,0,0,.8);
+  overflow:hidden;
+  box-shadow:0 0 0 1px rgba(255,255,255,0.15), 0 24px 80px rgba(0,0,0,.8);
 }
 /* Section backgrounds */
 .section-block{
@@ -437,6 +441,38 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .badge-box{background:rgba(167,139,250,.12);color:var(--purple);border-color:rgba(167,139,250,.2)}
 .badge-txt{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.2)}
 
+/* ── ANIMATION CLASSES (applied on canvas elements) ── */
+@keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
+@keyframes anim-fade-out    { from{opacity:1} to{opacity:0} }
+@keyframes anim-slide-up    { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-down  { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-left  { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-slide-right { from{transform:translateX(-30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-zoom-in     { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-zoom-out    { from{transform:scale(1.3);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-bounce      { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-12px)} 60%{transform:translateY(-6px)} }
+@keyframes anim-pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.65;transform:scale(1.04)} }
+@keyframes anim-shake       { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes anim-rotate-in  { from{transform:rotate(-15deg) scale(0.8);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
+@keyframes anim-flip-x     { from{transform:rotateX(90deg);opacity:0} to{transform:rotateX(0);opacity:1} }
+@keyframes anim-flip-y     { from{transform:rotateY(90deg);opacity:0} to{transform:rotateY(0);opacity:1} }
+@keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
+@keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+
+.canvas-el[data-anim]:not([data-anim="none"]){
+  animation-fill-mode:both;
+}
+
+/* Preview badge for animation on canvas */
+.anim-badge{
+  position:absolute;top:-18px;right:0;
+  background:rgba(167,139,250,.9);color:#fff;
+  font-size:8px;padding:1px 6px;border-radius:3px;
+  font-family:monospace;pointer-events:none;white-space:nowrap;z-index:2;
+  display:flex;align-items:center;gap:3px;
+}
+
 /* ── Responsive ── */
 @media(max-width:1100px){
   :root{--panel-right:260px}
@@ -470,6 +506,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="tb-toggle" id="btn-guides" onclick="toggleGuides()" title="Garis Bantu">⊟ Guides</button>
     <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
     <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
+    <button class="tb-toggle" onclick="previewAnimations()" title="Preview semua animasi">▶ Animasi</button>
   </div>
 
   <!-- Zoom -->
@@ -1097,10 +1134,22 @@ function renderCanvas() {
       ? `background:${layer.bgColor};border:${layer.borderWidth}px solid ${escH(layer.borderColor)};border-radius:${layer.borderRadius}px;`
       : '';
 
+    // Animation style
+    let animStyle = '';
+    let animBadge = '';
+    if (layer.anim && layer.anim.name && layer.anim.name !== 'none') {
+      const dur  = layer.anim.duration  || 1;
+      const delay = layer.anim.delay   || 0;
+      const iter = layer.anim.iteration || '1';
+      const ease = layer.anim.easing   || 'ease';
+      animStyle = `animation:${layer.anim.name} ${dur}s ${ease} ${delay}s ${iter} both;`;
+      animBadge = `<div class="anim-badge">✨ ${layer.anim.name.replace('anim-','')}</div>`;
+    }
+
     return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
       data-id="${layer.id}"
-      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}cursor:${layer.locked?'default':'move'}"
-      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${inner}${handles}</div>`;
+      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}cursor:${layer.locked?'default':'move'}"
+      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${inner}${handles}</div>`;
   }).join('');
 }
 
@@ -1459,6 +1508,77 @@ function updatePropsPanel() {
         <button class="action-btn" onclick="duplicateLayer('${l.id}')">⊕ Duplikat</button>
         <button class="action-btn red" onclick="deleteLayer('${l.id}')">🗑 Hapus</button>
       </div>
+    </div>
+
+    <!-- Animation -->
+    <div class="prop-group">
+      <div class="prop-group-title">✨ Animasi</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">Animasi ini diterapkan saat elemen muncul di halaman undangan.</div>
+      <div class="prop-row">
+        <div class="prop-col">
+          <div class="prop-label">Jenis Animasi</div>
+          <select class="prop-select" onchange="setAnim('name',this.value);updatePropsPanel()">
+            <option value="none" ${(!l.anim||l.anim.name==='none'||!l.anim.name)?'selected':''}>— Tidak ada —</option>
+            <optgroup label="Muncul">
+              <option value="anim-fade-in"     ${l.anim?.name==='anim-fade-in'    ?'selected':''}>Fade In</option>
+              <option value="anim-slide-up"    ${l.anim?.name==='anim-slide-up'   ?'selected':''}>Slide Atas ↑</option>
+              <option value="anim-slide-down"  ${l.anim?.name==='anim-slide-down' ?'selected':''}>Slide Bawah ↓</option>
+              <option value="anim-slide-left"  ${l.anim?.name==='anim-slide-left' ?'selected':''}>Slide Kiri ←</option>
+              <option value="anim-slide-right" ${l.anim?.name==='anim-slide-right'?'selected':''}>Slide Kanan →</option>
+              <option value="anim-zoom-in"     ${l.anim?.name==='anim-zoom-in'    ?'selected':''}>Zoom In</option>
+              <option value="anim-zoom-out"    ${l.anim?.name==='anim-zoom-out'   ?'selected':''}>Zoom Out</option>
+              <option value="anim-rotate-in"   ${l.anim?.name==='anim-rotate-in'  ?'selected':''}>Rotate In</option>
+              <option value="anim-flip-x"      ${l.anim?.name==='anim-flip-x'     ?'selected':''}>Flip X</option>
+              <option value="anim-flip-y"      ${l.anim?.name==='anim-flip-y'     ?'selected':''}>Flip Y</option>
+            </optgroup>
+            <optgroup label="Berkelanjutan">
+              <option value="anim-bounce"      ${l.anim?.name==='anim-bounce'     ?'selected':''}>Bounce</option>
+              <option value="anim-pulse"       ${l.anim?.name==='anim-pulse'      ?'selected':''}>Pulse</option>
+              <option value="anim-shake"       ${l.anim?.name==='anim-shake'      ?'selected':''}>Shake</option>
+              <option value="anim-float"       ${l.anim?.name==='anim-float'      ?'selected':''}>Float</option>
+              <option value="anim-glow"        ${l.anim?.name==='anim-glow'       ?'selected':''}>Glow</option>
+              <option value="anim-typewriter"  ${l.anim?.name==='anim-typewriter' ?'selected':''}>Typewriter</option>
+              <option value="anim-fade-out"    ${l.anim?.name==='anim-fade-out'   ?'selected':''}>Fade Out</option>
+            </optgroup>
+          </select>
+        </div>
+      </div>
+      ${l.anim && l.anim.name && l.anim.name !== 'none' ? `
+      <div class="prop-row">
+        <div class="prop-col">
+          <div class="prop-label">Durasi (detik)</div>
+          <input class="prop-input" type="number" value="${l.anim.duration||1}" min="0.1" max="10" step="0.1" oninput="setAnim('duration',+this.value)">
+        </div>
+        <div class="prop-col">
+          <div class="prop-label">Delay (detik)</div>
+          <input class="prop-input" type="number" value="${l.anim.delay||0}" min="0" max="10" step="0.1" oninput="setAnim('delay',+this.value)">
+        </div>
+      </div>
+      <div class="prop-row">
+        <div class="prop-col">
+          <div class="prop-label">Pengulangan</div>
+          <select class="prop-select" onchange="setAnim('iteration',this.value)">
+            <option value="1"        ${(l.anim.iteration||'1')==='1'       ?'selected':''}>1×</option>
+            <option value="2"        ${l.anim.iteration==='2'              ?'selected':''}>2×</option>
+            <option value="3"        ${l.anim.iteration==='3'              ?'selected':''}>3×</option>
+            <option value="infinite" ${l.anim.iteration==='infinite'       ?'selected':''}>∞ Loop</option>
+          </select>
+        </div>
+        <div class="prop-col">
+          <div class="prop-label">Easing</div>
+          <select class="prop-select" onchange="setAnim('easing',this.value)">
+            <option value="ease"        ${(l.anim.easing||'ease')==='ease'      ?'selected':''}>Ease</option>
+            <option value="ease-in"     ${l.anim.easing==='ease-in'             ?'selected':''}>Ease In</option>
+            <option value="ease-out"    ${l.anim.easing==='ease-out'            ?'selected':''}>Ease Out</option>
+            <option value="ease-in-out" ${l.anim.easing==='ease-in-out'         ?'selected':''}>Ease In-Out</option>
+            <option value="linear"      ${l.anim.easing==='linear'              ?'selected':''}>Linear</option>
+            <option value="spring(1,80,10,0)" ${l.anim.easing?.startsWith('spring')?'selected':''}>Spring</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:6px">
+        <button class="action-btn" style="width:100%" onclick="previewSingleAnim('${l.id}')">▶ Preview Animasi</button>
+      </div>` : ''}
     </div>`;
 }
 
@@ -1468,6 +1588,55 @@ function setProp(key, val) {
   l[key] = val;
   renderCanvas();
   scheduleDraftSave();
+}
+
+// ─── Animation helpers ───────────────────────────────────
+function setAnim(key, val) {
+  const l = findLayer(state.selected);
+  if (!l) return;
+  if (!l.anim) l.anim = { name: 'none', duration: 1, delay: 0, iteration: '1', easing: 'ease' };
+  l.anim[key] = val;
+  if (key === 'name' && val === 'none') l.anim = { name: 'none' };
+  renderCanvas();
+  scheduleDraftSave();
+}
+
+function previewSingleAnim(id) {
+  const l = findLayer(id);
+  if (!l || !l.anim || l.anim.name === 'none') return;
+  const el = document.querySelector(`.canvas-el[data-id="${id}"]`);
+  if (!el) return;
+  el.style.animation = 'none';
+  el.offsetHeight; // reflow
+  const dur = l.anim.duration || 1;
+  const delay = l.anim.delay || 0;
+  const iter = l.anim.iteration || '1';
+  const ease = l.anim.easing || 'ease';
+  el.style.animation = `${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both`;
+  toast(`▶ Preview: ${l.anim.name}`, 'info');
+}
+
+function previewAnimations() {
+  const layersWithAnim = state.layers.filter(l => l.anim && l.anim.name && l.anim.name !== 'none' && l.visible);
+  if (!layersWithAnim.length) { toast('Belum ada elemen dengan animasi', 'info'); return; }
+  // Reset all first
+  layersWithAnim.forEach(l => {
+    const el = document.querySelector(`.canvas-el[data-id="${l.id}"]`);
+    if (el) { el.style.animation = 'none'; }
+  });
+  requestAnimationFrame(() => {
+    layersWithAnim.forEach(l => {
+      const el = document.querySelector(`.canvas-el[data-id="${l.id}"]`);
+      if (!el) return;
+      el.offsetHeight;
+      const dur = l.anim.duration || 1;
+      const delay = l.anim.delay || 0;
+      const iter = l.anim.iteration || '1';
+      const ease = l.anim.easing || 'ease';
+      el.style.animation = `${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both`;
+    });
+  });
+  toast(`▶ Preview ${layersWithAnim.length} animasi`, 'info');
 }
 
 function toggleTextProp(key, on, off) {
@@ -1873,7 +2042,16 @@ function generateDesignLayer() {
   }).join('\n');
 
   // Element styles
-  const elStyles = state.layers.map(l => `
+  const elStyles = state.layers.map(l => {
+    let animCss = '';
+    if (l.anim && l.anim.name && l.anim.name !== 'none') {
+      const dur  = l.anim.duration  || 1;
+      const delay = l.anim.delay   || 0;
+      const iter = l.anim.iteration || '1';
+      const ease = l.anim.easing   || 'ease';
+      animCss = `animation: ${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both;`;
+    }
+    return `
   #__dl-${l.id} {
     position: absolute;
     left: ${(l.x / CANVAS_W * 100).toFixed(4)}%;
@@ -1886,7 +2064,9 @@ function generateDesignLayer() {
     pointer-events: none;
     box-sizing: border-box;
     ${l.type === 'box' ? `background: ${l.bgColor}; border: ${l.borderWidth}px solid ${l.borderColor}; border-radius: ${l.borderRadius}px;` : ''}
-  }`).join('\n');
+    ${animCss}
+  }`;
+  }).join('\n');
 
   // Element HTML
   const elHtml = state.layers.filter(l => l.visible).map(l => {
@@ -1919,6 +2099,23 @@ ${fontLinks}
   z-index: 50;
   overflow: visible;
 }
+@keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
+@keyframes anim-fade-out    { from{opacity:1} to{opacity:0} }
+@keyframes anim-slide-up    { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-down  { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-left  { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-slide-right { from{transform:translateX(-30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-zoom-in     { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-zoom-out    { from{transform:scale(1.3);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-bounce      { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-12px)} 60%{transform:translateY(-6px)} }
+@keyframes anim-pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.65;transform:scale(1.04)} }
+@keyframes anim-shake       { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes anim-rotate-in   { from{transform:rotate(-15deg) scale(0.8);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
+@keyframes anim-flip-x      { from{transform:rotateX(90deg);opacity:0} to{transform:rotateX(0);opacity:1} }
+@keyframes anim-flip-y      { from{transform:rotateY(90deg);opacity:0} to{transform:rotateY(0);opacity:1} }
+@keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
+@keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
 ${elStyles}
 ${sectionOverrides}
 </style>
