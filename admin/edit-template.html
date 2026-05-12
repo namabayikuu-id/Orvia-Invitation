@@ -459,6 +459,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 @keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 @keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
 @keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes anim-wave        { 0%,100%{transform:rotate(0deg)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(14deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(10deg)} }
 
 .canvas-el[data-anim]:not([data-anim="none"]){
   animation-fill-mode:both;
@@ -1565,6 +1566,7 @@ function updatePropsPanel() {
               <option value="anim-pulse"       ${l.anim?.name==='anim-pulse'      ?'selected':''}>Pulse</option>
               <option value="anim-shake"       ${l.anim?.name==='anim-shake'      ?'selected':''}>Shake</option>
               <option value="anim-float"       ${l.anim?.name==='anim-float'      ?'selected':''}>Float</option>
+              <option value="anim-wave"        ${l.anim?.name==='anim-wave'       ?'selected':''}>Wave 👋</option>
               <option value="anim-glow"        ${l.anim?.name==='anim-glow'       ?'selected':''}>Glow</option>
               <option value="anim-typewriter"  ${l.anim?.name==='anim-typewriter' ?'selected':''}>Typewriter</option>
               <option value="anim-fade-out"    ${l.anim?.name==='anim-fade-out'   ?'selected':''}>Fade Out</option>
@@ -2145,6 +2147,7 @@ ${fontLinks}
 @keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 @keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
 @keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes anim-wave        { 0%,100%{transform:rotate(0deg)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(14deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(10deg)} }
 ${elStyles}
 ${sectionOverrides}
 </style>
