@@ -806,7 +806,7 @@ async function init() {
   renderVarChips();
   renderLayers();
   renderCanvas();
-  await loadDesign();
+  await loadFromGitHub();
   buildSectionStyleList();
 
   // Tampilkan nama template aktif di topbar
@@ -819,12 +819,7 @@ async function init() {
   document.addEventListener('wheel', e => { if(e.ctrlKey){ e.preventDefault(); adjustZoom(e.deltaY < 0 ? .1 : -.1); } }, {passive:false});
 }
 
-// Key unik per template — mencegah template saling menimpa data
-function storageKey() {
-  return 'ud_tpl__' + (state.currentTemplateId || 'default');
-}
-
-// ─── Terapkan data design ke state ───────────────────────────
+// ─── Terapkan data design ke state (dipakai oleh semua loader) ──
 function applyDesignConfig(data) {
   state.layers      = data.layers      || [];
   state.sectionBgs  = data.sectionBgs  || {};
@@ -838,47 +833,57 @@ function applyDesignConfig(data) {
   renderCanvas();
 }
 
-// ─── Load: GitHub dulu, localStorage sebagai fallback ────────
-async function loadDesign() {
+// ─── LOAD: dari GitHub (sumber kebenaran tunggal) ────────────
+async function loadFromGitHub() {
   const tplId = state.currentTemplateId || 'template-elegant';
+  const btn = document.getElementById('btn-save');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Memuat...'; }
+
   try {
     const res = await fetch('/api/load-template?templateId=' + encodeURIComponent(tplId));
     if (res.ok) {
       const data = await res.json();
       if (data.designConfig &&
-          (data.designConfig.layers?.length || Object.keys(data.designConfig.sectionBgs || {}).length)) {
+          (data.designConfig.layers?.length ||
+           Object.keys(data.designConfig.sectionBgs || {}).length ||
+           data.designConfig.customFonts?.length)) {
         applyDesignConfig(data.designConfig);
-        // Sinkronkan ke localStorage sebagai cache
-        saveToStorage();
         toast('☁ Design dimuat dari GitHub', 'ok');
+        if (btn) { btn.disabled = false; btn.innerHTML = '💾 Simpan ke GitHub'; }
         return;
       }
+      // Tidak ada data di GitHub → canvas kosong (normal untuk template baru)
+      toast('Template baru — belum ada design tersimpan di GitHub', 'info');
+    } else {
+      toast('⚠ Gagal load dari GitHub (' + res.status + ')', 'err');
     }
   } catch(e) {
-    // Server tidak tersedia – lanjut ke fallback
+    toast('⚠ Tidak bisa menghubungi server – canvas kosong', 'err');
   }
-  // Fallback: localStorage (misalnya offline atau API belum ada)
-  loadFromStorage();
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '💾 Simpan ke GitHub'; }
 }
 
-function loadFromStorage() {
-  try {
-    const saved = localStorage.getItem(storageKey());
-    if (saved) {
-      const data = JSON.parse(saved);
-      applyDesignConfig(data);
-      toast('💾 Design [' + state.currentTemplateId + '] dimuat dari cache lokal');
-    }
-  } catch(e) {}
+// ─── Draft sementara — hanya untuk keamanan di dalam sesi ini ─
+// Tidak dipakai sebagai sumber load di device lain.
+let _draftTimer;
+function scheduleDraftSave() {
+  clearTimeout(_draftTimer);
+  _draftTimer = setTimeout(() => {
+    try {
+      const key = 'ud_draft__' + (state.currentTemplateId || 'default');
+      sessionStorage.setItem(key, JSON.stringify({
+        layers: state.layers,
+        sectionBgs: state.sectionBgs,
+        customFonts: state.customFonts,
+      }));
+    } catch(e) {}
+  }, 500);
 }
 
-function saveToStorage() {
-  localStorage.setItem(storageKey(), JSON.stringify({
-    layers: state.layers,
-    sectionBgs: state.sectionBgs,
-    customFonts: state.customFonts,
-  }));
-}
+// saveToStorage — tidak lagi dipakai sebagai sumber data,
+// dipertahankan agar tidak error jika ada kode lain memanggilnya.
+function saveToStorage() { scheduleDraftSave(); }
 
 // ═══════════════════════════════════════════════════════════
 // CANVAS BACKGROUND
@@ -948,7 +953,7 @@ function addLayer(layer) {
   renderLayers();
   renderCanvas();
   updatePropsPanel();
-  saveToStorage();
+  scheduleDraftSave();
 }
 
 function deleteLayer(id) {
@@ -957,7 +962,7 @@ function deleteLayer(id) {
   if (state.selected === id) { state.selected = null; updatePropsPanel(); }
   renderLayers();
   renderCanvas();
-  saveToStorage();
+  scheduleDraftSave();
 }
 
 function duplicateLayer(id) {
@@ -1141,7 +1146,7 @@ function elMousedown(e, el) {
   function onUp() {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
-    if (moved) { saveHistory(); saveToStorage(); }
+    if (moved) { saveHistory(); scheduleDraftSave(); }
   }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
@@ -1170,7 +1175,7 @@ function hMousedown(e, id, dir) {
   function onUp() {
     document.removeEventListener('mousemove', onMove);
     document.removeEventListener('mouseup', onUp);
-    saveToStorage();
+    scheduleDraftSave();
   }
   document.addEventListener('mousemove', onMove);
   document.addEventListener('mouseup', onUp);
@@ -1238,7 +1243,7 @@ function renderLayers() {
 function toggleVis(id, e) {
   e.stopPropagation();
   const l = findLayer(id);
-  if (l) { l.visible = !l.visible; renderCanvas(); renderLayers(); saveToStorage(); }
+  if (l) { l.visible = !l.visible; renderCanvas(); renderLayers(); scheduleDraftSave(); }
 }
 function toggleLock(id, e) {
   e.stopPropagation();
@@ -1275,7 +1280,7 @@ function layerDrop(e, id) {
   state.layers.splice(toIdx, 0, moved);
   // reassign zIndex
   state.layers.forEach((l, i) => l.zIndex = i + 1);
-  renderLayers(); renderCanvas(); saveToStorage();
+  renderLayers(); renderCanvas(); scheduleDraftSave();
   dragLayerId = null; dragOverId = null;
 }
 
@@ -1462,14 +1467,14 @@ function setProp(key, val) {
   if (!l) return;
   l[key] = val;
   renderCanvas();
-  saveToStorage();
+  scheduleDraftSave();
 }
 
 function toggleTextProp(key, on, off) {
   const l = findLayer(state.selected);
   if (!l) return;
   l[key] = l[key] === on ? off : on;
-  renderCanvas(); updatePropsPanel(); saveToStorage();
+  renderCanvas(); updatePropsPanel(); scheduleDraftSave();
 }
 
 // Z-order helpers
@@ -1477,7 +1482,7 @@ function bringToFront(id) {
   const l = findLayer(id);
   if (!l) return;
   l.zIndex = nextZ();
-  renderCanvas(); renderLayers(); saveToStorage();
+  renderCanvas(); renderLayers(); scheduleDraftSave();
   toast('Layer dibawa ke depan');
 }
 function sendToBack(id) {
@@ -1485,7 +1490,7 @@ function sendToBack(id) {
   if (!l) return;
   const min = Math.min(...state.layers.map(x => x.zIndex));
   l.zIndex = min - 1;
-  renderCanvas(); renderLayers(); saveToStorage();
+  renderCanvas(); renderLayers(); scheduleDraftSave();
   toast('Layer dibawa ke belakang');
 }
 function moveUp(id) {
@@ -1493,14 +1498,14 @@ function moveUp(id) {
   if (!l) return;
   const above = state.layers.filter(x => x.id !== id && x.zIndex > l.zIndex).sort((a,b) => a.zIndex-b.zIndex)[0];
   if (above) { const tmp = l.zIndex; l.zIndex = above.zIndex; above.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
+  renderCanvas(); renderLayers(); scheduleDraftSave();
 }
 function moveDown(id) {
   const l = findLayer(id);
   if (!l) return;
   const below = state.layers.filter(x => x.id !== id && x.zIndex < l.zIndex).sort((a,b) => b.zIndex-a.zIndex)[0];
   if (below) { const tmp = l.zIndex; l.zIndex = below.zIndex; below.zIndex = tmp; }
-  renderCanvas(); renderLayers(); saveToStorage();
+  renderCanvas(); renderLayers(); scheduleDraftSave();
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1554,7 +1559,7 @@ function addFont() {
   if (state.customFonts.find(f => f.name === name)) { toast('Font sudah ada!', 'err'); return; }
   state.customFonts.push({ name, url });
   injectFont({ name, url });
-  saveToStorage();
+  scheduleDraftSave();
   renderFontPills();
   toast(`✓ Font "${name}" ditambahkan`);
   document.getElementById('font-url-input').value = '';
@@ -1562,7 +1567,7 @@ function addFont() {
 
 function removeFont(name) {
   state.customFonts = state.customFonts.filter(f => f.name !== name);
-  saveToStorage(); renderFontPills();
+  scheduleDraftSave(); renderFontPills();
 }
 
 function renderFontPills() {
@@ -1737,15 +1742,15 @@ function buildSectionStyleList() {
 function setSectionBg(id, color) {
   state.sectionBgs[id] = color;
   buildCanvasBg();
-  saveToStorage();
+  scheduleDraftSave();
 }
 function resetSectionBg(id, btn) {
   delete state.sectionBgs[id];
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
+  buildCanvasBg(); buildSectionStyleList(); scheduleDraftSave();
 }
 function resetSectionStyles() {
   state.sectionBgs = {};
-  buildCanvasBg(); buildSectionStyleList(); saveToStorage();
+  buildCanvasBg(); buildSectionStyleList(); scheduleDraftSave();
   toast('Style seksi direset ke default');
 }
 
@@ -1781,7 +1786,7 @@ function undoAction() {
   if (state.histIndex <= 0) return;
   state.histIndex--;
   state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
+  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); scheduleDraftSave();
   toast('↩ Undo');
 }
 
@@ -1789,7 +1794,7 @@ function redoAction() {
   if (state.histIndex >= state.history.length - 1) return;
   state.histIndex++;
   state.layers = JSON.parse(state.history[state.histIndex]);
-  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); saveToStorage();
+  renderCanvas(); renderLayers(); updatePropsPanel(); updateHistoryBtns(); scheduleDraftSave();
   toast('↪ Redo');
 }
 
@@ -1970,7 +1975,7 @@ async function saveToGitHub() {
     if (r.ok) {
       const data = await r.json();
       toast('✅ Template disimpan ke GitHub! Deploy dalam ~30 detik.', 'ok');
-      saveToStorage();
+      // Draft sesi ini tidak lagi relevan - data sudah aman di GitHub
     } else {
       const err = await r.text();
       // If API not yet created, offer download instead
@@ -2059,7 +2064,7 @@ function rgbToHex(color) {
 // ═══════════════════════════════════════════════════════════
 (async () => {
   await init();
-  pushHistory(); // initial empty state
+  pushHistory(); // initial state setelah load dari GitHub
   updateHistoryBtns();
 })();
 
