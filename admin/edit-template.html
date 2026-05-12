@@ -203,6 +203,15 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
   position:absolute;bottom:0;left:0;right:0;height:1px;
   background:linear-gradient(90deg,transparent,rgba(201,169,110,.15),transparent);
 }
+/* Section boundary divider line */
+.section-divider{
+  position:absolute;left:0;right:0;height:2px;pointer-events:none;z-index:20;
+  background:repeating-linear-gradient(90deg,rgba(96,165,250,.6) 0px,rgba(96,165,250,.6) 8px,transparent 8px,transparent 16px);
+  box-shadow:0 0 6px rgba(96,165,250,.35);
+}
+/* Flash when element crosses boundary */
+@keyframes sec-cross-flash { 0%,100%{opacity:1} 50%{opacity:.4} }
+.canvas-el.sec-flash { animation: sec-cross-flash 0.25s ease-out; }
 
 /* Canvas elements */
 .canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
@@ -941,7 +950,8 @@ function saveToStorage() { scheduleDraftSave(); }
 function buildCanvasBg() {
   const bg = document.getElementById('canvas-bg');
   bg.innerHTML = '';
-  SECTIONS.forEach(sec => {
+  let cumY = 0;
+  SECTIONS.forEach((sec, i) => {
     const bgColor = state.sectionBgs[sec.id] || sec.bg;
     const div = document.createElement('div');
     div.className = 'section-block';
@@ -952,6 +962,16 @@ function buildCanvasBg() {
       <div class="section-accent" style="background:linear-gradient(90deg,transparent,${sec.accent}33,transparent)"></div>
     `;
     bg.appendChild(div);
+
+    // Garis batas antar seksi (kecuali setelah seksi terakhir)
+    if (i < SECTIONS.length - 1) {
+      cumY += sec.height;
+      const divider = document.createElement('div');
+      divider.className = 'section-divider';
+      divider.style.top = cumY + 'px';
+      divider.title = `Batas: ${sec.label} → ${SECTIONS[i+1].label}`;
+      bg.appendChild(divider);
+    }
   });
   document.getElementById('canvas').style.height = CANVAS_H + 'px';
 }
@@ -1176,9 +1196,22 @@ function renderCanvas() {
       animBadge = `<div class="anim-badge">✨ ${layer.anim.name.replace('anim-','')}</div>`;
     }
 
+    // Section clipping: clip elemen agar tidak keluar dari batas seksinya
+    const centerY = layer.y + layer.h / 2;
+    const sec = getSectionAt(centerY);
+    // clip-path relatif terhadap elemen itu sendiri
+    const clipTop    = Math.max(0, sec.top - layer.y);
+    const clipBottom = Math.max(0, layer.y + layer.h - sec.bottom);
+    let clipStyle = '';
+    if (clipTop > 0 || clipBottom > 0) {
+      const insetTop    = clipTop;
+      const insetBottom = clipBottom;
+      clipStyle = `clip-path:inset(${insetTop}px 0px ${insetBottom}px 0px);`;
+    }
+
     return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
       data-id="${layer.id}"
-      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}cursor:${layer.locked?'default':'move'}"
+      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
       onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${inner}${handles}</div>`;
   }).join('');
 }
@@ -1188,7 +1221,67 @@ function escH(s) {
 }
 
 // ═══════════════════════════════════════════════════════════
-// MOUSE EVENTS (drag / resize)
+// SECTION BOUNDARY HELPERS
+// ═══════════════════════════════════════════════════════════
+
+// Kembalikan { top, bottom, index } dari seksi yang mengandung posisi Y
+function getSectionAt(y) {
+  let cumY = 0;
+  for (let i = 0; i < SECTIONS.length; i++) {
+    const top = cumY;
+    const bottom = cumY + SECTIONS[i].height;
+    if (y >= top && y < bottom) return { top, bottom, index: i, sec: SECTIONS[i] };
+    cumY = bottom;
+  }
+  // fallback: seksi terakhir
+  const last = SECTIONS.length - 1;
+  let t = SECTIONS.slice(0,last).reduce((s,x) => s+x.height, 0);
+  return { top: t, bottom: CANVAS_H, index: last, sec: SECTIONS[last] };
+}
+
+// Kembalikan Y kumulatif di awal tiap seksi
+function getSectionTops() {
+  const tops = [];
+  let cumY = 0;
+  SECTIONS.forEach(s => { tops.push(cumY); cumY += s.height; });
+  return tops;
+}
+
+// Clamp posisi layer agar tetap di dalam seksi asalnya,
+// atau pindahkan ke seksi baru jika center elemen sudah > 50% melewati batas
+function clampToSection(layer, nx, ny, originSecIndex) {
+  const tops = getSectionTops();
+  const originTop    = tops[originSecIndex];
+  const originBottom = originTop + SECTIONS[originSecIndex].height;
+  const centerY = ny + layer.h / 2;
+
+  // Cek apakah center sudah melewati batas bawah
+  if (centerY > originBottom && originSecIndex < SECTIONS.length - 1) {
+    // Pindah ke seksi berikutnya
+    const newSecIndex = originSecIndex + 1;
+    const newTop = tops[newSecIndex];
+    // Snap posisi ke awal seksi baru, pertahankan offset relatif
+    const relOffset = ny - originTop;
+    ny = newTop + (relOffset - SECTIONS[originSecIndex].height);
+    return { nx, ny: Math.max(newTop, ny), newSecIndex, crossed: true };
+  }
+  // Cek apakah center sudah melewati batas atas
+  if (centerY < originTop && originSecIndex > 0) {
+    // Pindah ke seksi sebelumnya
+    const newSecIndex = originSecIndex - 1;
+    const newTop = tops[newSecIndex];
+    const newBottom = newTop + SECTIONS[newSecIndex].height;
+    const relOffset = ny - originTop;
+    ny = newBottom + relOffset;
+    return { nx, ny: Math.min(newBottom - layer.h, ny), newSecIndex, crossed: true };
+  }
+
+  // Tidak melewati batas — clamp dalam seksi asal
+  ny = Math.max(originTop, Math.min(originBottom - layer.h, ny));
+  return { nx, ny, newSecIndex: originSecIndex, crossed: false };
+}
+
+// ═══════════════════════════════════════════════════════════
 // ═══════════════════════════════════════════════════════════
 function getCanvasPos(e) {
   const scaler = document.getElementById('canvas-scaler');
@@ -1211,6 +1304,10 @@ function elMousedown(e, el) {
   const ox = layer.x - start.x, oy = layer.y - start.y;
   let moved = false;
 
+  // Catat seksi asal saat mulai drag (berdasarkan center elemen)
+  const startCenterY = layer.y + layer.h / 2;
+  let currentSecIndex = getSectionAt(startCenterY).index;
+
   function onMove(e) {
     const pos = getCanvasPos(e);
     let nx = pos.x + ox, ny = pos.y + oy;
@@ -1218,7 +1315,27 @@ function elMousedown(e, el) {
       nx = Math.round(nx / state.gridSize) * state.gridSize;
       ny = Math.round(ny / state.gridSize) * state.gridSize;
     }
-    layer.x = nx; layer.y = ny;
+
+    // Clamp X dalam canvas
+    nx = Math.max(0, Math.min(CANVAS_W - layer.w, nx));
+
+    // Cek batas seksi dan kemungkinan pindah seksi
+    const result = clampToSection(layer, nx, ny, currentSecIndex);
+    layer.x = result.nx;
+    layer.y = result.ny;
+
+    if (result.crossed) {
+      currentSecIndex = result.newSecIndex;
+      // Flash visual pada elemen
+      const domEl = document.querySelector(`.canvas-el[data-id="${id}"]`);
+      if (domEl) {
+        domEl.classList.remove('sec-flash');
+        void domEl.offsetWidth; // reflow
+        domEl.classList.add('sec-flash');
+        setTimeout(() => domEl.classList.remove('sec-flash'), 300);
+      }
+    }
+
     moved = true;
     renderCanvas(); updatePropsPanel();
   }
