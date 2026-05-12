@@ -2,16 +2,16 @@
   "meta": {
     "id": "template-minang",
     "displayName": "template-minang",
-    "createdAt": "2026-05-12T08:12:13.197Z",
-    "updatedAt": "2026-05-12T08:12:13.197Z"
+    "createdAt": "2026-05-12T08:23:09.236Z",
+    "updatedAt": "2026-05-12T08:23:09.236Z"
   },
   "layers": [
     {
       "id": "el_1_1778572984228",
       "type": "text",
       "name": "Mempelai Perempuan",
-      "x": 83,
-      "y": 108,
+      "x": 95.5,
+      "y": 105.50000000000003,
       "w": 200,
       "h": 60,
       "rotation": 0,
@@ -34,8 +34,8 @@
       "id": "el_2_1778573032318",
       "type": "text",
       "name": "Teks 2",
-      "x": 79,
-      "y": 154,
+      "x": 94.83333333333331,
+      "y": 148.99999999999997,
       "w": 200,
       "h": 60,
       "rotation": 0,
@@ -58,8 +58,8 @@
       "id": "el_3_1778573052644",
       "type": "text",
       "name": "Mempelai Pria",
-      "x": 77,
-      "y": 190,
+      "x": 96.16666666666669,
+      "y": 191.66666666666669,
       "w": 200,
       "h": 60,
       "rotation": 0,
@@ -82,8 +82,8 @@
       "id": "el_1_1778573512768",
       "type": "image",
       "name": "tr",
-      "x": 227,
-      "y": -18,
+      "x": 213.83333333333331,
+      "y": 1.5,
       "w": 184,
       "h": 182,
       "rotation": 0,
@@ -93,7 +93,14 @@
       "zIndex": 4,
       "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-minang/assets/1778573515398-tr.webp",
       "objectFit": "cover",
-      "linkedVar": ""
+      "linkedVar": "",
+      "anim": {
+        "name": "anim-bounce",
+        "duration": 1,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
     }
   ],
   "sectionBgs": {},
