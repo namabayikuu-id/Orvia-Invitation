@@ -483,6 +483,27 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
   display:flex;align-items:center;gap:3px;
 }
 
+/* ── Pages mode group ── */
+.tb-pages-group{
+  display:flex;align-items:center;gap:2px;padding:0 12px;
+  border-right:1px solid var(--border);height:100%;
+}
+.tb-pages-label{
+  font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--muted);margin-right:4px;white-space:nowrap;
+}
+.page-mode-btn{
+  padding:5px 10px;border-radius:var(--r);
+  background:transparent;color:var(--muted);
+  font-size:11px;font-weight:600;cursor:pointer;
+  transition:all .15s;font-family:inherit;
+  display:flex;align-items:center;gap:4px;white-space:nowrap;
+  border:1px solid var(--border2);
+}
+.page-mode-btn:hover{border-color:var(--gold);color:var(--gold)}
+.page-mode-btn.active{background:var(--gold-dim);border-color:var(--gold);color:var(--gold)}
+.page-mode-btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+
 /* ── Responsive ── */
 @media(max-width:1100px){
   :root{--panel-right:260px}
@@ -517,6 +538,13 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
     <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
     <button class="tb-toggle" onclick="previewAnimations()" title="Preview semua animasi">▶ Animasi</button>
+  </div>
+
+  <!-- Pages Mode -->
+  <div class="tb-pages-group">
+    <span class="tb-pages-label">📄 Pages</span>
+    <button class="page-mode-btn" id="btn-page-fix"   onclick="setPageMode('fix')"   title="Element terkunci di dalam batas seksi (garis putus-putus)" disabled>🔒 Fix</button>
+    <button class="page-mode-btn" id="btn-page-tembus" onclick="setPageMode('tembus')" title="Element bisa melewati batas seksi – bagian yang keluar akan di-crop" disabled>✂ Tembus</button>
   </div>
 
   <!-- Zoom -->
@@ -883,6 +911,12 @@ function applyDesignConfig(data) {
   state.layers      = data.layers      || [];
   state.sectionBgs  = data.sectionBgs  || {};
   state.customFonts = data.customFonts || [];
+
+  // Normalisasi: pastikan semua layer punya pageMode (untuk data lama)
+  state.layers.forEach(l => {
+    if (!l.pageMode) l.pageMode = 'fix';
+  });
+
   if (state.customFonts.length) {
     state.customFonts.forEach(f => injectFont(f));
     renderFontPills();
@@ -1069,6 +1103,7 @@ function selectLayer(id) {
   renderCanvas();
   renderLayers();
   updatePropsPanel();
+  updatePageModeBtns();
 }
 
 function deselectAll() {
@@ -1076,6 +1111,44 @@ function deselectAll() {
   renderCanvas();
   renderLayers();
   updatePropsPanel();
+  updatePageModeBtns();
+}
+
+// ═══════════════════════════════════════════════════════════
+// PAGE MODE (Fix / Tembus)
+// ═══════════════════════════════════════════════════════════
+function setPageMode(mode) {
+  const layer = findLayer(state.selected);
+  if (!layer) return;
+  pushHistory();
+  layer.pageMode = mode;
+  renderCanvas();
+  updatePageModeBtns();
+  scheduleDraftSave();
+  toast(mode === 'tembus'
+    ? '✂ Tembus aktif – element bisa melewati batas seksi (bagian luar di-crop)'
+    : '🔒 Fix aktif – element terkunci dalam batas seksi', 'info');
+}
+
+function updatePageModeBtns() {
+  const btnFix    = document.getElementById('btn-page-fix');
+  const btnTembus = document.getElementById('btn-page-tembus');
+  if (!btnFix || !btnTembus) return;
+
+  const layer = findLayer(state.selected);
+  if (!layer) {
+    btnFix.disabled    = true;
+    btnTembus.disabled = true;
+    btnFix.classList.remove('active');
+    btnTembus.classList.remove('active');
+    return;
+  }
+
+  btnFix.disabled    = false;
+  btnTembus.disabled = false;
+  const mode = layer.pageMode || 'fix';
+  btnFix.classList.toggle('active',    mode === 'fix');
+  btnTembus.classList.toggle('active', mode === 'tembus');
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1089,7 +1162,7 @@ function addBoxLayer() {
     opacity: 0.5, visible: true, locked: false, zIndex: nextZ(),
     bgColor: 'rgba(201,169,110,0.25)',
     borderColor: 'rgba(201,169,110,0.6)', borderWidth: 1, borderRadius: 0,
-    linkedVar: '',
+    linkedVar: '', pageMode: 'fix',
   });
   setTool('select');
   toast('Box ditambahkan');
@@ -1105,7 +1178,7 @@ function addTextLayer() {
     fontFamily: 'Cormorant Garamond', fontSize: 24,
     fontWeight: '400', fontStyle: 'normal', textDecoration: 'none',
     textAlign: 'center', color: '#f0c060', lineHeight: 1.4,
-    linkedVar: '',
+    linkedVar: '', pageMode: 'fix',
   });
   setTool('select');
   toast('Teks ditambahkan');
@@ -1135,7 +1208,7 @@ function confirmAddImage() {
     x: cx, y: 80, w, h, rotation: 0,
     opacity: 1, visible: true, locked: false, zIndex: nextZ(),
     src: src, objectFit: fit,
-    linkedVar: isVar ? src : '',
+    linkedVar: isVar ? src : '', pageMode: 'fix',
   });
   closeModal('modal-image');
   setTool('select');
@@ -1180,6 +1253,11 @@ function renderCanvas() {
       ? HANDLES.map(h => `<div class="h h-${h.dir}" data-dir="${h.dir}" style="cursor:${h.cur}" onmousedown="hMousedown(event,'${layer.id}','${h.dir}')"></div>`).join('')
       : '';
 
+    // Badge untuk mode tembus
+    const tembusBadge = layer.pageMode === 'tembus'
+      ? `<div style="position:absolute;top:2px;left:2px;background:rgba(96,165,250,.85);color:#fff;font-size:8px;padding:1px 5px;border-radius:3px;font-family:monospace;pointer-events:none;white-space:nowrap;z-index:2;letter-spacing:.5px">✂ TEMBUS</div>`
+      : '';
+
     const bSt = layer.type === 'box'
       ? `background:${layer.bgColor};border:${layer.borderWidth}px solid ${escH(layer.borderColor)};border-radius:${layer.borderRadius}px;`
       : '';
@@ -1196,23 +1274,31 @@ function renderCanvas() {
       animBadge = `<div class="anim-badge">✨ ${layer.anim.name.replace('anim-','')}</div>`;
     }
 
-    // Section clipping: clip elemen agar tidak keluar dari batas seksinya
+    // Section clipping: perilaku berbeda berdasarkan pageMode
     const centerY = layer.y + layer.h / 2;
     const sec = getSectionAt(centerY);
     // clip-path relatif terhadap elemen itu sendiri
     const clipTop    = Math.max(0, sec.top - layer.y);
     const clipBottom = Math.max(0, layer.y + layer.h - sec.bottom);
     let clipStyle = '';
-    if (clipTop > 0 || clipBottom > 0) {
-      const insetTop    = clipTop;
-      const insetBottom = clipBottom;
-      clipStyle = `clip-path:inset(${insetTop}px 0px ${insetBottom}px 0px);`;
+    if (layer.pageMode === 'tembus') {
+      // Mode TEMBUS: element bisa melewati batas seksi, tapi bagian yang keluar di-crop
+      if (clipTop > 0 || clipBottom > 0) {
+        clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
+      }
+    } else {
+      // Mode FIX (default): element terkunci di dalam seksi, clip hanya sebagai fallback
+      if (clipTop > 0 || clipBottom > 0) {
+        const insetTop    = clipTop;
+        const insetBottom = clipBottom;
+        clipStyle = `clip-path:inset(${insetTop}px 0px ${insetBottom}px 0px);`;
+      }
     }
 
     return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
       data-id="${layer.id}"
       style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
-      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${inner}${handles}</div>`;
+      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${tembusBadge}${inner}${handles}</div>`;
   }).join('');
 }
 
@@ -1316,23 +1402,30 @@ function elMousedown(e, el) {
       ny = Math.round(ny / state.gridSize) * state.gridSize;
     }
 
-    // Clamp X dalam canvas
+    // Clamp X dalam canvas (selalu)
     nx = Math.max(0, Math.min(CANVAS_W - layer.w, nx));
 
-    // Cek batas seksi dan kemungkinan pindah seksi
-    const result = clampToSection(layer, nx, ny, currentSecIndex);
-    layer.x = result.nx;
-    layer.y = result.ny;
+    if (layer.pageMode === 'tembus') {
+      // Mode TEMBUS: bebas bergerak di Y (hanya clamp ke batas canvas)
+      ny = Math.max(0, Math.min(CANVAS_H - layer.h, ny));
+      layer.x = nx;
+      layer.y = ny;
+    } else {
+      // Mode FIX (default): clamp ke dalam seksi
+      const result = clampToSection(layer, nx, ny, currentSecIndex);
+      layer.x = result.nx;
+      layer.y = result.ny;
 
-    if (result.crossed) {
-      currentSecIndex = result.newSecIndex;
-      // Flash visual pada elemen
-      const domEl = document.querySelector(`.canvas-el[data-id="${id}"]`);
-      if (domEl) {
-        domEl.classList.remove('sec-flash');
-        void domEl.offsetWidth; // reflow
-        domEl.classList.add('sec-flash');
-        setTimeout(() => domEl.classList.remove('sec-flash'), 300);
+      if (result.crossed) {
+        currentSecIndex = result.newSecIndex;
+        // Flash visual pada elemen
+        const domEl = document.querySelector(`.canvas-el[data-id="${id}"]`);
+        if (domEl) {
+          domEl.classList.remove('sec-flash');
+          void domEl.offsetWidth; // reflow
+          domEl.classList.add('sec-flash');
+          setTimeout(() => domEl.classList.remove('sec-flash'), 300);
+        }
       }
     }
 
@@ -1388,7 +1481,7 @@ function canvasBgMousedown(e) {
       x:Math.round(pos.x), y:Math.round(pos.y), w:140, h:80,
       rotation:0, opacity:0.5, visible:true, locked:false, zIndex:nextZ(),
       bgColor:'rgba(201,169,110,0.25)', borderColor:'rgba(201,169,110,0.5)', borderWidth:1, borderRadius:0,
-      linkedVar:'',
+      linkedVar:'', pageMode:'fix',
     });
     setTool('select');
   }
@@ -1491,6 +1584,7 @@ function updatePropsPanel() {
   if (!state.selected) {
     body.innerHTML = `<div class="no-sel"><div class="no-sel-icon">🖱</div><div class="no-sel-text">Pilih elemen di canvas<br>untuk mengedit propertinya</div></div>`;
     badge.style.display = 'none';
+    updatePageModeBtns();
     return;
   }
 
@@ -1632,6 +1726,31 @@ function updatePropsPanel() {
 
     ${typeSpecific}
 
+    <!-- Pages Mode -->
+    <div class="prop-group">
+      <div class="prop-group-title">📄 Pages – Batas Seksi</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;line-height:1.5">
+        Atur apakah elemen terkunci dalam batas seksi (garis putus-putus) atau bisa melewatinya.
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="action-btn${(l.pageMode||'fix')==='fix'?' active':''}
+          " style="${(l.pageMode||'fix')==='fix'?'border-color:var(--gold);color:var(--gold);background:var(--gold-dim)':''}"
+          onclick="setPageMode('fix');updatePropsPanel()">
+          🔒 Fix<br><span style="font-size:9px;font-weight:400;color:inherit;opacity:.8">mentok di garis</span>
+        </button>
+        <button class="action-btn${l.pageMode==='tembus'?' active':''}"
+          style="${l.pageMode==='tembus'?'border-color:var(--gold);color:var(--gold);background:var(--gold-dim)':''}"
+          onclick="setPageMode('tembus');updatePropsPanel()">
+          ✂ Tembus<br><span style="font-size:9px;font-weight:400;color:inherit;opacity:.8">di-crop di garis</span>
+        </button>
+      </div>
+      ${l.pageMode==='tembus' ? `<div style="margin-top:8px;font-size:11px;color:var(--blue);line-height:1.5;padding:6px 8px;background:var(--blue-dim);border-radius:6px">
+        ✂ <strong>Tembus aktif</strong> – Elemen bisa digeser melewati garis putus-putus. Bagian yang keluar akan otomatis di-crop.
+      </div>` : `<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;padding:6px 8px;background:var(--surf2);border-radius:6px">
+        🔒 <strong>Fix aktif</strong> – Elemen tidak bisa melewati garis putus-putus antar seksi.
+      </div>`}
+    </div>
+
     <!-- Variable binding -->
     <div class="prop-group">
       <div class="prop-group-title">Link ke Variable</div>
@@ -1728,6 +1847,9 @@ function updatePropsPanel() {
         <button class="action-btn" style="width:100%" onclick="previewSingleAnim('${l.id}')">▶ Preview Animasi</button>
       </div>` : ''}
     </div>`;
+
+  // Sync tombol Pages di topbar
+  updatePageModeBtns();
 }
 
 function setProp(key, val) {
