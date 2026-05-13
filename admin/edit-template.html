@@ -214,7 +214,9 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .canvas-el.sec-flash { animation: sec-cross-flash 0.25s ease-out; }
 
 /* Canvas elements */
-.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
+.canvas-els-tembus{position:absolute;inset:0;pointer-events:none;z-index:9}
+#canvas-section-masks{position:absolute;inset:0;pointer-events:none;z-index:10}
+.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:11}
 .canvas-el{
   position:absolute;pointer-events:all;
   box-sizing:border-box;
@@ -609,7 +611,11 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
             <div class="canvas-guide-h"></div>
             <div class="canvas-guide-v"></div>
           </div>
-          <!-- Elements -->
+          <!-- Elements: Tembus (di bawah section masks) -->
+          <div class="canvas-els-tembus" id="canvas-els-tembus"></div>
+          <!-- Section background masks (menimpa tembus elements di batas seksi) -->
+          <div id="canvas-section-masks"></div>
+          <!-- Elements: Fix (di atas section masks) -->
           <div class="canvas-els" id="canvas-els"></div>
         </div>
       </div>
@@ -1008,6 +1014,22 @@ function buildCanvasBg() {
     }
   });
   document.getElementById('canvas').style.height = CANVAS_H + 'px';
+
+  // Bangun section masks: background tiap seksi, duduk di atas elemen Tembus
+  // tapi di bawah elemen Fix — sehingga elemen Tembus yang melewati batas
+  // tertimpa oleh background seksi lain secara visual
+  const masks = document.getElementById('canvas-section-masks');
+  if (masks) {
+    masks.innerHTML = '';
+    let mY = 0;
+    SECTIONS.forEach(sec => {
+      const bgColor = state.sectionBgs[sec.id] || sec.bg;
+      const mask = document.createElement('div');
+      mask.style.cssText = `position:absolute;left:0;right:0;top:${mY}px;height:${sec.height}px;background:${bgColor};pointer-events:none;`;
+      masks.appendChild(mask);
+      mY += sec.height;
+    });
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1224,14 +1246,23 @@ function confirmAddImage() {
 // CANVAS RENDER
 // ═══════════════════════════════════════════════════════════
 function renderCanvas() {
-  const container = document.getElementById('canvas-els');
-  if (!state.layers.length) { container.innerHTML = ''; return; }
+  const fixContainer    = document.getElementById('canvas-els');
+  const tembusContainer = document.getElementById('canvas-els-tembus');
+  if (!fixContainer || !tembusContainer) return;
+
+  if (!state.layers.length) {
+    fixContainer.innerHTML = '';
+    tembusContainer.innerHTML = '';
+    return;
+  }
 
   const sorted = [...state.layers]
     .filter(l => l.visible)
     .sort((a, b) => a.zIndex - b.zIndex);
 
-  container.innerHTML = sorted.map(layer => {
+  let fixHtml = '', tembusHtml = '';
+
+  sorted.forEach(layer => {
     const isSel = layer.id === state.selected;
     let inner = '';
 
@@ -1262,40 +1293,46 @@ function renderCanvas() {
       ? `background:${layer.bgColor};border:${layer.borderWidth}px solid ${escH(layer.borderColor)};border-radius:${layer.borderRadius}px;`
       : '';
 
-    // Animation style
     let animStyle = '';
     let animBadge = '';
     if (layer.anim && layer.anim.name && layer.anim.name !== 'none') {
-      const dur  = layer.anim.duration  || 1;
-      const delay = layer.anim.delay   || 0;
-      const iter = layer.anim.iteration || '1';
-      const ease = layer.anim.easing   || 'ease';
+      const dur   = layer.anim.duration  || 1;
+      const delay = layer.anim.delay     || 0;
+      const iter  = layer.anim.iteration || '1';
+      const ease  = layer.anim.easing    || 'ease';
       animStyle = `animation:${layer.anim.name} ${dur}s ${ease} ${delay}s ${iter} both;`;
       animBadge = `<div class="anim-badge">✨ ${layer.anim.name.replace('anim-','')}</div>`;
     }
 
-    // Section clipping: perilaku berbeda berdasarkan pageMode
-    const centerY = layer.y + layer.h / 2;
-    const sec = getSectionAt(centerY);
-    const clipTop    = Math.max(0, sec.top - layer.y);
-    const clipBottom = Math.max(0, layer.y + layer.h - sec.bottom);
+    // Clip-path: HANYA untuk mode FIX
+    // Mode TEMBUS tidak di-clip — ditimpa oleh #canvas-section-masks yang ada di atasnya
     let clipStyle = '';
-    if (layer.pageMode === 'tembus') {
-      // Mode TEMBUS: elemen bebas melewati batas seksi, tampil penuh (overlap natural)
-      // Tidak ada clip-path — elemen menimpa seksi lain apa adanya
-      clipStyle = '';
-    } else {
-      // Mode FIX (default): clip elemen agar tidak keluar dari batas seksinya
+    if (layer.pageMode !== 'tembus') {
+      const centerY    = layer.y + layer.h / 2;
+      const sec        = getSectionAt(centerY);
+      const clipTop    = Math.max(0, sec.top - layer.y);
+      const clipBottom = Math.max(0, layer.y + layer.h - sec.bottom);
       if (clipTop > 0 || clipBottom > 0) {
         clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
       }
     }
 
-    return `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
+    const elHtml = `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
       data-id="${layer.id}"
       style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
       onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${tembusBadge}${inner}${handles}</div>`;
-  }).join('');
+
+    // Tembus → container bawah (di bawah section masks)
+    // Fix   → container atas  (di atas section masks)
+    if (layer.pageMode === 'tembus') {
+      tembusHtml += elHtml;
+    } else {
+      fixHtml += elHtml;
+    }
+  });
+
+  fixContainer.innerHTML    = fixHtml;
+  tembusContainer.innerHTML = tembusHtml;
 }
 
 function escH(s) {
@@ -1467,7 +1504,7 @@ function hMousedown(e, id, dir) {
 }
 
 function canvasBgMousedown(e) {
-  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent')) {
+  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-els-tembus') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent')) {
     deselectAll();
   }
   if (state.tool === 'box' && (e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target.classList.contains('section-block'))) {
