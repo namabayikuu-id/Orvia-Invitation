@@ -544,7 +544,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
   <div class="tb-pages-group">
     <span class="tb-pages-label">📄 Pages</span>
     <button class="page-mode-btn" id="btn-page-fix"   onclick="setPageMode('fix')"   title="Element terkunci di dalam batas seksi (garis putus-putus)" disabled>🔒 Fix</button>
-    <button class="page-mode-btn" id="btn-page-tembus" onclick="setPageMode('tembus')" title="Element bisa melewati batas seksi – bagian yang keluar akan di-crop" disabled>✂ Tembus</button>
+    <button class="page-mode-btn" id="btn-page-tembus" onclick="setPageMode('tembus')" title="Element bebas melewati batas seksi – menimpa seksi lain secara natural" disabled>✂ Tembus</button>
   </div>
 
   <!-- Zoom -->
@@ -1126,7 +1126,7 @@ function setPageMode(mode) {
   updatePageModeBtns();
   scheduleDraftSave();
   toast(mode === 'tembus'
-    ? '✂ Tembus aktif – element bisa melewati batas seksi (bagian luar di-crop)'
+    ? '✂ Tembus aktif – element bebas melewati batas seksi, menimpa seksi lain secara natural'
     : '🔒 Fix aktif – element terkunci dalam batas seksi', 'info');
 }
 
@@ -1277,21 +1277,17 @@ function renderCanvas() {
     // Section clipping: perilaku berbeda berdasarkan pageMode
     const centerY = layer.y + layer.h / 2;
     const sec = getSectionAt(centerY);
-    // clip-path relatif terhadap elemen itu sendiri
     const clipTop    = Math.max(0, sec.top - layer.y);
     const clipBottom = Math.max(0, layer.y + layer.h - sec.bottom);
     let clipStyle = '';
     if (layer.pageMode === 'tembus') {
-      // Mode TEMBUS: element bisa melewati batas seksi, tapi bagian yang keluar di-crop
+      // Mode TEMBUS: elemen bebas melewati batas seksi, tampil penuh (overlap natural)
+      // Tidak ada clip-path — elemen menimpa seksi lain apa adanya
+      clipStyle = '';
+    } else {
+      // Mode FIX (default): clip elemen agar tidak keluar dari batas seksinya
       if (clipTop > 0 || clipBottom > 0) {
         clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
-      }
-    } else {
-      // Mode FIX (default): element terkunci di dalam seksi, clip hanya sebagai fallback
-      if (clipTop > 0 || clipBottom > 0) {
-        const insetTop    = clipTop;
-        const insetBottom = clipBottom;
-        clipStyle = `clip-path:inset(${insetTop}px 0px ${insetBottom}px 0px);`;
       }
     }
 
@@ -1745,7 +1741,7 @@ function updatePropsPanel() {
         </button>
       </div>
       ${l.pageMode==='tembus' ? `<div style="margin-top:8px;font-size:11px;color:var(--blue);line-height:1.5;padding:6px 8px;background:var(--blue-dim);border-radius:6px">
-        ✂ <strong>Tembus aktif</strong> – Elemen bisa digeser melewati garis putus-putus. Bagian yang keluar akan otomatis di-crop.
+        ✂ <strong>Tembus aktif</strong> – Elemen bebas melewati garis putus-putus dan menimpa seksi lain secara natural.
       </div>` : `<div style="margin-top:8px;font-size:11px;color:var(--muted);line-height:1.5;padding:6px 8px;background:var(--surf2);border-radius:6px">
         🔒 <strong>Fix aktif</strong> – Elemen tidak bisa melewati garis putus-putus antar seksi.
       </div>`}
