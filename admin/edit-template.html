@@ -610,7 +610,6 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
     <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
     <button class="tb-toggle" onclick="previewAnimations()" title="Preview semua animasi">▶ Animasi</button>
-    <button class="tb-toggle" id="btn-preview-mode" onclick="togglePreviewMode()" title="Preview hover button & interaksi">👁 Preview Mode</button>
   </div>
 
   <!-- Pages Mode -->
@@ -634,18 +633,6 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="btn btn-ghost" onclick="previewTemplate()">👁 Preview</button>
     <button class="btn btn-blue"  onclick="downloadTemplate()">⬇ Download</button>
     <button class="btn btn-gold"  id="btn-save" onclick="saveToGitHub()">💾 Simpan ke GitHub</button>
-  </div>
-</div>
-
-<!-- ── PREVIEW MODE BANNER ──────────────────────────────── -->
-<div class="preview-mode-banner" id="preview-mode-banner">
-  <div style="display:flex;align-items:center;gap:12px">
-    <span class="preview-mode-badge">👁 Preview Mode</span>
-    <span style="color:rgba(52,211,153,.7);font-size:11px">Hover button untuk lihat efek hover · Klik elemen dinonaktifkan</span>
-  </div>
-  <div style="display:flex;align-items:center;gap:8px">
-    <span style="font-size:11px;color:rgba(255,255,255,.4)">Tekan ESC atau klik tombol untuk kembali ke Edit Mode</span>
-    <button class="btn btn-ghost" style="border-color:rgba(52,211,153,.4);color:var(--green);font-size:11px" onclick="togglePreviewMode()">✕ Keluar Preview</button>
   </div>
 </div>
 
@@ -2935,34 +2922,289 @@ async function saveToGitHub() {
 }
 
 function previewTemplate() {
-  const designLayer = generateDesignLayer();
-  const sampleData = {
-    '{{BRIDE_NAME}}': 'Sarah Andini', '{{GROOM_NAME}}': 'Rizky Pratama',
-    '{{AKAD_DATE}}': '15', '{{AKAD_MONTH}}': 'Agustus', '{{AKAD_YEAR}}': '2025',
-    '{{AKAD_TIME}}': '09.00 – 11.00 WIB', '{{AKAD_VENUE}}': 'Masjid Al-Azhar',
-    '{{AKAD_ADDRESS}}': 'Jl. Sisingamangaraja No.1, Jakarta Selatan',
-  };
+  // ── Kumpulkan data seksi & layer ──────────────────────────
+  const sections = SECTIONS; // array of { id, label, height, bg, accent }
+  const canvasW  = CANVAS_W;
+
+  // Bangun HTML seksi-background
+  let sectionsHtml = '';
+  let cumY = 0;
+  sections.forEach((sec, i) => {
+    const bgColor = state.sectionBgs[sec.id] || sec.bg;
+    sectionsHtml += `<div id="preview-section-${sec.id}" class="preview-section" data-section="${sec.id}" style="height:${sec.height}px;background:${bgColor};position:relative;width:100%;overflow:hidden;flex-shrink:0;"></div>\n`;
+    cumY += sec.height;
+  });
+
+  const totalH = cumY;
+
+  // Bangun CSS & HTML tiap layer (tombol berfungsi, hover aktif)
+  let layerStyles = '';
+  let layerHtml   = '';
+
+  const sorted = [...state.layers]
+    .filter(l => l.visible)
+    .sort((a, b) => a.zIndex - b.zIndex);
+
+  sorted.forEach(l => {
+    const anim = l.animation && l.animation !== 'none'
+      ? `animation:anim-${l.animation} ${l.animDuration||1}s ${l.animDelay||0}s ${l.animIterations||1} both;`
+      : '';
+
+    const baseStyle = `
+      position:absolute;
+      left:${l.x}px;top:${l.y}px;
+      width:${l.w}px;height:${l.h}px;
+      opacity:${l.opacity??1};
+      transform:rotate(${l.rotation||0}deg);
+      transform-origin:center center;
+      box-sizing:border-box;
+      z-index:${l.zIndex};
+      ${anim}
+    `.replace(/\s+/g,' ').trim();
+
+    if (l.type === 'image') {
+      const src = l.src.startsWith('{{') ? '' : l.src;
+      layerStyles += `#pvl-${l.id}{${baseStyle}}\n`;
+      layerHtml   += `<img id="pvl-${l.id}" src="${src}" style="width:100%;height:100%;object-fit:${l.objectFit};display:block;" onerror="this.style.opacity='0'">\n`;
+
+    } else if (l.type === 'box') {
+      const bs = `${l.borderWidth||0}px solid ${l.borderColor||'transparent'}`;
+      layerStyles += `#pvl-${l.id}{${baseStyle}background:${l.bgColor||'transparent'};border:${bs};border-radius:${l.borderRadius||0}px;}\n`;
+      layerHtml   += `<div id="pvl-${l.id}"></div>\n`;
+
+    } else if (l.type === 'text') {
+      const fam = l.fontFamily.includes(' ') ? `'${l.fontFamily}'` : l.fontFamily;
+      layerStyles += `#pvl-${l.id}{${baseStyle}display:flex;align-items:center;justify-content:${l.textAlign==='center'?'center':l.textAlign==='right'?'flex-end':'flex-start'};padding:4px;}\n`;
+      layerHtml   += `<div id="pvl-${l.id}"><span style="font-family:${fam},serif;font-size:${l.fontSize}px;color:${l.color};font-weight:${l.fontWeight};font-style:${l.fontStyle};text-decoration:${l.textDecoration};text-align:${l.textAlign};line-height:${l.lineHeight};word-break:break-word;width:100%;display:block">${l.text||''}</span></div>\n`;
+
+    } else if (l.type === 'button') {
+      const fam  = (l.fontFamily||'Plus Jakarta Sans').includes(' ') ? `'${l.fontFamily}'` : (l.fontFamily||'Plus Jakarta Sans');
+      const hBg  = l.hoverBg    || '#c9a96e';
+      const hCol = l.hoverColor || '#0b0d13';
+      const hBrd = l.hoverBorderColor || hBg;
+      const hTr  = l.hoverTransform   || 'none';
+      const hSh  = l.hoverShadow      || 'none';
+      const hFil = l.hoverFilter      || 'none';
+      const tDur = l.transitionDur    || 0.2;
+
+      let actionAttr = '';
+      if (l.actionType === 'section' && l.actionTarget) {
+        actionAttr = `data-action-section="${l.actionTarget}"`;
+      } else if (l.actionType === 'url' && l.actionTarget) {
+        actionAttr = `data-action-url="${l.actionTarget}"`;
+      } else if (l.actionType === 'whatsapp' && l.actionTarget) {
+        actionAttr = `data-action-wa="${l.actionTarget.replace(/\D/g,'')}"`;
+      }
+
+      layerStyles += `
+        #pvl-${l.id}{
+          ${baseStyle}
+          display:flex;align-items:center;justify-content:center;
+          cursor:pointer;pointer-events:all;
+          background:${l.bgColor||'rgba(201,169,110,0.12)'};
+          color:${l.color||'#c9a96e'};
+          border:${l.borderWidth||1}px solid ${l.borderColor||'rgba(201,169,110,0.6)'};
+          border-radius:${l.borderRadius||8}px;
+          font-family:${fam},sans-serif;font-size:${l.fontSize||14}px;
+          font-weight:${l.fontWeight||'600'};letter-spacing:0.5px;
+          transition:all ${tDur}s ease;
+          --hbg:${hBg};--hcol:${hCol};--hbrd:${hBrd};--htr:${hTr};--hsh:${hSh};--hfil:${hFil};
+        }
+        #pvl-${l.id}:hover{
+          background:var(--hbg) !important;
+          color:var(--hcol) !important;
+          border-color:var(--hbrd) !important;
+          transform:rotate(${l.rotation||0}deg) var(--htr);
+          box-shadow:var(--hsh);filter:var(--hfil);
+        }
+      `;
+      layerHtml += `<button id="pvl-${l.id}" ${actionAttr}>${l.text||'Button'}</button>\n`;
+    }
+  });
+
+  // Custom font links
+  const fontLinks = (state.customFonts||[]).map(f =>
+    `<link rel="stylesheet" href="${f.url}">`
+  ).join('\n');
+
+  // Cari seksi pertama (cover / landing)
+  const firstSecId = sections[0]?.id || 'cover';
+
+  // ── Bangun HTML halaman preview lengkap ───────────────────
+  const previewHtml = `<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview – ${state.currentTemplateId || 'Template'}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+${fontLinks}
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#0b0d13;display:flex;justify-content:center;align-items:flex-start;}
+
+/* ── Wrapper: lebar tetap 390px, tengah ── */
+#preview-root{
+  width:${canvasW}px;
+  height:100vh;
+  position:relative;
+  overflow:hidden; /* landing mode: tidak bisa scroll */
+}
+#preview-root.unlocked{
+  overflow-y:auto;
+  overflow-x:hidden;
+  height:auto;
+  min-height:100vh;
+}
+
+/* Scrollbar styling */
+#preview-root::-webkit-scrollbar{width:4px}
+#preview-root::-webkit-scrollbar-thumb{background:rgba(201,169,110,.3);border-radius:4px}
+
+/* ── Seksi ── */
+.preview-section{
+  width:100%;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+}
+
+/* ── Layer container ── */
+#preview-layers{
+  position:absolute;
+  top:0;left:0;
+  width:${canvasW}px;
+  height:${totalH}px;
+  pointer-events:none;
+  z-index:10;
+}
+#preview-layers button,
+#preview-layers [data-action-section],
+#preview-layers [data-action-url],
+#preview-layers [data-action-wa]{
+  pointer-events:all;
+}
+
+/* ── Animations ── */
+@keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
+@keyframes anim-fade-out    { from{opacity:1} to{opacity:0} }
+@keyframes anim-slide-up    { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-down  { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-left  { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-slide-right { from{transform:translateX(-30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-zoom-in     { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-zoom-out    { from{transform:scale(1.3);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-bounce      { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-12px)} 60%{transform:translateY(-6px)} }
+@keyframes anim-pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.65;transform:scale(1.04)} }
+@keyframes anim-shake       { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes anim-rotate-in   { from{transform:rotate(-15deg) scale(0.8);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
+@keyframes anim-flip-x      { from{transform:rotateX(90deg);opacity:0} to{transform:rotateX(0);opacity:1} }
+@keyframes anim-flip-y      { from{transform:rotateY(90deg);opacity:0} to{transform:rotateY(0);opacity:1} }
+@keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
+@keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes anim-wave        { 0%,100%{transform:rotate(0deg)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(14deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(10deg)} }
+
+/* ── Layer styles ── */
+${layerStyles}
+
+/* ── Top bar hint (kecil, tidak mengganggu) ── */
+#preview-hint{
+  position:fixed;top:0;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.7);color:rgba(255,255,255,.5);
+  font-size:11px;padding:4px 14px;border-radius:0 0 8px 8px;
+  font-family:'Plus Jakarta Sans',sans-serif;z-index:9999;
+  pointer-events:none;letter-spacing:.5px;
+  backdrop-filter:blur(6px);
+  transition:opacity .5s;
+}
+</style>
+</head>
+<body>
+
+<div id="preview-hint">👁 Preview — klik tombol untuk melanjutkan</div>
+
+<div id="preview-root">
+  <!-- Section backgrounds -->
+  ${sectionsHtml}
+
+  <!-- All design layers -->
+  <div id="preview-layers">
+    ${layerHtml}
+  </div>
+</div>
+
+<script>
+// ── Seksi pertama = landing, locked scroll sampai tombol diklik ──
+const firstSecId = '${firstSecId}';
+const root       = document.getElementById('preview-root');
+const hint       = document.getElementById('preview-hint');
+
+// Hitung tinggi seksi pertama untuk dipakai saat unlock
+const firstSecEl = document.getElementById('preview-section-' + firstSecId);
+const firstSecH  = firstSecEl ? firstSecEl.offsetHeight : window.innerHeight;
+
+// Semua button di dalam layer
+document.querySelectorAll('#preview-layers button, #preview-layers [data-action-section], #preview-layers [data-action-url], #preview-layers [data-action-wa]').forEach(btn => {
+  btn.addEventListener('click', e => {
+    e.preventDefault();
+
+    const secTarget = btn.dataset.actionSection;
+    const urlTarget = btn.dataset.actionUrl;
+    const waTarget  = btn.dataset.actionWa;
+
+    if (secTarget) {
+      // Unlock scroll, lalu navigate ke seksi tujuan
+      unlockAndScrollTo(secTarget);
+    } else if (urlTarget) {
+      window.open(urlTarget, '_blank');
+    } else if (waTarget) {
+      window.open('https://wa.me/' + waTarget, '_blank');
+    } else {
+      // Tombol tanpa aksi → unlock scroll ke seksi berikutnya
+      unlockAndScrollTo(null);
+    }
+  });
+});
+
+function unlockAndScrollTo(sectionId) {
+  if (!root.classList.contains('unlocked')) {
+    root.classList.add('unlocked');
+    // Setelah unlock, sesuaikan scroll agar posisi tampilan sama
+    root.scrollTop = 0;
+    // Sembunyikan hint
+    hint.style.opacity = '0';
+  }
+
+  if (sectionId) {
+    const target = document.getElementById('preview-section-' + sectionId);
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 30);
+    }
+  }
+}
+
+// Cegah scroll mouse/touch di landing mode
+root.addEventListener('wheel', e => {
+  if (!root.classList.contains('unlocked')) e.preventDefault();
+}, { passive: false });
+
+root.addEventListener('touchmove', e => {
+  if (!root.classList.contains('unlocked')) e.preventDefault();
+}, { passive: false });
+
+// Sembunyikan hint setelah 3 detik
+setTimeout(() => { hint.style.opacity = '0'; }, 3000);
+<\/script>
+</body>
+</html>`;
+
   const win = window.open('', '_blank');
-  const previewHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview Template</title>
-  <style>body{background:#1a1208;color:#faf6f0;font-family:sans-serif;text-align:center;padding:40px}
-  .preview-box{max-width:390px;margin:0 auto;background:#100c07;padding:40px 20px;border-radius:12px;position:relative;overflow:hidden}
-  h1{font-size:32px;font-family:Georgia,serif;font-style:italic;margin-bottom:8px;color:#c9a96e}
-  p{color:rgba(250,246,240,.6);font-size:14px}
-  </style></head>
-  <body>
-  <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:20px">Preview Template – Data Contoh</div>
-  <div class="preview-box">
-    <h1>${sampleData['{{BRIDE_NAME}}']}<br>&<br>${sampleData['{{GROOM_NAME}}']}</h1>
-    <p>${sampleData['{{AKAD_DATE}}']} ${sampleData['{{AKAD_MONTH}}']} ${sampleData['{{AKAD_YEAR}}']}</p>
-    <p style="margin-top:8px">${sampleData['{{AKAD_VENUE}}']}</p>
-    <p style="font-size:12px;margin-top:4px">${sampleData['{{AKAD_ADDRESS}}']}</p>
-    ${state.layers.length ? '<div style="margin-top:16px;padding:12px;background:rgba(96,165,250,.05);border:1px dashed rgba(96,165,250,.2);border-radius:8px;font-size:11px;color:rgba(96,165,250,.7)">' + state.layers.length + ' design layer element(s) akan muncul di sini setelah diintegrasikan ke template utama</div>' : ''}
-  </div>
-  <div style="margin-top:24px;font-size:11px;color:rgba(255,255,255,.3)">
-    Ini adalah preview sederhana. Untuk preview penuh, integrasikan design layer ke template utama.
-  </div>
-  </body></html>`;
+  win.document.open();
   win.document.write(previewHtml);
+  win.document.close();
 }
 
 // ═══════════════════════════════════════════════════════════
