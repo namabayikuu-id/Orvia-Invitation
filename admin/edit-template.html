@@ -453,6 +453,73 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .badge-img{background:rgba(96,165,250,.12);color:var(--blue);border-color:rgba(96,165,250,.2)}
 .badge-box{background:rgba(167,139,250,.12);color:var(--purple);border-color:rgba(167,139,250,.2)}
 .badge-txt{background:rgba(52,211,153,.12);color:var(--green);border-color:rgba(52,211,153,.2)}
+.badge-btn{background:rgba(240,192,96,.12);color:var(--gold);border-color:rgba(240,192,96,.2)}
+
+/* ── Button hover preview on canvas ── */
+.canvas-btn-el{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;cursor:pointer;
+  transition:all var(--btn-transition-dur, 0.2s) ease;
+  box-sizing:border-box;
+}
+.canvas-btn-el:hover{
+  background:var(--btn-hover-bg) !important;
+  color:var(--btn-hover-color) !important;
+  border-color:var(--btn-hover-border) !important;
+  transform:var(--btn-hover-transform, none);
+  box-shadow:var(--btn-hover-shadow, none);
+  filter:var(--btn-hover-filter, none);
+}
+
+/* Hover preview indicator strip */
+.btn-hover-strip{
+  position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--gold),var(--purple),var(--blue));
+  border-radius:0 0 4px 4px;opacity:0.7;pointer-events:none;
+}
+
+/* Button layer badge on canvas */
+.canvas-btn-badge{
+  position:absolute;top:-18px;left:0;
+  background:rgba(240,192,96,.9);color:#0b0d13;
+  font-size:8px;padding:1px 6px;border-radius:3px;
+  font-family:monospace;pointer-events:none;white-space:nowrap;z-index:2;
+  font-weight:700;letter-spacing:.5px;
+}
+
+/* Hover preview live box inside props */
+.btn-hover-preview-box{
+  width:100%;padding:12px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:default;transition:all .2s ease;
+  font-family:inherit;font-size:13px;font-weight:600;
+  border:2px solid transparent;margin-top:4px;
+}
+
+/* Preview mode banner */
+.preview-mode-banner{
+  position:fixed;top:0;left:0;right:0;height:var(--topbar);
+  background:linear-gradient(90deg,#0b1a0b,#132213);
+  border-bottom:1px solid rgba(52,211,153,.3);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;z-index:100;
+  font-size:12px;color:var(--green);
+  transform:translateY(-100%);transition:transform .3s ease;
+}
+.preview-mode-banner.visible{transform:translateY(0)}
+.preview-mode-badge{
+  background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.4);
+  color:var(--green);padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;
+  letter-spacing:1px;text-transform:uppercase;
+}
+.canvas-el.preview-hover-active .canvas-btn-el{
+  background:var(--btn-hover-bg) !important;
+  color:var(--btn-hover-color) !important;
+  border-color:var(--btn-hover-border) !important;
+  transform:var(--btn-hover-transform,none);
+  box-shadow:var(--btn-hover-shadow,none);
+  filter:var(--btn-hover-filter,none);
+}
 
 /* ── ANIMATION CLASSES (applied on canvas elements) ── */
 @keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
@@ -533,6 +600,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="tb-tool" id="tool-box"    title="Tambah Box (B)"    onclick="setTool('box')">▭</button>
     <button class="tb-tool" id="tool-image"  title="Tambah Gambar (I)" onclick="setTool('image');openImageModal()">🖼</button>
     <button class="tb-tool" id="tool-text"   title="Tambah Teks (T)"   onclick="setTool('text');addTextLayer()">T</button>
+    <button class="tb-tool" id="tool-button" title="Tambah Button (U)" onclick="setTool('button');addButtonLayer()">⬭</button>
   </div>
 
   <!-- Toggles -->
@@ -542,6 +610,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <button class="tb-toggle" id="btn-snap"   onclick="toggleSnap()"   title="Snap ke Grid">⊕ Snap</button>
     <button class="tb-toggle" onclick="openFontModal()" title="Kelola Font">🔤 Font</button>
     <button class="tb-toggle" onclick="previewAnimations()" title="Preview semua animasi">▶ Animasi</button>
+    <button class="tb-toggle" id="btn-preview-mode" onclick="togglePreviewMode()" title="Preview hover button & interaksi">👁 Preview Mode</button>
   </div>
 
   <!-- Pages Mode -->
@@ -568,6 +637,18 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
   </div>
 </div>
 
+<!-- ── PREVIEW MODE BANNER ──────────────────────────────── -->
+<div class="preview-mode-banner" id="preview-mode-banner">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span class="preview-mode-badge">👁 Preview Mode</span>
+    <span style="color:rgba(52,211,153,.7);font-size:11px">Hover button untuk lihat efek hover · Klik elemen dinonaktifkan</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;color:rgba(255,255,255,.4)">Tekan ESC atau klik tombol untuk kembali ke Edit Mode</span>
+    <button class="btn btn-ghost" style="border-color:rgba(52,211,153,.4);color:var(--green);font-size:11px" onclick="togglePreviewMode()">✕ Keluar Preview</button>
+  </div>
+</div>
+
 <!-- ── EDITOR ──────────────────────────────────────────── -->
 <div class="editor">
 
@@ -581,6 +662,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
           <div class="lam-item" onclick="closeAddMenu();openImageModal()"><span class="ic">🖼</span> Upload Gambar</div>
           <div class="lam-item" onclick="closeAddMenu();addBoxLayer()"><span class="ic">▭</span> Tambah Box</div>
           <div class="lam-item" onclick="closeAddMenu();addTextLayer()"><span class="ic">T</span> Tambah Teks</div>
+          <div class="lam-item" onclick="closeAddMenu();addButtonLayer()"><span class="ic">⬭</span> Tambah Button</div>
           <div style="height:1px;background:var(--border);margin:4px 0"></div>
           <div class="lam-item" onclick="closeAddMenu();openSectionStyleModal()"><span class="ic">🎨</span> Style Seksi</div>
         </div>
@@ -797,6 +879,191 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
     <div class="modal-body" id="save-modal-body" style="text-align:center;padding:32px">
       <div class="spin" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div>
       <div style="font-size:13px;color:var(--muted)">Menghubungi GitHub API...</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: Button Hover Designer ─────────────────────── -->
+<div class="overlay" id="modal-button-hover">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-head">
+      <span class="modal-title">⬭ Design Hover Button</span>
+      <button class="modal-close" onclick="closeModal('modal-button-hover')">×</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:16px;line-height:1.6">
+        Atur tampilan button saat di-hover. Hasil bisa langsung dipreview di canvas dengan menekan <strong style="color:var(--gold)">👁 Preview Mode</strong>.
+      </div>
+
+      <!-- Live hover preview area -->
+      <div style="margin-bottom:20px;padding:20px;background:var(--surf2);border-radius:10px;border:1px solid var(--border);text-align:center">
+        <div style="font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;font-weight:700">Live Preview – Hover tombol di bawah</div>
+        <div id="btn-hover-preview-wrap" style="display:inline-block">
+          <div class="btn-hover-preview-box" id="btn-hover-preview-el" style="min-width:160px;padding:12px 24px">
+            Label Button
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted)">Normal ↔ Hover (gerakkan mouse ke atas tombol)</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <!-- Normal State -->
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)">Tampilan Normal</div>
+          <div class="fg" style="gap:8px;flex-direction:column">
+            <div>
+              <div class="field-label">Teks Button</div>
+              <input class="field-input" id="btn-text-input" placeholder="RSVP Sekarang" oninput="updateBtnHoverPreview()">
+            </div>
+            <div>
+              <div class="field-label">Warna Background</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-bg-input" placeholder="rgba(201,169,110,0.15)" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-bg-color" value="#c9a96e" oninput="document.getElementById('btn-bg-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Warna Teks</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-color-input" placeholder="#c9a96e" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-color-picker" value="#c9a96e" oninput="document.getElementById('btn-color-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Warna Border</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-border-color-input" placeholder="rgba(201,169,110,0.6)" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-border-color-picker" value="#c9a96e" oninput="document.getElementById('btn-border-color-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Tebal Border (px)</div>
+              <input class="field-input" id="btn-border-width-input" type="number" value="1" min="0" max="10" oninput="updateBtnHoverPreview()">
+            </div>
+            <div>
+              <div class="field-label">Border Radius (px)</div>
+              <input class="field-input" id="btn-radius-input" type="number" value="8" min="0" max="100" oninput="updateBtnHoverPreview()">
+            </div>
+            <div>
+              <div class="field-label">Ukuran Font (px)</div>
+              <input class="field-input" id="btn-font-size-input" type="number" value="14" min="8" max="48" oninput="updateBtnHoverPreview()">
+            </div>
+            <div>
+              <div class="field-label">Font Weight</div>
+              <select class="field-input" id="btn-font-weight-input" onchange="updateBtnHoverPreview()">
+                <option value="400">Regular (400)</option>
+                <option value="500">Medium (500)</option>
+                <option value="600" selected>Semibold (600)</option>
+                <option value="700">Bold (700)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hover State -->
+        <div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(240,192,96,.2)">✨ Tampilan Hover</div>
+          <div class="fg" style="gap:8px;flex-direction:column">
+            <div>
+              <div class="field-label">Background Hover</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-hover-bg-input" placeholder="#c9a96e" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-hover-bg-picker" value="#c9a96e" oninput="document.getElementById('btn-hover-bg-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Warna Teks Hover</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-hover-color-input" placeholder="#0b0d13" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-hover-color-picker" value="#0b0d13" oninput="document.getElementById('btn-hover-color-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Border Hover</div>
+              <div style="display:flex;gap:6px">
+                <input class="field-input" id="btn-hover-border-input" placeholder="#c9a96e" oninput="updateBtnHoverPreview()" style="flex:1">
+                <input type="color" id="btn-hover-border-picker" value="#c9a96e" oninput="document.getElementById('btn-hover-border-input').value=this.value;updateBtnHoverPreview()" style="width:36px;height:36px;border:1px solid var(--border);border-radius:6px;padding:2px;background:var(--surf2);cursor:pointer">
+              </div>
+            </div>
+            <div>
+              <div class="field-label">Efek Transform Hover</div>
+              <select class="field-input" id="btn-hover-transform-input" onchange="updateBtnHoverPreview()">
+                <option value="none">— Tidak ada —</option>
+                <option value="translateY(-2px)">Naik sedikit ↑</option>
+                <option value="translateY(-4px)">Naik lebih ↑↑</option>
+                <option value="scale(1.03)">Sedikit Membesar</option>
+                <option value="scale(1.06)">Lebih Membesar</option>
+                <option value="scale(0.97)">Sedikit Mengecil</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Shadow Hover</div>
+              <select class="field-input" id="btn-hover-shadow-input" onchange="updateBtnHoverPreview()">
+                <option value="none">— Tidak ada —</option>
+                <option value="0 4px 16px rgba(201,169,110,0.4)">Glow Gold</option>
+                <option value="0 4px 16px rgba(96,165,250,0.4)">Glow Blue</option>
+                <option value="0 4px 16px rgba(167,139,250,0.4)">Glow Purple</option>
+                <option value="0 4px 16px rgba(52,211,153,0.4)">Glow Green</option>
+                <option value="0 8px 32px rgba(0,0,0,0.4)">Shadow Gelap</option>
+                <option value="0 2px 8px rgba(201,169,110,0.6)">Soft Gold</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Filter Hover</div>
+              <select class="field-input" id="btn-hover-filter-input" onchange="updateBtnHoverPreview()">
+                <option value="none">— Tidak ada —</option>
+                <option value="brightness(1.15)">Lebih Terang</option>
+                <option value="brightness(0.9)">Lebih Gelap</option>
+                <option value="saturate(1.3)">Lebih Saturasi</option>
+              </select>
+            </div>
+            <div>
+              <div class="field-label">Durasi Transisi (detik)</div>
+              <input class="field-input" id="btn-transition-dur-input" type="number" value="0.2" min="0.05" max="1" step="0.05" oninput="updateBtnHoverPreview()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Link / Action -->
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <div style="font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Action / Link</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <div class="field-label">Aksi saat diklik</div>
+            <select class="field-input" id="btn-action-type" onchange="toggleBtnActionFields()">
+              <option value="none">— Tidak ada —</option>
+              <option value="section">Pindah ke Seksi</option>
+              <option value="url">Buka URL</option>
+              <option value="whatsapp">WhatsApp</option>
+            </select>
+          </div>
+          <div id="btn-action-target-wrap">
+            <div class="field-label" id="btn-action-label">Target</div>
+            <select class="field-input" id="btn-action-section" style="display:none">
+              <option value="cover">Cover / Landing Page</option>
+              <option value="hero">Hero – Nama Mempelai</option>
+              <option value="quote">Quote / Ayat Suci</option>
+              <option value="countdown">Countdown Timer</option>
+              <option value="couple">Profil Mempelai</option>
+              <option value="events">Akad & Resepsi</option>
+              <option value="story">Love Story</option>
+              <option value="gallery">Gallery Foto</option>
+              <option value="rsvp">RSVP Form</option>
+              <option value="gift">Amplop Digital</option>
+              <option value="footer">Footer</option>
+            </select>
+            <input class="field-input" id="btn-action-url" placeholder="https://..." style="display:none">
+          </div>
+        </div>
+        <div id="btn-action-preview-hint" style="margin-top:8px;font-size:11px;color:var(--blue);padding:6px 10px;background:var(--blue-dim);border-radius:6px;display:none">
+          💡 Saat di-klik di preview mode, button ini akan pindah ke seksi yang dipilih
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal('modal-button-hover')">Batal</button>
+      <button class="btn btn-gold" onclick="applyBtnHoverToLayer()">✓ Terapkan ke Layer</button>
     </div>
   </div>
 </div>
@@ -1190,6 +1457,35 @@ function addTextLayer() {
   toast('Teks ditambahkan');
 }
 
+function addButtonLayer() {
+  const centerX = Math.round((CANVAS_W - 180) / 2);
+  addLayer({
+    id: newId(), type: 'button', name: 'Button ' + (state.layers.length+1),
+    x: centerX, y: 150, w: 180, h: 48, rotation: 0,
+    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
+    // Normal state
+    text: 'RSVP Sekarang',
+    fontSize: 14, fontWeight: '600', fontFamily: 'Plus Jakarta Sans',
+    color: '#c9a96e',
+    bgColor: 'rgba(201,169,110,0.12)',
+    borderColor: 'rgba(201,169,110,0.6)', borderWidth: 1, borderRadius: 8,
+    // Hover state
+    hoverBg: '#c9a96e',
+    hoverColor: '#0b0d13',
+    hoverBorderColor: '#c9a96e',
+    hoverTransform: 'translateY(-2px)',
+    hoverShadow: '0 4px 16px rgba(201,169,110,0.4)',
+    hoverFilter: 'none',
+    transitionDur: 0.2,
+    // Action
+    actionType: 'none',
+    actionTarget: '',
+    linkedVar: '', pageMode: 'fix',
+  });
+  setTool('select');
+  toast('Button ditambahkan ✓');
+}
+
 function confirmAddImage() {
   if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
   let src = '';
@@ -1271,6 +1567,29 @@ function renderCanvas() {
       const fam = layer.fontFamily.includes(' ') ? `'${layer.fontFamily}'` : layer.fontFamily;
       inner = `<div class="el-inner" style="display:flex;align-items:center;justify-content:${layer.textAlign==='center'?'center':layer.textAlign==='right'?'flex-end':'flex-start'};padding:4px">
         <span style="font-family:${fam},serif;font-size:${layer.fontSize}px;color:${escH(layer.color)};font-weight:${layer.fontWeight};font-style:${layer.fontStyle};text-decoration:${layer.textDecoration};text-align:${layer.textAlign};line-height:${layer.lineHeight};display:block;word-break:break-word;width:100%">${escH(layer.text)}</span></div>`;
+    } else if (layer.type === 'button') {
+      const fam = (layer.fontFamily||'Plus Jakarta Sans').includes(' ') ? `'${layer.fontFamily}'` : (layer.fontFamily||'Plus Jakarta Sans');
+      const hBg    = escH(layer.hoverBg    || '#c9a96e');
+      const hColor = escH(layer.hoverColor || '#0b0d13');
+      const hBord  = escH(layer.hoverBorderColor || layer.hoverBg || '#c9a96e');
+      const hTr    = escH(layer.hoverTransform || 'none');
+      const hSh    = escH(layer.hoverShadow || 'none');
+      const hFil   = escH(layer.hoverFilter || 'none');
+      const tDur   = layer.transitionDur || 0.2;
+      inner = `<div class="canvas-btn-el"
+        style="
+          --btn-hover-bg:${hBg};--btn-hover-color:${hColor};--btn-hover-border:${hBord};
+          --btn-hover-transform:${hTr};--btn-hover-shadow:${hSh};--btn-hover-filter:${hFil};
+          --btn-transition-dur:${tDur}s;
+          background:${escH(layer.bgColor||'rgba(201,169,110,0.12)')};
+          color:${escH(layer.color||'#c9a96e')};
+          border:${layer.borderWidth||1}px solid ${escH(layer.borderColor||'rgba(201,169,110,0.6)')};
+          border-radius:${layer.borderRadius||8}px;
+          font-family:${fam},sans-serif;
+          font-size:${layer.fontSize||14}px;
+          font-weight:${layer.fontWeight||'600'};
+          letter-spacing:0.5px;
+        ">${escH(layer.text||'Button')}</div>`;
     }
 
     const handles = isSel && !layer.locked
@@ -1280,6 +1599,11 @@ function renderCanvas() {
     // Badge untuk mode tembus
     const tembusBadge = layer.pageMode === 'tembus'
       ? `<div style="position:absolute;top:2px;left:2px;background:rgba(96,165,250,.85);color:#fff;font-size:8px;padding:1px 5px;border-radius:3px;font-family:monospace;pointer-events:none;white-space:nowrap;z-index:2;letter-spacing:.5px">✂ TEMBUS</div>`
+      : '';
+
+    // Button badge
+    const btnBadge = layer.type === 'button'
+      ? `<div class="canvas-btn-badge">⬭ BTN${layer.actionType && layer.actionType!=='none' ? ' →' : ''}</div>`
       : '';
 
     const bSt = layer.type === 'box'
@@ -1311,7 +1635,7 @@ function renderCanvas() {
         data-id="${layer.id}"
         style="left:${layer.x}px;top:${relY}px;width:${layer.w}px;height:${layer.h}px;transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};cursor:${layer.locked?'default':'move'}"
         onmousedown="${layer.locked?'':'elMousedown(event,this)'}">
-        ${animBadge}${tembusBadge}
+        ${animBadge}${tembusBadge}${btnBadge}
         <div class="el-body" style="opacity:${layer.opacity};${bSt}${animStyle}">${inner}</div>
         ${handles}</div>`;
 
@@ -1333,7 +1657,7 @@ function renderCanvas() {
         data-id="${layer.id}"
         style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${clipStyle}cursor:${layer.locked?'default':'move'}"
         onmousedown="${layer.locked?'':'elMousedown(event,this)'}">
-        ${animBadge}
+        ${animBadge}${btnBadge}
         <div class="el-body" style="opacity:${layer.opacity};${bSt}${animStyle}">${inner}</div>
         ${handles}</div>`;
     }
@@ -1537,6 +1861,22 @@ function canvasBgMousedown(e) {
     });
     setTool('select');
   }
+  if (state.tool === 'button' && (e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target.classList.contains('section-block'))) {
+    const pos = getCanvasPos(e);
+    addLayer({
+      id:newId(), type:'button', name:'Button '+(state.layers.length+1),
+      x:Math.round(pos.x - 90), y:Math.round(pos.y - 24), w:180, h:48,
+      rotation:0, opacity:1, visible:true, locked:false, zIndex:nextZ(),
+      text:'Klik di Sini', fontSize:14, fontWeight:'600', fontFamily:'Plus Jakarta Sans',
+      color:'#c9a96e', bgColor:'rgba(201,169,110,0.12)',
+      borderColor:'rgba(201,169,110,0.6)', borderWidth:1, borderRadius:8,
+      hoverBg:'#c9a96e', hoverColor:'#0b0d13', hoverBorderColor:'#c9a96e',
+      hoverTransform:'translateY(-2px)', hoverShadow:'0 4px 16px rgba(201,169,110,0.4)',
+      hoverFilter:'none', transitionDur:0.2,
+      actionType:'none', actionTarget:'', linkedVar:'', pageMode:'fix',
+    });
+    setTool('select');
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1557,8 +1897,8 @@ function renderLayers() {
 
   container.innerHTML = filtered.map(layer => {
     const isSel = layer.id === state.selected;
-    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : 'T';
-    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : 'badge-txt';
+    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : layer.type === 'button' ? '⬭' : 'T';
+    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : layer.type === 'button' ? 'badge-btn' : 'badge-txt';
 
     let thumb = `<span>${typeIcon}</span>`;
     if (layer.type === 'image' && layer.src && !layer.src.startsWith('{{')) {
@@ -1643,8 +1983,8 @@ function updatePropsPanel() {
   const l = findLayer(state.selected);
   if (!l) return;
 
-  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : 'TEKS';
-  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : 'badge-txt';
+  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : l.type === 'button' ? 'BUTTON' : 'TEKS';
+  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : l.type === 'button' ? 'badge-btn' : 'badge-txt';
   badge.textContent = typeLabel;
   badge.className = 'section-tag ' + typeCls;
   badge.style.display = 'inline-block';
@@ -1744,6 +2084,46 @@ function updatePropsPanel() {
               <button class="text-btn${l.textAlign==='right'?' active':''}"  onclick="setProp('textAlign','right');updatePropsPanel()" title="Kanan">⬤</button>
             </div>
           </div>
+        </div>
+      </div>`;
+  } else if (l.type === 'button') {
+    // Show mini hover preview swatch inside props
+    const hoverPreviewStyle = `
+      background:${escH(l.hoverBg||'#c9a96e')};
+      color:${escH(l.hoverColor||'#0b0d13')};
+      border:${l.borderWidth||1}px solid ${escH(l.hoverBorderColor||l.hoverBg||'#c9a96e')};
+      border-radius:${l.borderRadius||8}px;
+      font-size:${l.fontSize||14}px;font-weight:${l.fontWeight||'600'};
+      box-shadow:${escH(l.hoverShadow||'none')};
+      transform:${escH(l.hoverTransform||'none')};
+    `;
+    const actionLabel = l.actionType === 'section' ? '→ Pindah Seksi: ' + (l.actionTarget||'') :
+                        l.actionType === 'url' ? '🔗 ' + (l.actionTarget||'URL') :
+                        l.actionType === 'whatsapp' ? '💬 WhatsApp' : '— Tidak ada —';
+    typeSpecific = `
+      <div class="prop-group">
+        <div class="prop-group-title">⬭ Button</div>
+        <div class="prop-label" style="margin-bottom:4px">Teks Button</div>
+        <input class="prop-input" value="${escH(l.text||'Button')}" oninput="setProp('text',this.value);renderCanvas()" style="margin-bottom:10px">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+          <div>
+            <div class="prop-label">Normal</div>
+            <div style="padding:10px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:${l.fontSize||14}px;font-weight:${l.fontWeight||'600'};background:${escH(l.bgColor||'rgba(201,169,110,0.12)')};color:${escH(l.color||'#c9a96e')};border:${l.borderWidth||1}px solid ${escH(l.borderColor||'rgba(201,169,110,0.6)')};border-radius:${l.borderRadius||8}px">${escH(l.text||'Button')}</div>
+          </div>
+          <div>
+            <div class="prop-label" style="color:var(--gold)">✨ Hover</div>
+            <div style="padding:10px;border-radius:6px;display:flex;align-items:center;justify-content:center;${hoverPreviewStyle}">${escH(l.text||'Button')}</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:6px;margin-bottom:6px">
+          <button class="action-btn" style="flex:1;border-color:var(--gold);color:var(--gold)" onclick="openBtnHoverModal('${l.id}')">🎨 Edit Design Hover</button>
+        </div>
+
+        <div style="padding:8px;background:var(--surf2);border-radius:6px;font-size:11px;color:var(--muted)">
+          <div style="margin-bottom:4px;font-weight:600;color:var(--muted2)">Aksi Klik</div>
+          <div style="color:var(--blue)">${actionLabel}</div>
         </div>
       </div>`;
   }
@@ -2316,6 +2696,7 @@ function onKeydown(e) {
   if (e.key === 'b') { setTool('box'); addBoxLayer(); }
   if (e.key === 't') { setTool('text'); addTextLayer(); }
   if (e.key === 'i') { setTool('image'); openImageModal(); }
+  if (e.key === 'u') { setTool('button'); addButtonLayer(); }
 
   // Arrow keys: move selected
   if (state.selected && ['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)) {
@@ -2378,6 +2759,19 @@ function generateDesignLayer() {
       const ease = l.anim.easing   || 'ease';
       animCss = `animation: ${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both;`;
     }
+    let btnHoverCss = '';
+    if (l.type === 'button') {
+      btnHoverCss = `
+  #__dl-${l.id} { pointer-events: all; cursor: pointer; }
+  #__dl-${l.id}:hover {
+    background: ${l.hoverBg || '#c9a96e'} !important;
+    color: ${l.hoverColor || '#0b0d13'} !important;
+    border-color: ${l.hoverBorderColor || l.hoverBg || '#c9a96e'} !important;
+    transform: rotate(${l.rotation}deg) ${l.hoverTransform && l.hoverTransform !== 'none' ? l.hoverTransform : ''};
+    box-shadow: ${l.hoverShadow || 'none'};
+    filter: ${l.hoverFilter || 'none'};
+  }`;
+    }
     return `
   #__dl-${l.id} {
     position: absolute;
@@ -2391,8 +2785,18 @@ function generateDesignLayer() {
     pointer-events: none;
     box-sizing: border-box;
     ${l.type === 'box' ? `background: ${l.bgColor}; border: ${l.borderWidth}px solid ${l.borderColor}; border-radius: ${l.borderRadius}px;` : ''}
+    ${l.type === 'button' ? `
+    background: ${l.bgColor || 'rgba(201,169,110,0.12)'};
+    color: ${l.color || '#c9a96e'};
+    border: ${l.borderWidth||1}px solid ${l.borderColor || 'rgba(201,169,110,0.6)'};
+    border-radius: ${l.borderRadius||8}px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: ${l.fontSize||14}px; font-weight: ${l.fontWeight||'600'};
+    transition: all ${l.transitionDur||0.2}s ease;
+    text-decoration: none; cursor: pointer;
+    ` : ''}
     ${animCss}
-  }`;
+  }${btnHoverCss}`;
   }).join('\n');
 
   // Element HTML
@@ -2404,6 +2808,16 @@ function generateDesignLayer() {
     } else if (l.type === 'text') {
       const fam = l.fontFamily.includes(' ') ? `'${l.fontFamily}'` : l.fontFamily;
       return `<div id="__dl-${l.id}" style="display:flex;align-items:center;justify-content:${l.textAlign==='center'?'center':l.textAlign==='right'?'flex-end':'flex-start'};padding:4px"><span style="font-family:${fam},serif;font-size:${l.fontSize}px;color:${l.color};font-weight:${l.fontWeight};font-style:${l.fontStyle};text-decoration:${l.textDecoration};text-align:${l.textAlign};line-height:${l.lineHeight};word-break:break-word;width:100%">${l.linkedVar ? l.linkedVar : l.text}</span></div>`;
+    } else if (l.type === 'button') {
+      const fam = (l.fontFamily||'Plus Jakarta Sans').includes(' ') ? `'${l.fontFamily}'` : (l.fontFamily||'Plus Jakarta Sans');
+      const actionAttr = l.actionType === 'section' && l.actionTarget
+        ? `onclick="document.getElementById('section-${l.actionTarget}')?.scrollIntoView({behavior:'smooth'})"`
+        : l.actionType === 'url' && l.actionTarget
+        ? `onclick="window.open('${l.actionTarget}','_blank')"`
+        : l.actionType === 'whatsapp' && l.actionTarget
+        ? `onclick="window.open('https://wa.me/${l.actionTarget.replace(/\D/g,'')}','_blank')"`
+        : '';
+      return `<button id="__dl-${l.id}" ${actionAttr} style="font-family:${fam},sans-serif;letter-spacing:0.5px">${l.text||'Button'}</button>`;
     }
     return '';
   }).join('\n  ');
@@ -2552,8 +2966,241 @@ function previewTemplate() {
 }
 
 // ═══════════════════════════════════════════════════════════
-// MODAL HELPERS
+// BUTTON HOVER DESIGNER
 // ═══════════════════════════════════════════════════════════
+let _btnHoverTargetId = null;
+
+function openBtnHoverModal(id) {
+  const l = findLayer(id || state.selected);
+  if (!l || l.type !== 'button') return;
+  _btnHoverTargetId = l.id;
+
+  // Populate fields
+  document.getElementById('btn-text-input').value          = l.text || 'Button';
+  document.getElementById('btn-bg-input').value             = l.bgColor || 'rgba(201,169,110,0.12)';
+  document.getElementById('btn-color-input').value          = l.color || '#c9a96e';
+  document.getElementById('btn-border-color-input').value   = l.borderColor || 'rgba(201,169,110,0.6)';
+  document.getElementById('btn-border-width-input').value   = l.borderWidth || 1;
+  document.getElementById('btn-radius-input').value         = l.borderRadius || 8;
+  document.getElementById('btn-font-size-input').value      = l.fontSize || 14;
+  document.getElementById('btn-font-weight-input').value    = l.fontWeight || '600';
+
+  document.getElementById('btn-hover-bg-input').value          = l.hoverBg || '#c9a96e';
+  document.getElementById('btn-hover-color-input').value        = l.hoverColor || '#0b0d13';
+  document.getElementById('btn-hover-border-input').value       = l.hoverBorderColor || '#c9a96e';
+  document.getElementById('btn-hover-transform-input').value    = l.hoverTransform || 'translateY(-2px)';
+  document.getElementById('btn-hover-shadow-input').value       = l.hoverShadow || '0 4px 16px rgba(201,169,110,0.4)';
+  document.getElementById('btn-hover-filter-input').value       = l.hoverFilter || 'none';
+  document.getElementById('btn-transition-dur-input').value     = l.transitionDur || 0.2;
+
+  // Action
+  const actionSel = document.getElementById('btn-action-type');
+  actionSel.value = l.actionType || 'none';
+  toggleBtnActionFields();
+  if (l.actionType === 'section') document.getElementById('btn-action-section').value = l.actionTarget || '';
+  else if (l.actionType === 'url' || l.actionType === 'whatsapp') document.getElementById('btn-action-url').value = l.actionTarget || '';
+
+  updateBtnHoverPreview();
+  openModal('modal-button-hover');
+}
+
+function updateBtnHoverPreview() {
+  const el = document.getElementById('btn-hover-preview-el');
+  if (!el) return;
+
+  const text     = document.getElementById('btn-text-input')?.value || 'Button';
+  const bg       = document.getElementById('btn-bg-input')?.value || 'rgba(201,169,110,0.12)';
+  const color    = document.getElementById('btn-color-input')?.value || '#c9a96e';
+  const bColor   = document.getElementById('btn-border-color-input')?.value || 'rgba(201,169,110,0.6)';
+  const bWidth   = document.getElementById('btn-border-width-input')?.value || 1;
+  const radius   = document.getElementById('btn-radius-input')?.value || 8;
+  const fSize    = document.getElementById('btn-font-size-input')?.value || 14;
+  const fWeight  = document.getElementById('btn-font-weight-input')?.value || '600';
+  const hBg      = document.getElementById('btn-hover-bg-input')?.value || '#c9a96e';
+  const hColor   = document.getElementById('btn-hover-color-input')?.value || '#0b0d13';
+  const hBorder  = document.getElementById('btn-hover-border-input')?.value || '#c9a96e';
+  const hTrans   = document.getElementById('btn-hover-transform-input')?.value || 'none';
+  const hShadow  = document.getElementById('btn-hover-shadow-input')?.value || 'none';
+  const hFilter  = document.getElementById('btn-hover-filter-input')?.value || 'none';
+  const tDur     = document.getElementById('btn-transition-dur-input')?.value || 0.2;
+
+  el.textContent = text;
+  el.style.cssText = `
+    background:${bg};color:${color};
+    border:${bWidth}px solid ${bColor};border-radius:${radius}px;
+    font-size:${fSize}px;font-weight:${fWeight};
+    min-width:160px;padding:12px 24px;
+    --btn-hover-bg:${hBg};--btn-hover-color:${hColor};
+    --btn-hover-border:${hBorder};--btn-hover-transform:${hTrans};
+    --btn-hover-shadow:${hShadow};--btn-hover-filter:${hFilter};
+    --btn-transition-dur:${tDur}s;
+    transition:all ${tDur}s ease;
+    display:flex;align-items:center;justify-content:center;
+    cursor:default;border-box:box-sizing;
+  `;
+}
+
+// Make the preview element actually respond to hover via inline JS
+document.addEventListener('DOMContentLoaded', () => {
+  const wrap = document.getElementById('btn-hover-preview-wrap');
+  const previewEl = document.getElementById('btn-hover-preview-el');
+  if (!wrap || !previewEl) return;
+  wrap.addEventListener('mouseenter', () => {
+    const hBg     = document.getElementById('btn-hover-bg-input')?.value || '#c9a96e';
+    const hColor  = document.getElementById('btn-hover-color-input')?.value || '#0b0d13';
+    const hBorder = document.getElementById('btn-hover-border-input')?.value || '#c9a96e';
+    const hTrans  = document.getElementById('btn-hover-transform-input')?.value || 'none';
+    const hShadow = document.getElementById('btn-hover-shadow-input')?.value || 'none';
+    const hFilter = document.getElementById('btn-hover-filter-input')?.value || 'none';
+    const bWidth  = document.getElementById('btn-border-width-input')?.value || 1;
+    const radius  = document.getElementById('btn-radius-input')?.value || 8;
+    previewEl.style.background   = hBg;
+    previewEl.style.color        = hColor;
+    previewEl.style.borderColor  = hBorder;
+    previewEl.style.borderWidth  = bWidth + 'px';
+    previewEl.style.borderStyle  = 'solid';
+    previewEl.style.borderRadius = radius + 'px';
+    previewEl.style.transform    = hTrans;
+    previewEl.style.boxShadow    = hShadow;
+    previewEl.style.filter       = hFilter;
+  });
+  wrap.addEventListener('mouseleave', () => {
+    updateBtnHoverPreview();
+  });
+});
+
+function toggleBtnActionFields() {
+  const type = document.getElementById('btn-action-type')?.value;
+  const secEl = document.getElementById('btn-action-section');
+  const urlEl = document.getElementById('btn-action-url');
+  const hint  = document.getElementById('btn-action-preview-hint');
+  const label = document.getElementById('btn-action-label');
+  if (!secEl || !urlEl) return;
+
+  secEl.style.display = type === 'section' ? '' : 'none';
+  urlEl.style.display = (type === 'url' || type === 'whatsapp') ? '' : 'none';
+  if (hint) hint.style.display = type === 'section' ? '' : 'none';
+  if (label) {
+    label.textContent = type === 'section' ? 'Pindah ke Seksi' :
+                        type === 'url' ? 'URL Tujuan' :
+                        type === 'whatsapp' ? 'Nomor WhatsApp' : 'Target';
+  }
+}
+
+function applyBtnHoverToLayer() {
+  const l = findLayer(_btnHoverTargetId);
+  if (!l) return;
+  pushHistory();
+
+  l.text          = document.getElementById('btn-text-input')?.value || l.text;
+  l.bgColor       = document.getElementById('btn-bg-input')?.value || l.bgColor;
+  l.color         = document.getElementById('btn-color-input')?.value || l.color;
+  l.borderColor   = document.getElementById('btn-border-color-input')?.value || l.borderColor;
+  l.borderWidth   = parseInt(document.getElementById('btn-border-width-input')?.value) || l.borderWidth;
+  l.borderRadius  = parseInt(document.getElementById('btn-radius-input')?.value) ?? l.borderRadius;
+  l.fontSize      = parseInt(document.getElementById('btn-font-size-input')?.value) || l.fontSize;
+  l.fontWeight    = document.getElementById('btn-font-weight-input')?.value || l.fontWeight;
+
+  l.hoverBg          = document.getElementById('btn-hover-bg-input')?.value || l.hoverBg;
+  l.hoverColor       = document.getElementById('btn-hover-color-input')?.value || l.hoverColor;
+  l.hoverBorderColor = document.getElementById('btn-hover-border-input')?.value || l.hoverBorderColor;
+  l.hoverTransform   = document.getElementById('btn-hover-transform-input')?.value || l.hoverTransform;
+  l.hoverShadow      = document.getElementById('btn-hover-shadow-input')?.value || l.hoverShadow;
+  l.hoverFilter      = document.getElementById('btn-hover-filter-input')?.value || l.hoverFilter;
+  l.transitionDur    = parseFloat(document.getElementById('btn-transition-dur-input')?.value) || l.transitionDur;
+
+  const actionType = document.getElementById('btn-action-type')?.value || 'none';
+  l.actionType = actionType;
+  if (actionType === 'section') l.actionTarget = document.getElementById('btn-action-section')?.value || '';
+  else if (actionType === 'url' || actionType === 'whatsapp') l.actionTarget = document.getElementById('btn-action-url')?.value || '';
+  else l.actionTarget = '';
+
+  renderCanvas();
+  updatePropsPanel();
+  scheduleDraftSave();
+  closeModal('modal-button-hover');
+  toast('✓ Design button diperbarui!', 'ok');
+}
+
+// ═══════════════════════════════════════════════════════════
+// PREVIEW MODE (untuk test hover button)
+// ═══════════════════════════════════════════════════════════
+let _isPreviewMode = false;
+
+function togglePreviewMode() {
+  _isPreviewMode = !_isPreviewMode;
+  const banner = document.getElementById('preview-mode-banner');
+  const btn    = document.getElementById('btn-preview-mode');
+  const canvas = document.getElementById('canvas');
+
+  if (_isPreviewMode) {
+    banner?.classList.add('visible');
+    btn?.classList.add('on');
+    // Disable element selection in canvas
+    canvas.style.pointerEvents = 'none';
+    // Enable hover on button elements
+    document.querySelectorAll('.canvas-btn-el').forEach(el => {
+      el.style.pointerEvents = 'all';
+      el.style.cursor = 'pointer';
+    });
+    // Handle click on button layers for section navigation
+    document.querySelectorAll('.canvas-el').forEach(el => {
+      el.style.pointerEvents = 'none';
+    });
+    document.querySelectorAll('.canvas-el[data-id]').forEach(elWrapper => {
+      const id = elWrapper.dataset.id;
+      const layer = findLayer(id);
+      if (layer && layer.type === 'button') {
+        elWrapper.style.pointerEvents = 'all';
+        elWrapper.style.cursor = 'pointer';
+        const btnInner = elWrapper.querySelector('.canvas-btn-el');
+        if (btnInner) btnInner.style.pointerEvents = 'all';
+        elWrapper.onclick = (e) => {
+          e.stopPropagation();
+          if (layer.actionType === 'section' && layer.actionTarget) {
+            // Scroll canvas to that section
+            const sec = SECTIONS.find(s => s.id === layer.actionTarget);
+            if (sec) {
+              const tops = getSectionTops();
+              const secIdx = SECTIONS.indexOf(sec);
+              const secTop = tops[secIdx];
+              const canvasArea = document.getElementById('canvas-area');
+              const scaledTop = secTop * state.zoom;
+              canvasArea.scrollTo({ top: scaledTop, behavior: 'smooth' });
+              toast(`▶ Preview → Pindah ke: ${sec.label}`, 'info');
+            }
+          } else if (layer.actionType === 'url' && layer.actionTarget) {
+            toast(`🔗 Preview → Buka URL: ${layer.actionTarget}`, 'info');
+          } else if (layer.actionType === 'whatsapp') {
+            toast(`💬 Preview → WhatsApp: ${layer.actionTarget}`, 'info');
+          }
+        };
+      }
+    });
+    deselectAll();
+    toast('👁 Preview Mode aktif – hover button untuk test efek', 'info');
+  } else {
+    banner?.classList.remove('visible');
+    btn?.classList.remove('on');
+    canvas.style.pointerEvents = '';
+    // Restore all canvas elements
+    document.querySelectorAll('.canvas-el').forEach(el => {
+      el.style.pointerEvents = '';
+      el.style.cursor = '';
+      el.onclick = null;
+    });
+    document.querySelectorAll('.canvas-btn-el').forEach(el => {
+      el.style.pointerEvents = '';
+      el.style.cursor = '';
+    });
+    toast('✏ Kembali ke Edit Mode', 'ok');
+  }
+}
+
+// ESC exits preview mode
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && _isPreviewMode) togglePreviewMode();
+});
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 function openFontModal() { renderFontPills(); openModal('modal-font'); }
