@@ -1443,11 +1443,14 @@ function elMousedown(e, el) {
       ny = Math.round(ny / state.gridSize) * state.gridSize;
     }
 
-    // Clamp X dalam canvas (selalu)
-    nx = Math.max(0, Math.min(CANVAS_W - layer.w, nx));
+    // Clamp X dalam canvas — FIX saja. TEMBUS bebas keluar kiri/kanan,
+    // section-block overflow:hidden yang memotong di tepi canvas secara natural
+    if (layer.pageMode !== 'tembus') {
+      nx = Math.max(0, Math.min(CANVAS_W - layer.w, nx));
+    }
 
     if (layer.pageMode === 'tembus') {
-      // Mode TEMBUS: bebas bergerak di Y (hanya clamp ke batas canvas)
+      // Mode TEMBUS: bebas bergerak X dan Y (hanya clamp Y ke batas canvas)
       ny = Math.max(0, Math.min(CANVAS_H - layer.h, ny));
       layer.x = nx;
       layer.y = ny;
@@ -1742,8 +1745,8 @@ function updatePropsPanel() {
     <div class="prop-group">
       <div class="prop-group-title">Posisi & Ukuran</div>
       <div class="prop-row">
-        <div class="prop-col"><div class="prop-label">X (px)</div><input class="prop-input" type="number" value="${Math.round(l.x)}" oninput="setProp('x',+this.value)"></div>
-        <div class="prop-col"><div class="prop-label">Y (px)</div><input class="prop-input" type="number" value="${Math.round(l.y)}" oninput="setProp('y',+this.value)"></div>
+        <div class="prop-col"><div class="prop-label">X (px)${l.pageMode==='tembus'?'<span style="color:var(--blue);font-size:9px;margin-left:4px">± tembus</span>':''}</div><input class="prop-input" type="number" value="${Math.round(l.x)}" ${l.pageMode!=='tembus'?'min="0"':''} oninput="setProp('x',+this.value);renderCanvas()"></div>
+        <div class="prop-col"><div class="prop-label">Y (px)</div><input class="prop-input" type="number" value="${Math.round(l.y)}" oninput="setProp('y',+this.value);renderCanvas()"></div>
       </div>
       <div class="prop-row">
         <div class="prop-col"><div class="prop-label">Lebar (px)</div><input class="prop-input" type="number" value="${Math.round(l.w)}" min="1" oninput="setProp('w',+this.value)"></div>
@@ -2315,6 +2318,11 @@ function onKeydown(e) {
     if (e.key === 'ArrowRight') l.x += step;
     if (e.key === 'ArrowUp')    l.y -= step;
     if (e.key === 'ArrowDown')  l.y += step;
+    // Untuk FIX: clamp X ke dalam canvas. Untuk TEMBUS: bebas kiri/kanan.
+    if (l.pageMode !== 'tembus') {
+      l.x = Math.max(0, Math.min(CANVAS_W - l.w, l.x));
+    }
+    l.y = Math.max(0, Math.min(CANVAS_H - l.h, l.y));
     renderCanvas(); updatePropsPanel();
     e.preventDefault();
   }
