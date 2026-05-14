@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Preview Template</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  background: #111318;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+/* ── Loading screen ── */
+#loading {
+  position: fixed; inset: 0;
+  background: #111318;
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+  z-index: 9999;
+  transition: opacity .4s;
+}
+#loading .spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(240,192,96,.2);
+  border-top-color: #f0c060;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+#loading p { color: rgba(255,255,255,.4); font-size: 13px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Top hint bar ── */
+#hint-bar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+  background: rgba(0,0,0,.75);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(240,192,96,.15);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 20px; height: 40px;
+  font-size: 11px;
+  transition: transform .35s ease, opacity .35s;
+}
+#hint-bar.hidden { transform: translateY(-100%); opacity: 0; pointer-events: none; }
+.hint-left  { display: flex; align-items: center; gap: 10px; }
+.hint-badge { background: rgba(240,192,96,.15); border: 1px solid rgba(240,192,96,.4); color: #f0c060; padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 700; letter-spacing: 1px; }
+.hint-text  { color: rgba(255,255,255,.45); }
+.hint-right { display: flex; align-items: center; gap: 8px; }
+.hint-close { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.1); color: rgba(255,255,255,.5); border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.hint-close:hover { background: rgba(255,255,255,.12); color: #fff; }
+
+/* ── Viewport: phone frame ── */
+#preview-viewport {
+  /* Tinggi = 100vh dikurangi hint-bar */
+  height: calc(100vh - 40px);
+  margin-top: 40px;
+  width: 390px;
+  position: relative;
+  overflow: hidden;     /* LOCKED – tidak bisa scroll di halaman 1 */
+  flex-shrink: 0;
+}
+#preview-viewport.unlocked {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+#preview-viewport::-webkit-scrollbar { width: 4px; }
+#preview-viewport::-webkit-scrollbar-thumb { background: rgba(201,169,110,.3); border-radius: 4px; }
+
+/* ── Canvas: lebar 390px, tinggi total semua seksi ── */
+#preview-canvas {
+  width: 390px;
+  position: relative;
+  /* height di-set via JS = CANVAS_H */
+}
+
+/* ── Section blocks ── */
+.pv-section {
+  width: 390px;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display: block;
+}
+
+/* ── Layer container absolut di atas semua seksi ── */
+#preview-layers {
+  position: absolute;
+  top: 0; left: 0;
+  width: 390px;
+  pointer-events: none;
+  z-index: 10;
+  /* height = CANVAS_H */
+}
+
+/* Semua elemen layer */
+.pv-el {
+  position: absolute;
+  box-sizing: border-box;
+  transform-origin: center center;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* el-body (pembawa opacity + animasi) */
+.pv-body {
+  position: absolute;
+  inset: 0;
+}
+
+/* Button pointer events */
+.pv-btn {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; height: 100%;
+  cursor: pointer;
+  box-sizing: border-box;
+  font-family: inherit;
+  letter-spacing: 0.5px;
+  border: none;
+  transition: all .2s ease;
+}
+
+/* ── Animations ── */
+@keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
+@keyframes anim-fade-out    { from{opacity:1} to{opacity:0} }
+@keyframes anim-slide-up    { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-down  { from{transform:translateY(-30px);opacity:0} to{transform:translateY(0);opacity:1} }
+@keyframes anim-slide-left  { from{transform:translateX(30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-slide-right { from{transform:translateX(-30px);opacity:0} to{transform:translateX(0);opacity:1} }
+@keyframes anim-zoom-in     { from{transform:scale(0.7);opacity:0} to{transform:scale(1);opacity:1} }
+@keyframes anim-zoom-out    { from{transform:scale(1.3);opacity:0} to{transform:translateY(0) scale(1);opacity:1} }
+@keyframes anim-bounce      { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-12px)} 60%{transform:translateY(-6px)} }
+@keyframes anim-pulse       { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.65;transform:scale(1.04)} }
+@keyframes anim-shake       { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes anim-rotate-in   { from{transform:rotate(-15deg) scale(0.8);opacity:0} to{transform:rotate(0) scale(1);opacity:1} }
+@keyframes anim-flip-x      { from{transform:rotateX(90deg);opacity:0} to{transform:rotateX(0);opacity:1} }
+@keyframes anim-flip-y      { from{transform:rotateY(90deg);opacity:0} to{transform:rotateY(0);opacity:1} }
+@keyframes anim-float       { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes anim-glow        { 0%,100%{filter:drop-shadow(0 0 0px currentColor)} 50%{filter:drop-shadow(0 0 8px currentColor)} }
+@keyframes anim-typewriter  { from{clip-path:inset(0 100% 0 0)} to{clip-path:inset(0 0% 0 0)} }
+@keyframes anim-wave        { 0%,100%{transform:rotate(0deg)} 15%{transform:rotate(14deg)} 30%{transform:rotate(-8deg)} 45%{transform:rotate(14deg)} 60%{transform:rotate(-4deg)} 75%{transform:rotate(10deg)} }
+
+/* Tembus: layer dalam section-block, bisa overflow ke seksi lain */
+.pv-tembus-container {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 5;
+}
+.pv-tembus-container .pv-el {
+  pointer-events: none;
+}
+.pv-tembus-container .pv-el .pv-btn {
+  pointer-events: all;
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Memuat preview…</p>
+</div>
+
+<!-- Hint bar -->
+<div id="hint-bar">
+  <div class="hint-left">
+    <span class="hint-badge">👁 PREVIEW</span>
+    <span class="hint-text" id="hint-msg">Halaman 1 terkunci — klik tombol untuk melanjutkan</span>
+  </div>
+  <div class="hint-right">
+    <button class="hint-close" onclick="closeHint()">✕ Tutup</button>
+  </div>
+</div>
+
+<!-- Viewport (phone-width, scroll locked until btn click) -->
+<div id="preview-viewport">
+  <div id="preview-canvas">
+    <!-- Section blocks go here -->
+    <div id="pv-sections"></div>
+    <!-- All layers (absolute, pixel-perfect) -->
+    <div id="preview-layers"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// CONSTANTS (mirror dari editor)
+// ═══════════════════════════════════════════════════════
+const CANVAS_W = 390;
+const TOPBAR_H = 40; // hint bar height
+
+const SECTION_DEFS = [
+  { id:'cover',    label:'Cover / Landing Page',  ratio:1,    bg:'#100c07', accent:'#c9a96e' },
+  { id:'hero',     label:'Hero – Nama Mempelai',  ratio:1,    bg:'#1a1208', accent:'#c9a96e' },
+  { id:'quote',    label:'Quote / Ayat Suci',     ratio:0.25, bg:'#0d0a06', accent:'#8a9b7e' },
+  { id:'countdown',label:'Countdown Timer',       ratio:0.45, bg:'#111008', accent:'#c9a96e' },
+  { id:'couple',   label:'Profil Mempelai',       ratio:1,    bg:'#1a1208', accent:'#e8c4b8' },
+  { id:'events',   label:'Akad Nikah & Resepsi',  ratio:0.75, bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'story',    label:'Love Story Timeline',   ratio:1,    bg:'#1a1208', accent:'#8a9b7e' },
+  { id:'gallery',  label:'Gallery Foto',          ratio:0.75, bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'rsvp',     label:'RSVP Form',             ratio:1,    bg:'#1a1208', accent:'#c9a96e' },
+  { id:'gift',     label:'Amplop Digital',        ratio:0.6,  bg:'#0e0b07', accent:'#c9a96e' },
+  { id:'footer',   label:'Footer',                ratio:0.25, bg:'#090704', accent:'#c9a96e' },
+];
+
+// ═══════════════════════════════════════════════════════
+// STATE (diisi via postMessage dari editor)
+// ═══════════════════════════════════════════════════════
+let SECTIONS  = [];
+let CANVAS_H  = 0;
+let state     = null;
+
+// ═══════════════════════════════════════════════════════
+// RECEIVE DATA FROM EDITOR
+// ═══════════════════════════════════════════════════════
+window.addEventListener('message', e => {
+  if (!e.data || e.data.type !== 'PREVIEW_DATA') return;
+
+  // Konfirmasi ke editor bahwa kita sudah menerima
+  try { e.source.postMessage({ type: 'PREVIEW_READY' }, '*'); } catch(_) {}
+
+  const data = e.data.payload;
+  state = data;
+
+  // Inject custom fonts
+  (data.customFonts || []).forEach(f => {
+    const link = document.createElement('link');
+    link.rel  = 'stylesheet';
+    link.href = f.url;
+    document.head.appendChild(link);
+  });
+
+  // Rebuild sections dengan window.innerHeight yang benar
+  const ph = Math.max(600, window.innerHeight - TOPBAR_H);
+  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+  CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
+
+  render(data);
+  hideLoading();
+});
+
+// ═══════════════════════════════════════════════════════
+// SECTION HELPERS
+// ═══════════════════════════════════════════════════════
+function getSectionTops() {
+  const tops = [];
+  let y = 0;
+  SECTIONS.forEach(s => { tops.push(y); y += s.height; });
+  return tops;
+}
+
+function getSectionAt(y) {
+  let cumY = 0;
+  for (let i = 0; i < SECTIONS.length; i++) {
+    const bot = cumY + SECTIONS[i].height;
+    if (y >= cumY && y < bot) return { top: cumY, bottom: bot, index: i };
+    cumY = bot;
+  }
+  const last = SECTIONS.length - 1;
+  const top  = SECTIONS.slice(0, last).reduce((s, x) => s + x.height, 0);
+  return { top, bottom: CANVAS_H, index: last };
+}
+
+// ═══════════════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════════════
+function render(data) {
+  const layers     = data.layers     || [];
+  const sectionBgs = data.sectionBgs || {};
+  const tops       = getSectionTops();
+
+  // ── Set canvas height ──
+  const canvas = document.getElementById('preview-canvas');
+  canvas.style.height = CANVAS_H + 'px';
+
+  const layersContainer = document.getElementById('preview-layers');
+  layersContainer.style.height = CANVAS_H + 'px';
+
+  // ── Build section backgrounds ──
+  const pvSections = document.getElementById('pv-sections');
+  pvSections.innerHTML = '';
+
+  SECTIONS.forEach(sec => {
+    const bg  = sectionBgs[sec.id] || sec.bg;
+    const div = document.createElement('div');
+    div.className         = 'pv-section';
+    div.id                = 'pv-sec-' + sec.id;
+    div.style.height      = sec.height + 'px';
+    div.style.background  = bg;
+
+    // Container untuk layer mode TEMBUS milik seksi ini
+    const tembusDiv = document.createElement('div');
+    tembusDiv.className = 'pv-tembus-container';
+    tembusDiv.id        = 'pv-tembus-' + sec.id;
+    div.appendChild(tembusDiv);
+
+    pvSections.appendChild(div);
+  });
+
+  // ── Sort layers by zIndex ──
+  const sorted = [...layers]
+    .filter(l => l.visible)
+    .sort((a, b) => a.zIndex - b.zIndex);
+
+  // ── Render each layer ──
+  layersContainer.innerHTML = ''; // bersihkan fix layers
+
+  sorted.forEach(l => {
+    const elDiv  = document.createElement('div');
+    const bodyDiv = document.createElement('div');
+    elDiv.className  = 'pv-el';
+    bodyDiv.className = 'pv-body';
+
+    // Animasi di body (agar tidak konflik dengan rotate di parent)
+    let animStyle = '';
+    if (l.anim && l.anim.name && l.anim.name !== 'none') {
+      const dur  = l.anim.duration  || 1;
+      const del  = l.anim.delay     || 0;
+      const iter = l.anim.iteration || '1';
+      const eas  = l.anim.easing    || 'ease';
+      animStyle  = `animation:${l.anim.name} ${dur}s ${eas} ${del}s ${iter} both;`;
+    }
+    bodyDiv.style.cssText = `position:absolute;inset:0;opacity:${l.opacity ?? 1};${animStyle}`;
+
+    // Inner content
+    bodyDiv.appendChild(buildInner(l));
+    elDiv.appendChild(bodyDiv);
+
+    if (l.pageMode === 'tembus') {
+      // ── TEMBUS: masuk ke dalam section-tembus container ──
+      // Y relatif terhadap seksi
+      const centerY = l.y + l.h / 2;
+      const secInfo = getSectionAt(centerY);
+      const secTop  = tops[secInfo.index];
+      const secId   = SECTIONS[secInfo.index].id;
+      const relY    = l.y - secTop;
+
+      elDiv.style.cssText = `
+        left:${l.x}px; top:${relY}px;
+        width:${l.w}px; height:${l.h}px;
+        transform:rotate(${l.rotation || 0}deg);
+        z-index:${l.zIndex};
+        overflow:hidden;
+      `;
+
+      const container = document.getElementById('pv-tembus-' + secId);
+      if (container) container.appendChild(elDiv);
+
+    } else {
+      // ── FIX: absolut terhadap canvas, clip ke seksi asal ──
+      const centerY = l.y + l.h / 2;
+      const sec = getSectionAt(centerY);
+      let clipStyle = '';
+      const clipTop    = Math.max(0, sec.top    - l.y);
+      const clipBottom = Math.max(0, l.y + l.h  - sec.bottom);
+      if (clipTop > 0 || clipBottom > 0) {
+        clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
+      }
+
+      elDiv.style.cssText = `
+        left:${l.x}px; top:${l.y}px;
+        width:${l.w}px; height:${l.h}px;
+        transform:rotate(${l.rotation || 0}deg);
+        z-index:${l.zIndex};
+        overflow:hidden;
+        ${clipStyle}
+      `;
+
+      layersContainer.appendChild(elDiv);
+    }
+  });
+
+  // ── Attach button click handlers ──
+  attachButtonHandlers();
+}
+
+// ─── Build inner content untuk tiap layer type ───────
+function buildInner(l) {
+  if (l.type === 'image') {
+    const src = (l.src || '').startsWith('{{') ? '' : l.src;
+    const img = document.createElement('img');
+    img.src             = src;
+    img.style.cssText   = `width:100%;height:100%;object-fit:${l.objectFit || 'cover'};display:block;`;
+    img.onerror         = () => { img.style.opacity = '0'; };
+    img.draggable       = false;
+    return img;
+
+  } else if (l.type === 'box') {
+    const div = document.createElement('div');
+    div.style.cssText = `
+      position:absolute;inset:0;
+      background:${l.bgColor || 'transparent'};
+      border:${l.borderWidth || 0}px solid ${l.borderColor || 'transparent'};
+      border-radius:${l.borderRadius || 0}px;
+    `;
+    return div;
+
+  } else if (l.type === 'text') {
+    const fam  = (l.fontFamily || 'Cormorant Garamond').includes(' ')
+      ? `'${l.fontFamily}'` : l.fontFamily;
+    const wrap = document.createElement('div');
+    const jc   = l.textAlign === 'center' ? 'center'
+               : l.textAlign === 'right'  ? 'flex-end' : 'flex-start';
+    wrap.style.cssText = `
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:${jc};
+      padding:4px;overflow:hidden;
+    `;
+    const span = document.createElement('span');
+    span.style.cssText = `
+      font-family:${fam},serif;
+      font-size:${l.fontSize}px;
+      color:${l.color};
+      font-weight:${l.fontWeight};
+      font-style:${l.fontStyle};
+      text-decoration:${l.textDecoration};
+      text-align:${l.textAlign};
+      line-height:${l.lineHeight};
+      word-break:break-word;
+      width:100%;
+      display:block;
+      white-space:pre-wrap;
+    `;
+    span.textContent = l.text || '';
+    wrap.appendChild(span);
+    return wrap;
+
+  } else if (l.type === 'button') {
+    const fam = ((l.fontFamily || 'Plus Jakarta Sans').includes(' '))
+      ? `'${l.fontFamily}'` : (l.fontFamily || 'Plus Jakarta Sans');
+
+    const btn  = document.createElement('div');
+    btn.className = 'pv-btn';
+    btn.dataset.layerId = l.id;
+
+    // Normal style
+    btn.style.cssText = `
+      background:${l.bgColor || 'rgba(201,169,110,0.12)'};
+      color:${l.color || '#c9a96e'};
+      border:${l.borderWidth || 1}px solid ${l.borderColor || 'rgba(201,169,110,0.6)'};
+      border-radius:${l.borderRadius || 8}px;
+      font-family:${fam},sans-serif;
+      font-size:${l.fontSize || 14}px;
+      font-weight:${l.fontWeight || '600'};
+      letter-spacing:0.5px;
+      transition:all ${l.transitionDur || 0.2}s ease;
+      cursor:pointer;
+    `;
+
+    // Hover states via mouse events (CSS vars saja tidak cukup lintas browser)
+    const normalStyle = {
+      background:   l.bgColor    || 'rgba(201,169,110,0.12)',
+      color:        l.color      || '#c9a96e',
+      borderColor:  l.borderColor|| 'rgba(201,169,110,0.6)',
+      transform:    `rotate(0deg)`,
+      boxShadow:    'none',
+      filter:       'none',
+    };
+    const hoverStyle = {
+      background:  l.hoverBg          || '#c9a96e',
+      color:       l.hoverColor        || '#0b0d13',
+      borderColor: l.hoverBorderColor  || l.hoverBg || '#c9a96e',
+      transform:   l.hoverTransform    || 'none',
+      boxShadow:   l.hoverShadow       || 'none',
+      filter:      l.hoverFilter       || 'none',
+    };
+
+    btn.addEventListener('mouseenter', () => {
+      btn.style.background   = hoverStyle.background;
+      btn.style.color        = hoverStyle.color;
+      btn.style.borderColor  = hoverStyle.borderColor;
+      btn.style.transform    = hoverStyle.transform;
+      btn.style.boxShadow    = hoverStyle.boxShadow;
+      btn.style.filter       = hoverStyle.filter;
+    });
+    btn.addEventListener('mouseleave', () => {
+      btn.style.background   = normalStyle.background;
+      btn.style.color        = normalStyle.color;
+      btn.style.borderColor  = normalStyle.borderColor;
+      btn.style.transform    = normalStyle.transform;
+      btn.style.boxShadow    = normalStyle.boxShadow;
+      btn.style.filter       = normalStyle.filter;
+    });
+
+    btn.textContent = l.text || 'Button';
+
+    // Store action data
+    if (l.actionType === 'section' && l.actionTarget) {
+      btn.dataset.actionSection = l.actionTarget;
+    } else if (l.actionType === 'url' && l.actionTarget) {
+      btn.dataset.actionUrl = l.actionTarget;
+    } else if (l.actionType === 'whatsapp' && l.actionTarget) {
+      btn.dataset.actionWa = l.actionTarget.replace(/\D/g, '');
+    }
+
+    return btn;
+  }
+
+  // Fallback
+  return document.createElement('div');
+}
+
+// ─── Button click handlers ────────────────────────────
+function attachButtonHandlers() {
+  document.querySelectorAll('.pv-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const sec = btn.dataset.actionSection;
+      const url = btn.dataset.actionUrl;
+      const wa  = btn.dataset.actionWa;
+
+      if (sec) {
+        unlockAndScrollTo(sec);
+      } else if (url) {
+        window.open(url, '_blank');
+      } else if (wa) {
+        window.open('https://wa.me/' + wa, '_blank');
+      } else {
+        // Tombol tanpa aksi → unlock saja
+        unlock();
+      }
+    });
+  });
+}
+
+// ─── Scroll lock / unlock ────────────────────────────
+const viewport = document.getElementById('preview-viewport');
+let _unlocked = false;
+
+function unlock() {
+  if (_unlocked) return;
+  _unlocked = true;
+  viewport.classList.add('unlocked');
+  document.getElementById('hint-msg').textContent = 'Preview aktif — scroll untuk melihat semua halaman';
+}
+
+function unlockAndScrollTo(sectionId) {
+  unlock();
+  const target = document.getElementById('pv-sec-' + sectionId);
+  if (target) {
+    // Posisi target relatif ke canvas
+    const targetTop = target.offsetTop;
+    setTimeout(() => {
+      viewport.scrollTo({ top: targetTop, behavior: 'smooth' });
+    }, 40);
+  }
+}
+
+// Blokir scroll (wheel + touch) saat masih locked
+viewport.addEventListener('wheel', e => {
+  if (!_unlocked) e.preventDefault();
+}, { passive: false });
+
+viewport.addEventListener('touchmove', e => {
+  if (!_unlocked) e.preventDefault();
+}, { passive: false });
+
+// Blokir keyboard scroll juga
+viewport.addEventListener('keydown', e => {
+  if (!_unlocked && ['ArrowDown','ArrowUp','PageDown','PageUp','Space'].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+// ─── Hint bar ────────────────────────────────────────
+function closeHint() {
+  document.getElementById('hint-bar').classList.add('hidden');
+}
+
+// ─── Hide loading ────────────────────────────────────
+function hideLoading() {
+  const l = document.getElementById('loading');
+  l.style.opacity = '0';
+  setTimeout(() => l.style.display = 'none', 400);
+}
+
+// ─── Timeout: jika tidak ada data dalam 5 detik ──────
+setTimeout(() => {
+  const loading = document.getElementById('loading');
+  if (loading.style.display !== 'none') {
+    loading.querySelector('p').textContent = 'Tidak ada data diterima. Buka melalui tombol Preview di editor.';
+  }
+}, 5000);
+</script>
+</body>
+</html>
