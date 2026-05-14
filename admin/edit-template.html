@@ -2922,6 +2922,43 @@ async function saveToGitHub() {
 }
 
 function previewTemplate() {
+  // Buka preview.html (harus satu folder), lalu kirim state via postMessage
+  const win = window.open('preview.html', '_blank');
+  if (!win) {
+    toast('Pop-up diblokir browser. Izinkan pop-up untuk editor ini.', 'err');
+    return;
+  }
+
+  // Kirim data setelah tab siap (tunggu load event dari tab baru)
+  const payload = {
+    layers:      state.layers,
+    sectionBgs:  state.sectionBgs,
+    customFonts: state.customFonts || [],
+  };
+
+  // Coba kirim setiap 200ms hingga preview merespons (max 10 detik)
+  let attempts = 0;
+  const interval = setInterval(() => {
+    attempts++;
+    try {
+      win.postMessage({ type: 'PREVIEW_DATA', payload }, '*');
+    } catch(e) {}
+    if (attempts >= 50) clearInterval(interval);
+  }, 200);
+
+  // Hentikan pengiriman setelah preview mengonfirmasi
+  window.addEventListener('message', function onAck(e) {
+    if (e.data?.type === 'PREVIEW_READY') {
+      clearInterval(interval);
+      window.removeEventListener('message', onAck);
+    }
+  });
+
+  toast('👁 Preview dibuka di tab baru', 'ok');
+}
+
+// ── LEGACY (tidak dipakai lagi, disimpan untuk referensi) ──
+function _previewTemplateLegacy() {
   // ── Kumpulkan data seksi & layer ──────────────────────────
   const sections = SECTIONS; // array of { id, label, height, bg, accent }
   const canvasW  = CANVAS_W;
