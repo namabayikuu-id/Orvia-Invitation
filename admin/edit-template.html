@@ -217,6 +217,8 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
 /* Container elemen Tembus di dalam tiap section block */
 .section-tembus-els{position:absolute;inset:0;pointer-events:none;overflow:visible;}
+/* Inner animation wrapper — memisahkan animasi dari rotasi agar tidak konflik */
+.el-body{position:absolute;inset:0;}
 .canvas-el{
   position:absolute;pointer-events:all;
   box-sizing:border-box;
@@ -1307,8 +1309,11 @@ function renderCanvas() {
 
       const elHtml = `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
         data-id="${layer.id}"
-        style="left:${layer.x}px;top:${relY}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}cursor:${layer.locked?'default':'move'}"
-        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${tembusBadge}${inner}${handles}</div>`;
+        style="left:${layer.x}px;top:${relY}px;width:${layer.w}px;height:${layer.h}px;transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};cursor:${layer.locked?'default':'move'}"
+        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">
+        ${animBadge}${tembusBadge}
+        <div class="el-body" style="opacity:${layer.opacity};${bSt}${animStyle}">${inner}</div>
+        ${handles}</div>`;
 
       if (tembusPerSection[secId] !== undefined) {
         tembusPerSection[secId] += elHtml;
@@ -1326,8 +1331,11 @@ function renderCanvas() {
 
       fixHtml += `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
         data-id="${layer.id}"
-        style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
-        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${inner}${handles}</div>`;
+        style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${clipStyle}cursor:${layer.locked?'default':'move'}"
+        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">
+        ${animBadge}
+        <div class="el-body" style="opacity:${layer.opacity};${bSt}${animStyle}">${inner}</div>
+        ${handles}</div>`;
     }
   });
 
@@ -1918,14 +1926,14 @@ function setAnim(key, val) {
 function previewSingleAnim(id) {
   const l = findLayer(id);
   if (!l || !l.anim || l.anim.name === 'none') return;
-  const el = document.querySelector(`.canvas-el[data-id="${id}"]`);
+  const el = document.querySelector(`.canvas-el[data-id="${id}"] .el-body`);
   if (!el) return;
   el.style.animation = 'none';
   el.offsetHeight; // reflow
-  const dur = l.anim.duration || 1;
-  const delay = l.anim.delay || 0;
-  const iter = l.anim.iteration || '1';
-  const ease = l.anim.easing || 'ease';
+  const dur   = l.anim.duration  || 1;
+  const delay = l.anim.delay     || 0;
+  const iter  = l.anim.iteration || '1';
+  const ease  = l.anim.easing    || 'ease';
   el.style.animation = `${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both`;
   toast(`▶ Preview: ${l.anim.name}`, 'info');
 }
@@ -1933,20 +1941,20 @@ function previewSingleAnim(id) {
 function previewAnimations() {
   const layersWithAnim = state.layers.filter(l => l.anim && l.anim.name && l.anim.name !== 'none' && l.visible);
   if (!layersWithAnim.length) { toast('Belum ada elemen dengan animasi', 'info'); return; }
-  // Reset all first
+  // Reset semua dulu
   layersWithAnim.forEach(l => {
-    const el = document.querySelector(`.canvas-el[data-id="${l.id}"]`);
+    const el = document.querySelector(`.canvas-el[data-id="${l.id}"] .el-body`);
     if (el) { el.style.animation = 'none'; }
   });
   requestAnimationFrame(() => {
     layersWithAnim.forEach(l => {
-      const el = document.querySelector(`.canvas-el[data-id="${l.id}"]`);
+      const el = document.querySelector(`.canvas-el[data-id="${l.id}"] .el-body`);
       if (!el) return;
       el.offsetHeight;
-      const dur = l.anim.duration || 1;
-      const delay = l.anim.delay || 0;
-      const iter = l.anim.iteration || '1';
-      const ease = l.anim.easing || 'ease';
+      const dur   = l.anim.duration  || 1;
+      const delay = l.anim.delay     || 0;
+      const iter  = l.anim.iteration || '1';
+      const ease  = l.anim.easing    || 'ease';
       el.style.animation = `${l.anim.name} ${dur}s ${ease} ${delay}s ${iter} both`;
     });
   });
