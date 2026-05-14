@@ -214,9 +214,9 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .canvas-el.sec-flash { animation: sec-cross-flash 0.25s ease-out; }
 
 /* Canvas elements */
-.canvas-els-tembus{position:absolute;inset:0;pointer-events:none;z-index:9}
-#canvas-section-masks{position:absolute;inset:0;pointer-events:none;z-index:10}
-.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:11}
+.canvas-els{position:absolute;inset:0;pointer-events:none;z-index:10}
+/* Container elemen Tembus di dalam tiap section block */
+.section-tembus-els{position:absolute;inset:0;pointer-events:none;overflow:visible;}
 .canvas-el{
   position:absolute;pointer-events:all;
   box-sizing:border-box;
@@ -611,11 +611,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
             <div class="canvas-guide-h"></div>
             <div class="canvas-guide-v"></div>
           </div>
-          <!-- Elements: Tembus (di bawah section masks) -->
-          <div class="canvas-els-tembus" id="canvas-els-tembus"></div>
-          <!-- Section background masks (menimpa tembus elements di batas seksi) -->
-          <div id="canvas-section-masks"></div>
-          <!-- Elements: Fix (di atas section masks) -->
+          <!-- Elements: Fix (di atas section backgrounds) -->
           <div class="canvas-els" id="canvas-els"></div>
         </div>
       </div>
@@ -996,10 +992,12 @@ function buildCanvasBg() {
     const div = document.createElement('div');
     div.className = 'section-block';
     div.dataset.section = sec.id;
-    div.style.cssText = `height:${sec.height}px;background:${bgColor};`;
+    // overflow:hidden di section-block → elemen Tembus yang melewati batas terpotong natural
+    div.style.cssText = `height:${sec.height}px;background:${bgColor};position:relative;overflow:hidden;`;
     div.innerHTML = `
       <div class="section-label">${sec.label}</div>
       <div class="section-accent" style="background:linear-gradient(90deg,transparent,${sec.accent}33,transparent)"></div>
+      <div class="section-tembus-els" id="section-tembus-${sec.id}" style="position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible;"></div>
     `;
     bg.appendChild(div);
 
@@ -1014,22 +1012,6 @@ function buildCanvasBg() {
     }
   });
   document.getElementById('canvas').style.height = CANVAS_H + 'px';
-
-  // Bangun section masks: background tiap seksi, duduk di atas elemen Tembus
-  // tapi di bawah elemen Fix — sehingga elemen Tembus yang melewati batas
-  // tertimpa oleh background seksi lain secara visual
-  const masks = document.getElementById('canvas-section-masks');
-  if (masks) {
-    masks.innerHTML = '';
-    let mY = 0;
-    SECTIONS.forEach(sec => {
-      const bgColor = state.sectionBgs[sec.id] || sec.bg;
-      const mask = document.createElement('div');
-      mask.style.cssText = `position:absolute;left:0;right:0;top:${mY}px;height:${sec.height}px;background:${bgColor};pointer-events:none;`;
-      masks.appendChild(mask);
-      mY += sec.height;
-    });
-  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -1246,13 +1228,22 @@ function confirmAddImage() {
 // CANVAS RENDER
 // ═══════════════════════════════════════════════════════════
 function renderCanvas() {
-  const fixContainer    = document.getElementById('canvas-els');
-  const tembusContainer = document.getElementById('canvas-els-tembus');
-  if (!fixContainer || !tembusContainer) return;
+  const fixContainer = document.getElementById('canvas-els');
+  if (!fixContainer) return;
+
+  // Kumpulkan HTML tembus per seksi
+  const tembusPerSection = {};
+  SECTIONS.forEach(sec => { tembusPerSection[sec.id] = ''; });
+
+  // Hitung top Y tiap seksi
+  const sectionTops = getSectionTops();
 
   if (!state.layers.length) {
     fixContainer.innerHTML = '';
-    tembusContainer.innerHTML = '';
+    SECTIONS.forEach(sec => {
+      const el = document.getElementById('section-tembus-' + sec.id);
+      if (el) el.innerHTML = '';
+    });
     return;
   }
 
@@ -1260,7 +1251,7 @@ function renderCanvas() {
     .filter(l => l.visible)
     .sort((a, b) => a.zIndex - b.zIndex);
 
-  let fixHtml = '', tembusHtml = '';
+  let fixHtml = '';
 
   sorted.forEach(layer => {
     const isSel = layer.id === state.selected;
@@ -1304,10 +1295,27 @@ function renderCanvas() {
       animBadge = `<div class="anim-badge">✨ ${layer.anim.name.replace('anim-','')}</div>`;
     }
 
-    // Clip-path: HANYA untuk mode FIX
-    // Mode TEMBUS tidak di-clip — ditimpa oleh #canvas-section-masks yang ada di atasnya
-    let clipStyle = '';
-    if (layer.pageMode !== 'tembus') {
+    if (layer.pageMode === 'tembus') {
+      // TEMBUS: elemen masuk ke dalam section-block miliknya.
+      // Section-block punya overflow:hidden → bagian yang melewati batas terpotong
+      // oleh overflow parent (bukan clip-path), sehingga animasi tetap bebas.
+      const secInfo  = getSectionAt(layer.y + layer.h / 2);
+      const secTop   = sectionTops[secInfo.index];
+      const secId    = SECTIONS[secInfo.index].id;
+      // Y relatif terhadap section (bukan canvas)
+      const relY = layer.y - secTop;
+
+      const elHtml = `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
+        data-id="${layer.id}"
+        style="left:${layer.x}px;top:${relY}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}cursor:${layer.locked?'default':'move'}"
+        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${tembusBadge}${inner}${handles}</div>`;
+
+      if (tembusPerSection[secId] !== undefined) {
+        tembusPerSection[secId] += elHtml;
+      }
+    } else {
+      // FIX: elemen di canvas-els, clip-path mencegah keluar dari batas seksi
+      let clipStyle = '';
       const centerY    = layer.y + layer.h / 2;
       const sec        = getSectionAt(centerY);
       const clipTop    = Math.max(0, sec.top - layer.y);
@@ -1315,24 +1323,24 @@ function renderCanvas() {
       if (clipTop > 0 || clipBottom > 0) {
         clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
       }
-    }
 
-    const elHtml = `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
-      data-id="${layer.id}"
-      style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
-      onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${tembusBadge}${inner}${handles}</div>`;
-
-    // Tembus → container bawah (di bawah section masks)
-    // Fix   → container atas  (di atas section masks)
-    if (layer.pageMode === 'tembus') {
-      tembusHtml += elHtml;
-    } else {
-      fixHtml += elHtml;
+      fixHtml += `<div class="canvas-el${isSel?' selected':''}${layer.locked?' locked-el':''}"
+        data-id="${layer.id}"
+        style="left:${layer.x}px;top:${layer.y}px;width:${layer.w}px;height:${layer.h}px;opacity:${layer.opacity};transform:rotate(${layer.rotation}deg);z-index:${layer.zIndex};${bSt}${animStyle}${clipStyle}cursor:${layer.locked?'default':'move'}"
+        onmousedown="${layer.locked?'':'elMousedown(event,this)'}">${animBadge}${inner}${handles}</div>`;
     }
   });
 
-  fixContainer.innerHTML    = fixHtml;
-  tembusContainer.innerHTML = tembusHtml;
+  // Tulis ke masing-masing container
+  fixContainer.innerHTML = fixHtml;
+  SECTIONS.forEach(sec => {
+    const el = document.getElementById('section-tembus-' + sec.id);
+    if (el) {
+      el.innerHTML = tembusPerSection[sec.id] || '';
+      // Aktifkan pointer-events jika ada elemen tembus di seksi ini
+      el.style.pointerEvents = tembusPerSection[sec.id] ? 'none' : 'none'; // anak yang punya pointer-events:all
+    }
+  });
 }
 
 function escH(s) {
@@ -1504,7 +1512,7 @@ function hMousedown(e, id, dir) {
 }
 
 function canvasBgMousedown(e) {
-  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-els-tembus') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent')) {
+  if (e.target === document.getElementById('canvas-area') || e.target === document.getElementById('canvas-wrap') || e.target === document.getElementById('canvas-scaler') || e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target === document.getElementById('canvas-bg') || e.target.classList.contains('section-block') || e.target.classList.contains('section-label') || e.target.classList.contains('section-accent') || e.target.classList.contains('section-tembus-els')) {
     deselectAll();
   }
   if (state.tool === 'box' && (e.target === document.getElementById('canvas') || e.target === document.getElementById('canvas-els') || e.target.classList.contains('section-block'))) {
