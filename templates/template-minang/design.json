@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-minang",
     "displayName": "template-minang",
-    "createdAt": "2026-05-12T16:10:18.416Z",
-    "updatedAt": "2026-05-12T16:10:18.416Z"
+    "createdAt": "2026-05-14T08:01:20.604Z",
+    "updatedAt": "2026-05-14T08:01:20.604Z"
   },
   "layers": [
     {
@@ -28,7 +28,8 @@
       "textAlign": "center",
       "color": "#f0c060",
       "lineHeight": 1.4,
-      "linkedVar": "{{BRIDE_NAME}}"
+      "linkedVar": "{{BRIDE_NAME}}",
+      "pageMode": "fix"
     },
     {
       "id": "el_2_1778573032318",
@@ -52,7 +53,8 @@
       "textAlign": "center",
       "color": "#f0c060",
       "lineHeight": 1.4,
-      "linkedVar": ""
+      "linkedVar": "",
+      "pageMode": "fix"
     },
     {
       "id": "el_3_1778573052644",
@@ -76,17 +78,18 @@
       "textAlign": "center",
       "color": "#f0c060",
       "lineHeight": 1.4,
-      "linkedVar": "{{GROOM_NAME}}"
+      "linkedVar": "{{GROOM_NAME}}",
+      "pageMode": "fix"
     },
     {
       "id": "el_1_1778573512768",
       "type": "image",
       "name": "tr",
-      "x": 205,
-      "y": 679,
+      "x": 229,
+      "y": 640,
       "w": 184,
       "h": 182,
-      "rotation": 0,
+      "rotation": -40,
       "opacity": 1,
       "visible": true,
       "locked": false,
@@ -100,7 +103,8 @@
         "delay": 0,
         "iteration": "infinite",
         "easing": "ease"
-      }
+      },
+      "pageMode": "tembus"
     },
     {
       "id": "el_1_1778574335413",
@@ -124,7 +128,8 @@
       "textAlign": "center",
       "color": "#f0c060",
       "lineHeight": 1.4,
-      "linkedVar": ""
+      "linkedVar": "",
+      "pageMode": "fix"
     }
   ],
   "sectionBgs": {},
