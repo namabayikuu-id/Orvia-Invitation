@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-17T06:10:01.064Z",
-    "updatedAt": "2026-05-17T06:10:01.064Z"
+    "createdAt": "2026-05-17T06:10:10.033Z",
+    "updatedAt": "2026-05-17T06:10:10.033Z"
   },
   "layers": [
     {
@@ -29,7 +29,7 @@
       "type": "image",
       "name": "bm-2",
       "x": 0,
-      "y": 78,
+      "y": 124.66666666666663,
       "w": 391,
       "h": 602,
       "rotation": 0,
