@@ -2,45 +2,34 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-17T06:10:10.033Z",
-    "updatedAt": "2026-05-17T06:10:10.033Z"
+    "createdAt": "2026-05-17T06:19:49.263Z",
+    "updatedAt": "2026-05-17T06:19:49.263Z"
   },
   "layers": [
     {
-      "id": "el_2_1778997766789",
+      "id": "el_2_1778998475469",
       "type": "image",
-      "name": "bm-2",
+      "name": "latar",
       "x": 0,
-      "y": 105,
-      "w": 412,
-      "h": 553,
+      "y": 0,
+      "w": 394,
+      "h": 723,
       "rotation": 0,
       "opacity": 1,
       "visible": true,
       "locked": false,
       "zIndex": 1,
-      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997765024-bm-1.webp",
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778998472857-latar_1_.jpg",
       "objectFit": "cover",
       "linkedVar": "",
-      "pageMode": "fix"
-    },
-    {
-      "id": "el_1_1778997728117",
-      "type": "image",
-      "name": "bm-2",
-      "x": 0,
-      "y": 124.66666666666663,
-      "w": 391,
-      "h": 602,
-      "rotation": 0,
-      "opacity": 1,
-      "visible": true,
-      "locked": false,
-      "zIndex": 2,
-      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997726562-bm-2.webp",
-      "objectFit": "cover",
-      "linkedVar": "",
-      "pageMode": "fix"
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-fade-in",
+        "duration": 3,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
     },
     {
       "id": "el_3_1778997860756",
@@ -54,11 +43,43 @@
       "opacity": 1,
       "visible": true,
       "locked": false,
-      "zIndex": 3,
+      "zIndex": 2,
       "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997856670-tr.webp",
       "objectFit": "cover",
       "linkedVar": "",
-      "pageMode": "fix"
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-slide-left",
+        "duration": 2,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
+    },
+    {
+      "id": "el_2_1778997766789",
+      "type": "image",
+      "name": "bm-2",
+      "x": 0,
+      "y": 172,
+      "w": 412,
+      "h": 553,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 3,
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997765024-bm-1.webp",
+      "objectFit": "cover",
+      "linkedVar": "",
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-slide-up",
+        "duration": 2,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
     },
     {
       "id": "el_4_1778997883685",
@@ -76,7 +97,39 @@
       "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997882597-tl.webp",
       "objectFit": "cover",
       "linkedVar": "",
-      "pageMode": "fix"
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-slide-right",
+        "duration": 2,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
+    },
+    {
+      "id": "el_1_1778997728117",
+      "type": "image",
+      "name": "bm-2",
+      "x": 0,
+      "y": 91.66666666666663,
+      "w": 391,
+      "h": 635,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 5,
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1778997726562-bm-2.webp",
+      "objectFit": "cover",
+      "linkedVar": "",
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-zoom-out",
+        "duration": 2,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
     }
   ],
   "sectionBgs": {},
