@@ -159,6 +159,37 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 
 .layers-empty{padding:24px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
 
+/* ── LAYER SECTION GROUP ── */
+.layer-section-group{margin-bottom:4px}
+.layer-section-header{
+  display:flex;align-items:center;gap:6px;
+  padding:5px 8px 4px;
+  margin:4px 0 2px;
+  border-radius:var(--r);
+  cursor:pointer;
+  user-select:none;
+  border-top:1px solid var(--border);
+}
+.layer-section-header:first-child{border-top:none;margin-top:0}
+.layer-section-header:hover{background:var(--surf2)}
+.lsh-arrow{font-size:9px;color:var(--muted);transition:transform .15s;flex-shrink:0}
+.lsh-arrow.collapsed{transform:rotate(-90deg)}
+.lsh-dot{
+  width:7px;height:7px;border-radius:50%;flex-shrink:0;
+  background:var(--gold);opacity:.7;
+}
+.lsh-label{
+  font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.lsh-count{
+  font-size:10px;color:var(--muted);
+  background:var(--surf3);border-radius:10px;
+  padding:1px 6px;flex-shrink:0;
+}
+.layer-section-body{overflow:hidden;transition:none}
+.layer-section-body.collapsed{display:none}
+
 /* ── CANVAS AREA ── */
 .canvas-area{
   flex:1;overflow:auto;background:#2a2d3a;
@@ -1871,6 +1902,14 @@ function canvasBgMousedown(e) {
 // ═══════════════════════════════════════════════════════════
 let dragLayerId = null, dragOverId = null;
 
+// Track collapsed state of section groups in layer panel
+const _layerGroupCollapsed = {};
+
+function toggleLayerGroup(secId) {
+  _layerGroupCollapsed[secId] = !_layerGroupCollapsed[secId];
+  renderLayers();
+}
+
 function renderLayers() {
   const container = document.getElementById('layers-list');
   const q = (document.getElementById('layer-search')?.value || '').toLowerCase();
@@ -1882,16 +1921,15 @@ function renderLayers() {
     return;
   }
 
-  container.innerHTML = filtered.map(layer => {
+  // Helper: render satu layer item
+  function layerItemHtml(layer) {
     const isSel = layer.id === state.selected;
     const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : layer.type === 'button' ? '⬭' : 'T';
     const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : layer.type === 'button' ? 'badge-btn' : 'badge-txt';
-
     let thumb = `<span>${typeIcon}</span>`;
     if (layer.type === 'image' && layer.src && !layer.src.startsWith('{{')) {
       thumb = `<img src="${escH(layer.src)}" onerror="this.style.display='none'">`;
     }
-
     return `<div class="layer-item${isSel?' selected':''}"
       data-id="${layer.id}" draggable="true"
       onclick="selectLayer('${layer.id}')"
@@ -1905,7 +1943,87 @@ function renderLayers() {
       <span class="li-name" title="${escH(layer.name)}">${escH(layer.name)}</span>
       <button class="li-del" onclick="deleteLayer('${layer.id}');event.stopPropagation()" title="Hapus">✕</button>
     </div>`;
-  }).join('');
+  }
+
+  // If searching: show flat list without groups
+  if (q) {
+    container.innerHTML = filtered.length
+      ? filtered.map(layerItemHtml).join('')
+      : `<div class="layers-empty"><div>🔍</div><div>Tidak ada layer yang cocok.</div></div>`;
+    return;
+  }
+
+  // Group layers by section based on their Y position
+  const sectionTops = getSectionTops();
+
+  // Map each layer to its section
+  function getLayerSectionIdx(layer) {
+    const centerY = layer.y + layer.h / 2;
+    for (let i = SECTIONS.length - 1; i >= 0; i--) {
+      if (centerY >= sectionTops[i]) return i;
+    }
+    return 0;
+  }
+
+  // Build groups: section order
+  const groups = SECTIONS.map((sec, idx) => ({
+    sec,
+    idx,
+    layers: []
+  }));
+  // "Uncategorized" for anything that doesn't map (shouldn't happen)
+  const uncategorized = [];
+
+  filtered.forEach(layer => {
+    const idx = getLayerSectionIdx(layer);
+    if (idx >= 0 && idx < groups.length) {
+      groups[idx].layers.push(layer);
+    } else {
+      uncategorized.push(layer);
+    }
+  });
+
+  // Section dot colors to differentiate groups
+  const dotColors = [
+    '#f0c060','#60a5fa','#34d399','#a78bfa','#f87171',
+    '#fb923c','#38bdf8','#4ade80','#c084fc','#fb7185',
+    '#facc15'
+  ];
+
+  let html = '';
+  groups.forEach((g, gi) => {
+    if (!g.layers.length) return; // skip empty sections
+    const collapsed = !!_layerGroupCollapsed[g.sec.id];
+    const dotColor = dotColors[gi % dotColors.length];
+    html += `<div class="layer-section-group">
+      <div class="layer-section-header" onclick="toggleLayerGroup('${g.sec.id}')">
+        <span class="lsh-arrow${collapsed?' collapsed':''}">▾</span>
+        <span class="lsh-dot" style="background:${dotColor}"></span>
+        <span class="lsh-label" title="${escH(g.sec.label)}">${escH(g.sec.label)}</span>
+        <span class="lsh-count">${g.layers.length}</span>
+      </div>
+      <div class="layer-section-body${collapsed?' collapsed':''}">
+        ${g.layers.map(layerItemHtml).join('')}
+      </div>
+    </div>`;
+  });
+
+  if (uncategorized.length) {
+    const collapsed = !!_layerGroupCollapsed['__uncategorized'];
+    html += `<div class="layer-section-group">
+      <div class="layer-section-header" onclick="toggleLayerGroup('__uncategorized')">
+        <span class="lsh-arrow${collapsed?' collapsed':''}">▾</span>
+        <span class="lsh-dot" style="background:var(--muted)"></span>
+        <span class="lsh-label">Lainnya</span>
+        <span class="lsh-count">${uncategorized.length}</span>
+      </div>
+      <div class="layer-section-body${collapsed?' collapsed':''}">
+        ${uncategorized.map(layerItemHtml).join('')}
+      </div>
+    </div>`;
+  }
+
+  container.innerHTML = html || `<div class="layers-empty"><div>📦</div><div>Belum ada layer.<br>Klik <strong>+</strong> untuk menambah elemen desain.</div></div>`;
 }
 
 function toggleVis(id, e) {
