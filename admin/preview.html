@@ -128,6 +128,19 @@ html, body {
   transition: all .2s ease;
 }
 
+/* Scroll indicator bounce */
+@keyframes scroll-bounce {
+  0%,100%{transform:translateY(0);opacity:.7}
+  50%{transform:translateY(6px);opacity:1}
+}
+.scroll-indicator {
+  position:fixed;bottom:20px;left:50%;transform:translateX(-50%);
+  color:rgba(201,169,110,0.6);font-size:18px;
+  animation:scroll-bounce 1.4s ease-in-out infinite;
+  pointer-events:none;z-index:400;transition:opacity .4s;
+}
+.scroll-indicator.hide{opacity:0}
+
 /* ── Animations ── */
 @keyframes anim-fade-in     { from{opacity:0} to{opacity:1} }
 @keyframes anim-fade-out    { from{opacity:1} to{opacity:0} }
@@ -179,9 +192,13 @@ html, body {
     <span class="hint-text" id="hint-msg">Halaman 1 terkunci — klik tombol untuk melanjutkan</span>
   </div>
   <div class="hint-right">
+    <button class="hint-close" onclick="replayAnimations()" style="margin-right:4px">↺ Ulangi Animasi</button>
     <button class="hint-close" onclick="closeHint()">✕ Tutup</button>
   </div>
 </div>
+
+<!-- Scroll indicator -->
+<div class="scroll-indicator" id="scroll-indicator">⌄</div>
 
 <!-- Viewport (phone-width, scroll locked until btn click) -->
 <div id="preview-viewport">
@@ -578,6 +595,26 @@ function closeHint() {
   document.getElementById('hint-bar').classList.add('hidden');
 }
 
+// ─── Replay Animations ───────────────────────────────
+function replayAnimations() {
+  // Remove and re-add animation by cloning all animated elements
+  document.querySelectorAll('.pv-body').forEach(el => {
+    const anim = el.style.animation;
+    if (anim && anim !== 'none') {
+      el.style.animation = 'none';
+      // Force reflow
+      void el.offsetWidth;
+      el.style.animation = anim;
+    }
+  });
+}
+
+// ─── Scroll indicator ────────────────────────────────
+viewport.addEventListener('scroll', () => {
+  const ind = document.getElementById('scroll-indicator');
+  if (ind) ind.classList.add('hide');
+}, { once: true });
+
 // ─── Hide loading ────────────────────────────────────
 function hideLoading() {
   const l = document.getElementById('loading');
@@ -585,13 +622,178 @@ function hideLoading() {
   setTimeout(() => l.style.display = 'none', 400);
 }
 
-// ─── Timeout: jika tidak ada data dalam 5 detik ──────
+// ─── Timeout: jika tidak ada data dalam 5 detik → load demo ──────
 setTimeout(() => {
   const loading = document.getElementById('loading');
   if (loading.style.display !== 'none') {
-    loading.querySelector('p').textContent = 'Tidak ada data diterima. Buka melalui tombol Preview di editor.';
+    loadDemoData();
   }
-}, 5000);
+}, 2000);
+
+// ─── DEMO DATA (dipakai saat tidak ada postMessage dari editor) ───
+function loadDemoData() {
+  const ph = Math.max(600, window.innerHeight - TOPBAR_H);
+  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+  CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
+
+  const coverH = SECTIONS[0].height;
+  const heroH  = SECTIONS[1].height;
+  const coverTop = 0;
+  const heroTop  = coverH;
+
+  const demoLayers = [
+    // ── Cover Section ──
+    {
+      id:'demo-bg-cover', type:'box', name:'Cover BG Ornament', visible:true, locked:false,
+      x:0, y:coverTop, w:390, h:coverH, rotation:0, opacity:0.18, zIndex:1, pageMode:'fix',
+      bgColor:'radial-gradient(ellipse at 50% 30%, #c9a96e 0%, transparent 70%)',
+      borderWidth:0, borderColor:'transparent', borderRadius:0,
+      anim:{ name:'anim-fade-in', duration:1.5, delay:0, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-ornament-top', type:'box', name:'Ornament Lingkaran', visible:true, locked:false,
+      x:130, y:coverTop + 40, w:130, h:130, rotation:0, opacity:0.08, zIndex:2, pageMode:'fix',
+      bgColor:'#c9a96e', borderWidth:2, borderColor:'rgba(201,169,110,0.6)', borderRadius:65,
+      anim:{ name:'anim-zoom-in', duration:1.2, delay:0.2, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-label-wedding', type:'text', name:'Label Wedding', visible:true, locked:false,
+      x:95, y:coverTop + 80, w:200, h:30, rotation:0, opacity:0.7, zIndex:3, pageMode:'fix',
+      text:'THE WEDDING OF', fontSize:10, fontWeight:'600', fontFamily:'Plus Jakarta Sans',
+      color:'#c9a96e', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.4,
+      anim:{ name:'anim-slide-down', duration:0.8, delay:0.4, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-name1', type:'text', name:'Nama Pengantin Pria', visible:true, locked:false,
+      x:30, y:coverTop + 130, w:330, h:80, rotation:0, opacity:1, zIndex:4, pageMode:'fix',
+      text:'Ahmad Rizki', fontSize:44, fontWeight:'300', fontFamily:'Cormorant Garamond',
+      color:'#e8d5b0', textAlign:'center', fontStyle:'italic', textDecoration:'none', lineHeight:1.2,
+      anim:{ name:'anim-slide-right', duration:0.9, delay:0.5, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-ampersand', type:'text', name:'Ampersand', visible:true, locked:false,
+      x:155, y:coverTop + 210, w:80, h:60, rotation:0, opacity:0.6, zIndex:5, pageMode:'fix',
+      text:'&', fontSize:42, fontWeight:'300', fontFamily:'Cormorant Garamond',
+      color:'#c9a96e', textAlign:'center', fontStyle:'italic', textDecoration:'none', lineHeight:1,
+      anim:{ name:'anim-fade-in', duration:1, delay:0.7, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-name2', type:'text', name:'Nama Pengantin Wanita', visible:true, locked:false,
+      x:30, y:coverTop + 265, w:330, h:80, rotation:0, opacity:1, zIndex:6, pageMode:'fix',
+      text:'Siti Rahayu', fontSize:44, fontWeight:'300', fontFamily:'Cormorant Garamond',
+      color:'#e8d5b0', textAlign:'center', fontStyle:'italic', textDecoration:'none', lineHeight:1.2,
+      anim:{ name:'anim-slide-left', duration:0.9, delay:0.6, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-date', type:'text', name:'Tanggal Pernikahan', visible:true, locked:false,
+      x:95, y:coverTop + 360, w:200, h:28, rotation:0, opacity:0.75, zIndex:7, pageMode:'fix',
+      text:'SABTU, 12 JULI 2025', fontSize:11, fontWeight:'500', fontFamily:'Plus Jakarta Sans',
+      color:'#c9a96e', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.4,
+      anim:{ name:'anim-slide-up', duration:0.8, delay:0.9, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-divider', type:'box', name:'Divider Emas', visible:true, locked:false,
+      x:145, y:coverTop + 396, w:100, h:1, rotation:0, opacity:0.5, zIndex:8, pageMode:'fix',
+      bgColor:'#c9a96e', borderWidth:0, borderColor:'transparent', borderRadius:0,
+      anim:{ name:'anim-fade-in', duration:1, delay:1.1, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-location', type:'text', name:'Lokasi', visible:true, locked:false,
+      x:95, y:coverTop + 406, w:200, h:28, rotation:0, opacity:0.6, zIndex:9, pageMode:'fix',
+      text:'Grand Ballroom Jakarta', fontSize:11, fontWeight:'400', fontFamily:'Plus Jakarta Sans',
+      color:'#e8d5b0', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.4,
+      anim:{ name:'anim-slide-up', duration:0.8, delay:1.2, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-float-ornament', type:'box', name:'Ornamen Float Kiri', visible:true, locked:false,
+      x:10, y:coverTop + 200, w:50, h:50, rotation:15, opacity:0.12, zIndex:2, pageMode:'fix',
+      bgColor:'transparent', borderWidth:2, borderColor:'#c9a96e', borderRadius:25,
+      anim:{ name:'anim-float', duration:3, delay:0, iteration:'infinite', easing:'ease-in-out' }
+    },
+    {
+      id:'demo-float-ornament2', type:'box', name:'Ornamen Float Kanan', visible:true, locked:false,
+      x:330, y:coverTop + 250, w:40, h:40, rotation:-20, opacity:0.1, zIndex:2, pageMode:'fix',
+      bgColor:'transparent', borderWidth:2, borderColor:'#c9a96e', borderRadius:20,
+      anim:{ name:'anim-float', duration:3.5, delay:0.8, iteration:'infinite', easing:'ease-in-out' }
+    },
+    {
+      id:'demo-pulse-dot', type:'box', name:'Pulse Dot', visible:true, locked:false,
+      x:188, y:coverTop + 455, w:14, h:14, rotation:0, opacity:0.8, zIndex:10, pageMode:'fix',
+      bgColor:'#c9a96e', borderWidth:0, borderColor:'transparent', borderRadius:7,
+      anim:{ name:'anim-pulse', duration:1.8, delay:1.5, iteration:'infinite', easing:'ease-in-out' }
+    },
+    {
+      id:'demo-btn-open', type:'button', name:'Buka Undangan', visible:true, locked:false,
+      x:110, y:coverTop + 480, w:170, h:46, rotation:0, opacity:1, zIndex:11, pageMode:'fix',
+      text:'Buka Undangan ✦', fontSize:13, fontWeight:'600', fontFamily:'Plus Jakarta Sans',
+      color:'#0b0d13', bgColor:'#c9a96e',
+      borderColor:'#c9a96e', borderWidth:1, borderRadius:8,
+      hoverBg:'#e8d5b0', hoverColor:'#0b0d13', hoverBorderColor:'#e8d5b0',
+      hoverTransform:'translateY(-2px)', hoverShadow:'0 6px 20px rgba(201,169,110,0.5)',
+      hoverFilter:'none', transitionDur:0.25,
+      actionType:'section', actionTarget:'hero',
+      anim:{ name:'anim-zoom-in', duration:0.7, delay:1.4, iteration:'1', easing:'ease' }
+    },
+
+    // ── Hero Section ──
+    {
+      id:'demo-hero-subtitle', type:'text', name:'Hero Subtitle', visible:true, locked:false,
+      x:80, y:heroTop + 50, w:230, h:28, rotation:0, opacity:0.65, zIndex:12, pageMode:'fix',
+      text:'DENGAN MENYEBUT NAMA ALLAH', fontSize:9, fontWeight:'600', fontFamily:'Plus Jakarta Sans',
+      color:'#8a9b7e', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.5,
+      anim:{ name:'anim-fade-in', duration:1, delay:0.2, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-hero-quote', type:'text', name:'Hero Quote', visible:true, locked:false,
+      x:40, y:heroTop + 90, w:310, h:80, rotation:0, opacity:0.8, zIndex:13, pageMode:'fix',
+      text:'"Dan di antara tanda-tanda kekuasaan-Nya ialah Dia menciptakan untukmu pasangan hidup"', fontSize:13, fontWeight:'300', fontFamily:'Cormorant Garamond',
+      color:'#c9a96e', textAlign:'center', fontStyle:'italic', textDecoration:'none', lineHeight:1.6,
+      anim:{ name:'anim-slide-up', duration:1, delay:0.4, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-hero-ayat', type:'text', name:'Referensi Ayat', visible:true, locked:false,
+      x:100, y:heroTop + 180, w:190, h:24, rotation:0, opacity:0.5, zIndex:14, pageMode:'fix',
+      text:'(QS. Ar-Rum: 21)', fontSize:11, fontWeight:'400', fontFamily:'Plus Jakarta Sans',
+      color:'#8a9b7e', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.4,
+      anim:{ name:'anim-fade-in', duration:0.8, delay:0.8, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-hero-names-big', type:'text', name:'Nama Besar Hero', visible:true, locked:false,
+      x:20, y:heroTop + 220, w:350, h:100, rotation:0, opacity:1, zIndex:15, pageMode:'fix',
+      text:'Ahmad & Siti', fontSize:52, fontWeight:'300', fontFamily:'Cormorant Garamond',
+      color:'#e8d5b0', textAlign:'center', fontStyle:'italic', textDecoration:'none', lineHeight:1.1,
+      anim:{ name:'anim-rotate-in', duration:1, delay:0.6, iteration:'1', easing:'ease' }
+    },
+    {
+      id:'demo-hero-wave', type:'text', name:'Wave Emoji', visible:true, locked:false,
+      x:175, y:heroTop + 330, w:40, h:40, rotation:0, opacity:0.9, zIndex:16, pageMode:'fix',
+      text:'✦', fontSize:22, fontWeight:'400', fontFamily:'Plus Jakarta Sans',
+      color:'#c9a96e', textAlign:'center', fontStyle:'normal', textDecoration:'none', lineHeight:1.8,
+      anim:{ name:'anim-float', duration:2.5, delay:0, iteration:'infinite', easing:'ease-in-out' }
+    },
+  ];
+
+  const demoSectionBgs = {
+    cover: '#100c07',
+    hero: '#1a1208',
+    quote: '#0d0a06',
+    countdown: '#111008',
+    couple: '#1a1208',
+    events: '#0e0b07',
+    story: '#1a1208',
+    gallery: '#0e0b07',
+    rsvp: '#1a1208',
+    gift: '#0e0b07',
+    footer: '#090704',
+  };
+
+  state = { layers: demoLayers, sectionBgs: demoSectionBgs, customFonts: [] };
+  render(state);
+  hideLoading();
+
+  // Update hint bar
+  document.getElementById('hint-msg').textContent = 'Mode Demo — animasi aktif ✦ Klik tombol untuk melanjutkan';
+}
 </script>
 </body>
 </html>
