@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-18T15:28:56.734Z",
-    "updatedAt": "2026-05-18T15:28:56.734Z"
+    "createdAt": "2026-05-18T15:30:29.744Z",
+    "updatedAt": "2026-05-18T15:30:29.744Z"
   },
   "layers": [
     {
@@ -533,10 +533,10 @@
       "id": "el_9_1779007330116",
       "type": "image",
       "name": "latar(1)",
-      "x": 2,
-      "y": 1720,
+      "x": 0,
+      "y": 1556,
       "w": 388,
-      "h": 222,
+      "h": 520,
       "rotation": 0,
       "opacity": 1,
       "visible": true,
@@ -558,8 +558,8 @@
       "id": "el_4_1779006819718",
       "type": "text",
       "name": "Qoutes",
-      "x": 65,
-      "y": 1781,
+      "x": 56,
+      "y": 1776,
       "w": 282,
       "h": 99,
       "rotation": 0,
