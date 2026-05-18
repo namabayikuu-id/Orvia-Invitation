@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-18T09:12:12.453Z",
-    "updatedAt": "2026-05-18T09:12:12.453Z"
+    "createdAt": "2026-05-18T13:04:17.358Z",
+    "updatedAt": "2026-05-18T13:04:17.358Z"
   },
   "layers": [
     {
@@ -1295,6 +1295,40 @@
         "iteration": "1",
         "easing": "ease"
       }
+    },
+    {
+      "id": "el_1_1779109406266",
+      "type": "button",
+      "name": "Button 47",
+      "x": 105,
+      "y": 150,
+      "w": 180,
+      "h": 48,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 47,
+      "text": "RSVP Sekarang",
+      "fontSize": 14,
+      "fontWeight": "600",
+      "fontFamily": "Plus Jakarta Sans",
+      "color": "#c9a96e",
+      "bgColor": "rgba(201,169,110,0.12)",
+      "borderColor": "rgba(201,169,110,0.6)",
+      "borderWidth": 1,
+      "borderRadius": 8,
+      "hoverBg": "#c9a96e",
+      "hoverColor": "#0b0d13",
+      "hoverBorderColor": "#c9a96e",
+      "hoverTransform": "translateY(-2px)",
+      "hoverShadow": "0 4px 16px rgba(201,169,110,0.4)",
+      "hoverFilter": "none",
+      "transitionDur": 0.2,
+      "actionType": "none",
+      "actionTarget": "",
+      "linkedVar": "",
+      "pageMode": "fix"
     }
   ],
   "sectionBgs": {},
