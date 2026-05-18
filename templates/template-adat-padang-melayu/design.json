@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-18T15:28:22.089Z",
-    "updatedAt": "2026-05-18T15:28:22.089Z"
+    "createdAt": "2026-05-18T15:28:56.734Z",
+    "updatedAt": "2026-05-18T15:28:56.734Z"
   },
   "layers": [
     {
@@ -1066,7 +1066,7 @@
       "type": "button",
       "name": "Button 39",
       "x": 106,
-      "y": 421,
+      "y": 419,
       "w": 180,
       "h": 48,
       "rotation": 0,
@@ -1074,7 +1074,7 @@
       "visible": true,
       "locked": false,
       "zIndex": 40,
-      "text": "RSVP Sekarang",
+      "text": "Buka Undangan",
       "fontSize": 14,
       "fontWeight": "600",
       "fontFamily": "Plus Jakarta Sans",
@@ -1090,8 +1090,8 @@
       "hoverShadow": "0 4px 16px rgba(201,169,110,0.4)",
       "hoverFilter": "none",
       "transitionDur": 0.2,
-      "actionType": "none",
-      "actionTarget": "",
+      "actionType": "section",
+      "actionTarget": "hero",
       "linkedVar": "",
       "pageMode": "fix"
     }
