@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-18T15:25:40.696Z",
-    "updatedAt": "2026-05-18T15:25:40.696Z"
+    "createdAt": "2026-05-18T15:26:07.030Z",
+    "updatedAt": "2026-05-18T15:26:07.030Z"
   },
   "layers": [
     {
@@ -291,9 +291,9 @@
       "type": "image",
       "name": "lampung wedding",
       "x": 0,
-      "y": 864,
+      "y": 860,
       "w": 393,
-      "h": 856,
+      "h": 860,
       "rotation": 0,
       "opacity": 1,
       "visible": true,
@@ -674,7 +674,7 @@
       "id": "el_5_1779024372659",
       "type": "image",
       "name": "latar",
-      "x": 34,
+      "x": 33,
       "y": 2828,
       "w": 311,
       "h": 354,
