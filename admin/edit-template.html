@@ -1393,13 +1393,13 @@ function duplicateLayer(id) {
   toast('Layer diduplikasi');
 }
 
-function selectLayer(id) {
+function selectLayer(id, locateOnCanvas = false) {
   state.selected = id;
   renderCanvas();
   renderLayers();
   updatePropsPanel();
   updatePageModeBtns();
-  scrollCanvasToLayer(id);
+  if (locateOnCanvas) scrollCanvasToLayer(id);
 }
 
 function scrollCanvasToLayer(id) {
@@ -1975,7 +1975,7 @@ function renderLayers() {
     }
     return `<div class="layer-item${isSel?' selected':''}"
       data-id="${layer.id}" draggable="true"
-      onclick="selectLayer('${layer.id}')"
+      onclick="selectLayer('${layer.id}', true)"
       ondragstart="layerDragStart(event,'${layer.id}')"
       ondragover="layerDragOver(event,'${layer.id}')"
       ondrop="layerDrop(event,'${layer.id}')"
