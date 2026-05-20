@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Font Picker – Template Editor</title>
+<style>
+:root {
+  --bg: #0b0d13;
+  --surf: #13161f;
+  --surf2: #1c2030;
+  --surf3: #252a3a;
+  --border: rgba(255,255,255,0.06);
+  --border2: rgba(255,255,255,0.12);
+  --gold: #f0c060;
+  --gold-dim: rgba(240,192,96,0.1);
+  --gold-glow: rgba(240,192,96,0.25);
+  --text: #e2e6f0;
+  --muted: rgba(226,230,240,0.4);
+  --muted2: rgba(226,230,240,0.65);
+  --r: 8px;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  overflow: hidden;
+}
+
+/* ── HEADER ── */
+.fp-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surf);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.fp-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.fp-search-input {
+  flex: 1;
+  background: var(--surf2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 7px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: border-color .2s;
+}
+.fp-search-input:focus { border-color: rgba(240,192,96,.5); }
+.fp-search-input::placeholder { color: var(--muted); }
+
+.fp-preview-input {
+  width: 160px;
+  background: var(--surf2);
+  border: 1px solid var(--border2);
+  border-radius: var(--r);
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  transition: border-color .2s;
+  font-family: inherit;
+}
+.fp-preview-input:focus { border-color: rgba(240,192,96,.5); }
+
+.fp-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fp-filter-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--border2);
+  border-radius: 100px;
+  background: transparent;
+  color: var(--muted2);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.fp-filter-btn:hover { border-color: var(--gold); color: var(--gold); }
+.fp-filter-btn.active { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+
+.fp-size-control {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.fp-size-control input[type=range] {
+  width: 80px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+/* ── FONT LIST ── */
+.fp-body {
+  height: calc(100vh - 110px);
+  overflow-y: auto;
+  padding: 8px 10px;
+}
+.fp-body::-webkit-scrollbar { width: 5px; }
+.fp-body::-webkit-scrollbar-thumb { background: var(--surf3); border-radius: 4px; }
+
+.fp-category {
+  margin-bottom: 4px;
+}
+
+.fp-category-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 10px 8px 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fp-category-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.font-card {
+  display: flex;
+  align-items: center;
+  padding: 9px 12px;
+  border-radius: var(--r);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: 3px;
+  gap: 12px;
+}
+.font-card:hover { background: var(--surf2); border-color: var(--border); }
+.font-card.selected { background: var(--gold-dim); border-color: rgba(240,192,96,.3); }
+
+.font-card-meta {
+  min-width: 120px;
+  flex-shrink: 0;
+}
+.font-card-name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted2);
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+.font-card.selected .font-card-name { color: var(--gold); }
+.font-card-tag {
+  font-size: 9px;
+  color: var(--muted);
+  letter-spacing: .5px;
+  text-transform: uppercase;
+}
+
+.font-card-preview {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.1;
+  min-width: 0;
+}
+
+.font-card-add {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all .15s;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.font-card-add:hover { background: var(--gold-dim); border-color: var(--gold); color: var(--gold); }
+.font-card-add.added { background: rgba(52,211,153,.1); border-color: rgba(52,211,153,.3); color: #34d399; cursor: default; font-size: 13px; }
+
+/* Loading spinner per card */
+.font-loading {
+  width: 14px; height: 14px;
+  border: 2px solid var(--border2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin .6s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty state */
+.fp-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+/* Status bar */
+.fp-statusbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32px;
+  background: var(--surf);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 14px;
+  font-size: 11px;
+  color: var(--muted);
+  gap: 10px;
+}
+.fp-statusbar strong { color: var(--gold); }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="fp-header">
+  <div class="fp-search">
+    <input class="fp-search-input" id="search-input" type="text" placeholder="🔍 Cari nama font..." oninput="filterFonts()">
+    <input class="fp-preview-input" id="preview-text" type="text" value="Undangan Pernikahan" oninput="updateAllPreviews()" title="Teks preview">
+  </div>
+  <div class="fp-filters">
+    <button class="fp-filter-btn active" data-cat="all"      onclick="setCategory('all')">Semua</button>
+    <button class="fp-filter-btn" data-cat="serif"           onclick="setCategory('serif')">Serif</button>
+    <button class="fp-filter-btn" data-cat="sans"            onclick="setCategory('sans')">Sans Serif</button>
+    <button class="fp-filter-btn" data-cat="script"          onclick="setCategory('script')">Kursif / Script</button>
+    <button class="fp-filter-btn" data-cat="display"         onclick="setCategory('display')">Display</button>
+    <button class="fp-filter-btn" data-cat="mono"            onclick="setCategory('mono')">Monospace</button>
+    <div class="fp-size-control">
+      <span>Aa</span>
+      <input type="range" id="preview-size" min="14" max="48" value="26" oninput="updatePreviewSize()">
+    </div>
+  </div>
+</div>
+
+<div class="fp-body" id="font-list"></div>
+
+<div class="fp-statusbar">
+  <span id="status-count">—</span>
+  <span>•</span>
+  <span>Klik <strong>+</strong> untuk tambahkan ke editor</span>
+</div>
+
+<script>
+// ── FONT DATABASE ──────────────────────────────────────────────
+// Koleksi font Google yang cocok untuk undangan pernikahan & desain elegan
+const FONTS = [
+  // ── Built-in (sudah ada di editor) ──
+  { name: 'Cormorant Garamond', cat: 'serif',   tag: 'Built-in',  weights: '300;400;500;600;700', style: 'ital,wght@0,300;0,400;0,600;1,300;1,400' },
+  { name: 'Plus Jakarta Sans',  cat: 'sans',    tag: 'Built-in',  weights: '300;400;500;600;700', style: 'wght@300;400;500;600;700' },
+
+  // ── Serif Elegan ──
+  { name: 'Playfair Display',   cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,700;1,400' },
+  { name: 'EB Garamond',        cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,500;1,400' },
+  { name: 'Libre Baskerville',  cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,700;1,400' },
+  { name: 'Crimson Text',       cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,600;1,400' },
+  { name: 'Lora',               cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,500;1,400' },
+  { name: 'Merriweather',       cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Gilda Display',      cat: 'serif',   tag: 'Serif',     style: 'wght@400' },
+  { name: 'Bodoni Moda',        cat: 'serif',   tag: 'Serif',     style: 'ital,opsz,wght@0,6,400;1,6,400' },
+  { name: 'Spectral',           cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Goudy Bookletter 1911', cat: 'serif', tag: 'Serif',    style: 'wght@400' },
+  { name: 'Tenor Sans',         cat: 'serif',   tag: 'Serif',     style: 'wght@400' },
+  { name: 'Sorts Mill Goudy',   cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;1,400' },
+  { name: 'Philosopher',        cat: 'serif',   tag: 'Serif',     style: 'ital,wght@0,400;0,700;1,400' },
+
+  // ── Sans Serif Modern ──
+  { name: 'Raleway',            cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;0,500;1,300' },
+  { name: 'Josefin Sans',       cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Nunito',             cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;0,600;1,300' },
+  { name: 'Montserrat',         cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;0,500;1,300' },
+  { name: 'Poppins',            cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;0,500;1,300' },
+  { name: 'Lato',               cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Open Sans',          cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Source Sans 3',      cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Jost',               cat: 'sans',    tag: 'Sans',      style: 'ital,wght@0,300;0,400;0,500;1,300' },
+  { name: 'Quicksand',          cat: 'sans',    tag: 'Sans',      style: 'wght@300;400;500;600' },
+  { name: 'Outfit',             cat: 'sans',    tag: 'Sans',      style: 'wght@300;400;500;600' },
+  { name: 'DM Sans',            cat: 'sans',    tag: 'Sans',      style: 'ital,opsz,wght@0,9,300;0,9,400;1,9,300' },
+  { name: 'Inter',              cat: 'sans',    tag: 'Sans',      style: 'wght@300;400;500;600' },
+
+  // ── Script / Kursif Romantis ──
+  { name: 'Great Vibes',        cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Sacramento',         cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Dancing Script',     cat: 'script',  tag: 'Kursif',    style: 'wght@400;500;600;700' },
+  { name: 'Pacifico',           cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Allura',             cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Pinyon Script',      cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Alex Brush',         cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Parisienne',         cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Tangerine',          cat: 'script',  tag: 'Kursif',    style: 'wght@400;700' },
+  { name: 'Clicker Script',     cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Italianno',          cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Lovers Quarrel',     cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Petit Formal Script',cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Herr Von Muellerhoff',cat:'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Ruthie',             cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Zeyada',             cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+  { name: 'Courgette',          cat: 'script',  tag: 'Kursif',    style: 'wght@400' },
+
+  // ── Display / Dekoratif ──
+  { name: 'Cinzel',             cat: 'display', tag: 'Display',   style: 'wght@400;500;600;700' },
+  { name: 'Cinzel Decorative',  cat: 'display', tag: 'Display',   style: 'wght@400;700' },
+  { name: 'Marcellus',          cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Josefin Slab',       cat: 'display', tag: 'Display',   style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Poiret One',         cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Oleo Script',        cat: 'display', tag: 'Display',   style: 'wght@400;700' },
+  { name: 'Kaushan Script',     cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Abril Fatface',      cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Playfair Display SC',cat: 'display', tag: 'Display',   style: 'ital,wght@0,400;1,400' },
+  { name: 'Yeseva One',         cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Rozha One',          cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Italiana',           cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Forum',              cat: 'display', tag: 'Display',   style: 'wght@400' },
+  { name: 'Cardo',              cat: 'display', tag: 'Display',   style: 'ital,wght@0,400;0,700;1,400' },
+
+  // ── Monospace ──
+  { name: 'JetBrains Mono',     cat: 'mono',    tag: 'Mono',      style: 'ital,wght@0,300;0,400;1,300' },
+  { name: 'Fira Code',          cat: 'mono',    tag: 'Mono',      style: 'wght@300;400;500' },
+  { name: 'Space Mono',         cat: 'mono',    tag: 'Mono',      style: 'ital,wght@0,400;1,400' },
+  { name: 'Courier Prime',      cat: 'mono',    tag: 'Mono',      style: 'ital,wght@0,400;1,400' },
+];
+
+// ── STATE ──
+let currentCat = 'all';
+let previewSize = 26;
+const loadedFonts = new Set(['Cormorant Garamond', 'Plus Jakarta Sans']);
+const addedFonts  = new Set();
+
+// Cek font yang sudah ditambahkan dari parent (editor)
+try {
+  const msg = window._initialAddedFonts;
+  if (Array.isArray(msg)) msg.forEach(n => addedFonts.add(n));
+} catch(e) {}
+
+// Terima pesan dari parent window
+window.addEventListener('message', e => {
+  if (e.data?.type === 'FONT_PICKER_ADDED_FONTS') {
+    (e.data.fonts || []).forEach(n => {
+      addedFonts.add(n);
+      // Update tombol jika sudah dirender
+      const btn = document.querySelector(`.font-card-add[data-font="${CSS.escape(n)}"]`);
+      if (btn) { btn.textContent = '✓'; btn.classList.add('added'); }
+    });
+  }
+});
+
+// ── HELPERS ──
+function buildGoogleFontsUrl(font) {
+  const family = font.name.replace(/\s+/g, '+');
+  const variant = font.style || 'wght@400';
+  return `https://fonts.googleapis.com/css2?family=${family}:${variant}&display=swap`;
+}
+
+function loadFont(font) {
+  if (loadedFonts.has(font.name)) return Promise.resolve();
+  return new Promise(resolve => {
+    const id = 'fpfont-' + font.name.replace(/\s+/g, '-');
+    if (document.getElementById(id)) { loadedFonts.add(font.name); resolve(); return; }
+    const link = document.createElement('link');
+    link.id = id;
+    link.rel = 'stylesheet';
+    link.href = buildGoogleFontsUrl(font);
+    link.onload = () => { loadedFonts.add(font.name); resolve(); };
+    link.onerror = () => resolve();
+    document.head.appendChild(link);
+  });
+}
+
+// Lazy-load fonts as they enter viewport
+const fontObserver = typeof IntersectionObserver !== 'undefined'
+  ? new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        const card = entry.target;
+        const fontName = card.dataset.fontName;
+        const font = FONTS.find(f => f.name === fontName);
+        if (!font || loadedFonts.has(font.name)) { fontObserver.unobserve(card); return; }
+        const preview = card.querySelector('.font-card-preview');
+        if (preview) preview.innerHTML = '<span class="font-loading"></span>';
+        loadFont(font).then(() => {
+          if (preview) {
+            const txt = document.getElementById('preview-text')?.value || 'Undangan Pernikahan';
+            preview.style.fontFamily = `'${font.name}', serif`;
+            preview.style.fontSize   = previewSize + 'px';
+            preview.textContent = txt;
+          }
+          fontObserver.unobserve(card);
+        });
+      });
+    }, { rootMargin: '120px' })
+  : null;
+
+function getPreviewText() {
+  return document.getElementById('preview-text')?.value || 'Undangan Pernikahan';
+}
+
+function setCategory(cat) {
+  currentCat = cat;
+  document.querySelectorAll('.fp-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.cat === cat));
+  renderFonts();
+}
+
+function filterFonts() { renderFonts(); }
+
+function updatePreviewSize() {
+  previewSize = parseInt(document.getElementById('preview-size').value) || 26;
+  document.querySelectorAll('.font-card-preview').forEach(el => {
+    el.style.fontSize = previewSize + 'px';
+  });
+}
+
+function updateAllPreviews() {
+  const txt = getPreviewText();
+  document.querySelectorAll('.font-card-preview').forEach(el => {
+    const fontName = el.dataset.fontName;
+    if (fontName && loadedFonts.has(fontName)) el.textContent = txt;
+  });
+}
+
+function addFont(fontName) {
+  const font = FONTS.find(f => f.name === fontName);
+  if (!font) return;
+
+  // Kirim ke parent (editor)
+  try {
+    window.parent.postMessage({ type: 'FONT_PICKER_ADD', font: { name: font.name, url: buildGoogleFontsUrl(font) } }, '*');
+  } catch(e) {}
+
+  addedFonts.add(fontName);
+  const btn = document.querySelector(`.font-card-add[data-font="${CSS.escape(fontName)}"]`);
+  if (btn) { btn.textContent = '✓'; btn.classList.add('added'); btn.disabled = true; }
+}
+
+// ── RENDER ──
+function renderFonts() {
+  const list    = document.getElementById('font-list');
+  const q       = (document.getElementById('search-input')?.value || '').toLowerCase();
+  const txt     = getPreviewText();
+
+  // Filter
+  let filtered = FONTS.filter(f => {
+    if (currentCat !== 'all' && f.cat !== currentCat) return false;
+    if (q && !f.name.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  document.getElementById('status-count').innerHTML = `<strong>${filtered.length}</strong> font`;
+
+  if (!filtered.length) {
+    list.innerHTML = `<div class="fp-empty">😶 Tidak ada font yang cocok dengan "<strong>${q}</strong>"</div>`;
+    return;
+  }
+
+  // Group by category
+  const catOrder = ['serif', 'sans', 'script', 'display', 'mono'];
+  const catLabels = { serif:'Serif', sans:'Sans Serif', script:'Kursif / Script', display:'Display & Dekoratif', mono:'Monospace' };
+
+  if (currentCat !== 'all' || q) {
+    // Flat list when filtered/single cat
+    list.innerHTML = filtered.map(f => fontCardHtml(f, txt)).join('');
+  } else {
+    // Grouped by category
+    let html = '';
+    catOrder.forEach(cat => {
+      const group = filtered.filter(f => f.cat === cat);
+      if (!group.length) return;
+      html += `<div class="fp-category">
+        <div class="fp-category-label">${catLabels[cat]} <span style="font-weight:400;font-size:9px">(${group.length})</span></div>
+        ${group.map(f => fontCardHtml(f, txt)).join('')}
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+
+  // Observe all cards for lazy loading
+  if (fontObserver) {
+    document.querySelectorAll('.font-card[data-font-name]').forEach(card => {
+      fontObserver.observe(card);
+    });
+  } else {
+    // Fallback: load all visible fonts immediately
+    filtered.forEach(f => loadFont(f).then(() => {
+      const preview = document.querySelector(`.font-card[data-font-name="${f.name}"] .font-card-preview`);
+      if (preview) {
+        preview.style.fontFamily = `'${f.name}', serif`;
+        preview.style.fontSize   = previewSize + 'px';
+        preview.textContent = txt;
+        preview.dataset.fontName = f.name;
+      }
+    }));
+  }
+}
+
+function fontCardHtml(f, txt) {
+  const isBuiltIn = f.tag === 'Built-in';
+  const isAdded   = isBuiltIn || addedFonts.has(f.name);
+  const addBtn    = isBuiltIn
+    ? `<div class="font-card-add added" title="Sudah tersedia">✓</div>`
+    : isAdded
+      ? `<button class="font-card-add added" data-font="${escH(f.name)}" disabled title="Sudah ditambahkan">✓</button>`
+      : `<button class="font-card-add" data-font="${escH(f.name)}" onclick="addFont('${escH(f.name)}')" title="Tambahkan ke editor">+</button>`;
+
+  // Preview: show font name as placeholder, will be replaced on load
+  const previewContent = loadedFonts.has(f.name)
+    ? `<span style="font-family:'${f.name}',serif;font-size:${previewSize}px">${escH(txt)}</span>`
+    : `<span class="font-loading"></span>`;
+
+  return `<div class="font-card${isAdded ? ' selected' : ''}" data-font-name="${escH(f.name)}">
+    <div class="font-card-meta">
+      <div class="font-card-name">${escH(f.name)}</div>
+      <div class="font-card-tag">${f.tag}</div>
+    </div>
+    <div class="font-card-preview" data-font-name="${escH(f.name)}">${previewContent}</div>
+    ${addBtn}
+  </div>`;
+}
+
+function escH(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+// ── INIT ──
+renderFonts();
+</script>
+</body>
+</html>
