@@ -737,6 +737,20 @@ function hideLoading() {
   // FIX: Normalize zIndex to match array order (editor reassigns on drag)
   designData.layers.forEach((l, i) => { l.zIndex = i + 1; });
 
+  // FIX: Set fallback section backgrounds to match template's warm palette
+  // so text is visible even before background images load
+  if (!designData.sectionBgs) designData.sectionBgs = {};
+  const warmBg = '#c4956a';  // warm peach matching latar_1_.jpg
+  const sectionDefaults = {
+    cover: warmBg, hero: '#8fa88a', quote: '#c4956a',
+    countdown: '#8fa88a', couple: '#c4956a', events: '#8fa88a',
+    story: '#c4956a', gallery: '#8fa88a', rsvp: '#8fa88a',
+    gift: '#c4956a', footer: '#8c7055'
+  };
+  Object.keys(sectionDefaults).forEach(k => {
+    if (!designData.sectionBgs[k]) designData.sectionBgs[k] = sectionDefaults[k];
+  });
+
   const ph = Math.max(600, window.innerHeight - TOPBAR_H);
   SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
   CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
@@ -751,7 +765,39 @@ function hideLoading() {
 
   render(designData);
   hideLoading();
-  setTimeout(() => setupScrollAnimations(), 450);
+
+  // Force-show all elements in cover section immediately (don't wait for scroll)
+  // Cover = first 760px of canvas
+  // Step 1: immediately show background images (so text is visible on correct bg)
+  document.querySelectorAll('#preview-layers .pv-el').forEach(el => {
+    const elTop = parseFloat(el.style.top) || 0;
+    const elBot = elTop + (parseFloat(el.style.height) || 0);
+    const coverBottom = 760;
+    if (elBot > 0 && elTop < coverBottom) {
+      const body = el.querySelector('.pv-body');
+      if (body) body.style.opacity = '1';
+    }
+  });
+
+  // Step 2: then fire animations properly
+  setTimeout(() => {
+    const coverBottom = SECTIONS[0] ? SECTIONS[0].height : 760;
+    document.querySelectorAll('#preview-layers .pv-el').forEach(el => {
+      const elTop = parseFloat(el.style.top) || 0;
+      const elBot = elTop + (parseFloat(el.style.height) || 0);
+      if (elBot > 0 && elTop < coverBottom) {
+        const body = el.querySelector('.pv-body');
+        if (body) {
+          body.style.opacity = '1';
+          if (body.dataset.animName && !body.dataset.animDone) {
+            fireAnimation(body);
+          }
+        }
+      }
+    });
+    setupScrollAnimations();
+  }, 100);
+
   document.getElementById('hint-msg').textContent = 'Preview Template — klik tombol untuk melanjutkan';
 })();
 
