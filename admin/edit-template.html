@@ -476,6 +476,22 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .toast.err{border-color:rgba(248,113,113,.4);color:var(--red)}
 .toast.info{border-color:rgba(96,165,250,.4);color:var(--blue)}
 
+.font-modal-tab {
+  padding: 10px 16px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  margin-bottom: -1px;
+}
+.font-modal-tab:hover { color: var(--text); }
+.font-modal-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+
 /* ── MISC ── */
 .divider{height:1px;background:var(--border);margin:12px 0}
 .flex-center{display:flex;align-items:center;justify-content:center}
@@ -832,16 +848,39 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 
 <!-- ── MODAL: Font Manager ──────────────────────────────── -->
 <div class="overlay" id="modal-font">
-  <div class="modal">
+  <div class="modal" style="max-width:660px">
     <div class="modal-head">
       <span class="modal-title">🔤 Kelola Font</span>
       <button class="modal-close" onclick="closeModal('modal-font')">×</button>
     </div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
-        Tempel link Google Fonts atau isi nama font. Font yang ditambahkan bisa dipakai di semua elemen teks.
-      </div>
 
+    <!-- Tab bar -->
+    <div style="display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 24px;background:var(--surf)">
+      <button class="font-modal-tab active" id="font-tab-browse" onclick="switchFontTab('browse')">🔍 Browse Font</button>
+      <button class="font-modal-tab" id="font-tab-manual" onclick="switchFontTab('manual')">✍ Input Manual</button>
+      <button class="font-modal-tab" id="font-tab-installed" onclick="switchFontTab('installed')">📦 Terpasang</button>
+    </div>
+
+    <!-- Tab: Browse (iframe font-picker) -->
+    <div id="font-tab-browse-body" style="height:500px;position:relative;overflow:hidden">
+      <iframe id="font-picker-frame"
+        src="font-picker.html"
+        style="width:100%;height:100%;border:none;background:var(--bg)"
+        title="Font Picker">
+      </iframe>
+      <!-- Fallback jika font-picker.html tidak tersedia -->
+      <div id="font-picker-fallback" style="display:none;padding:24px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8">
+        <div style="font-size:28px;margin-bottom:8px">🔌</div>
+        File <code style="background:var(--surf2);padding:2px 6px;border-radius:4px;color:var(--gold)">font-picker.html</code> tidak ditemukan.<br>
+        Taruh file tersebut <strong>satu folder</strong> dengan file editor ini,<br>atau gunakan tab <strong>Input Manual</strong> untuk menambah font via URL.
+      </div>
+    </div>
+
+    <!-- Tab: Manual input -->
+    <div id="font-tab-manual-body" style="display:none;padding:20px 24px">
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.6">
+        Tempel link Google Fonts atau ketik nama font langsung. Font yang ditambahkan bisa dipakai di semua elemen teks.
+      </div>
       <div style="display:flex;gap:8px;margin-bottom:8px;align-items:flex-end">
         <div style="flex:1">
           <div class="field-label">Google Fonts URL atau nama font</div>
@@ -849,15 +888,27 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
         </div>
         <button class="btn btn-gold" onclick="addFont()">Tambah</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-bottom:16px">
-        Contoh: Playfair+Display, Great+Vibes, Sacramento, Dancing+Script
+      <div style="font-size:11px;color:var(--muted)">
+        Contoh: <code style="background:var(--surf2);padding:1px 5px;border-radius:3px;color:var(--blue)">Playfair+Display</code>,
+        <code style="background:var(--surf2);padding:1px 5px;border-radius:3px;color:var(--blue)">Great+Vibes</code>,
+        <code style="background:var(--surf2);padding:1px 5px;border-radius:3px;color:var(--blue)">Sacramento</code>
       </div>
+    </div>
 
-      <div class="field-label" style="margin-bottom:8px">Font Terpasang</div>
+    <!-- Tab: Installed fonts -->
+    <div id="font-tab-installed-body" style="display:none;padding:20px 24px">
+      <div style="font-size:12px;color:var(--muted2);margin-bottom:12px;line-height:1.6">
+        Font yang aktif di editor ini. Built-in sudah tersedia secara default.
+      </div>
+      <div class="field-label" style="margin-bottom:6px">✨ Built-in (selalu tersedia)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:14px">
+        <div class="font-pill"><span style="font-family:'Cormorant Garamond',serif;font-style:italic">Cormorant Garamond</span></div>
+        <div class="font-pill"><span style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans</span></div>
+      </div>
+      <div class="field-label" style="margin-bottom:8px">📦 Font Tambahan</div>
       <div id="font-pills-list">
         <div style="font-size:12px;color:var(--muted)">Belum ada font tambahan</div>
       </div>
-
       <div class="divider"></div>
       <div class="field-label" style="margin-bottom:8px">Preview Font</div>
       <div id="font-preview-list" style="font-size:18px;line-height:2;color:var(--text)">
@@ -865,6 +916,7 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
         <div style="font-family:'Plus Jakarta Sans',sans-serif">Plus Jakarta Sans – Built-in</div>
       </div>
     </div>
+
     <div class="modal-foot">
       <button class="btn btn-gold" onclick="closeModal('modal-font')">Selesai</button>
     </div>
@@ -1148,7 +1200,26 @@ const TEMPLATE_VARS = [
   '{{VENDOR_NAME}}','{{GUEST_NAME}}'
 ];
 
-const BUILT_IN_FONTS = ['Cormorant Garamond','Plus Jakarta Sans'];
+// Font-font yang tersedia tanpa perlu load tambahan (sudah di-preload atau built-in)
+const BUILT_IN_FONTS = [
+  'Cormorant Garamond','Plus Jakarta Sans',
+  // Serif
+  'Playfair Display','EB Garamond','Libre Baskerville','Crimson Text','Lora',
+  'Merriweather','Gilda Display','Bodoni Moda','Spectral','Tenor Sans',
+  'Philosopher','Josefin Slab',
+  // Sans Serif
+  'Raleway','Josefin Sans','Nunito','Montserrat','Poppins','Lato','Open Sans',
+  'Jost','Quicksand','Outfit','DM Sans','Inter',
+  // Script / Kursif
+  'Great Vibes','Sacramento','Dancing Script','Allura','Pinyon Script',
+  'Alex Brush','Parisienne','Tangerine','Italianno','Ruthie','Zeyada',
+  'Petit Formal Script','Courgette',
+  // Display
+  'Cinzel','Cinzel Decorative','Marcellus','Poiret One','Kaushan Script',
+  'Abril Fatface','Playfair Display SC','Yeseva One','Italiana','Forum','Cardo',
+  // Mono
+  'JetBrains Mono','Space Mono',
+];
 
 // ═══════════════════════════════════════════════════════════
 // STATE
@@ -3643,7 +3714,59 @@ document.addEventListener('keydown', (e) => {
 });
 function openModal(id) { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-function openFontModal() { renderFontPills(); openModal('modal-font'); }
+function openFontModal() { renderFontPills(); openModal('modal-font'); syncFontPickerAdded(); }
+
+function switchFontTab(tab) {
+  ['browse','manual','installed'].forEach(t => {
+    document.getElementById(`font-tab-${t}-body`).style.display = t === tab ? '' : 'none';
+    document.getElementById(`font-tab-${t}`).classList.toggle('active', t === tab);
+  });
+  // Browse tab: set iframe src if not loaded yet
+  if (tab === 'browse') {
+    const iframe = document.getElementById('font-picker-frame');
+    if (iframe && !iframe.src.includes('font-picker.html')) {
+      iframe.src = 'font-picker.html';
+    }
+    syncFontPickerAdded();
+  }
+}
+
+function syncFontPickerAdded() {
+  // Tell the iframe which fonts are already added
+  try {
+    const iframe = document.getElementById('font-picker-frame');
+    if (!iframe || !iframe.contentWindow) return;
+    const addedNames = state.customFonts.map(f => f.name);
+    iframe.contentWindow.postMessage({
+      type: 'FONT_PICKER_ADDED_FONTS',
+      fonts: addedNames,
+    }, '*');
+  } catch(e) {}
+}
+
+// Listen for font additions from the iframe picker
+window.addEventListener('message', e => {
+  if (e.data?.type === 'FONT_PICKER_ADD') {
+    const { name, url } = e.data.font || {};
+    if (!name || !url) return;
+    if (state.customFonts.find(f => f.name === name)) return; // already added
+    state.customFonts.push({ name, url });
+    injectFont({ name, url });
+    renderFontPills();
+    scheduleDraftSave();
+    toast(`✓ Font "${name}" ditambahkan`, 'ok');
+  }
+});
+
+// Iframe error detection: show fallback if font-picker.html not found
+document.addEventListener('DOMContentLoaded', () => {
+  const iframe = document.getElementById('font-picker-frame');
+  if (!iframe) return;
+  iframe.addEventListener('error', () => {
+    document.getElementById('font-picker-fallback').style.display = 'block';
+    iframe.style.display = 'none';
+  });
+});
 
 document.querySelectorAll('.overlay').forEach(ov => {
   ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
