@@ -265,6 +265,8 @@ window.addEventListener('message', e => {
 
   render(data);
   hideLoading();
+  // Setelah loading selesai, setup scroll-triggered animations
+  setTimeout(() => setupScrollAnimations(), 450);
 });
 
 // ═══════════════════════════════════════════════════════
@@ -339,16 +341,21 @@ function render(data) {
     elDiv.className  = 'pv-el';
     bodyDiv.className = 'pv-body';
 
-    // Animasi di body (agar tidak konflik dengan rotate di parent)
-    let animStyle = '';
+    // Animasi disimpan sebagai data attr, akan di-trigger oleh IntersectionObserver
     if (l.anim && l.anim.name && l.anim.name !== 'none') {
-      const dur  = l.anim.duration  || 1;
-      const del  = l.anim.delay     || 0;
-      const iter = l.anim.iteration || '1';
-      const eas  = l.anim.easing    || 'ease';
-      animStyle  = `animation:${l.anim.name} ${dur}s ${eas} ${del}s ${iter} both;`;
+      bodyDiv.dataset.animName = l.anim.name;
+      bodyDiv.dataset.animDur  = l.anim.duration  || 1;
+      bodyDiv.dataset.animDel  = l.anim.delay      || 0;
+      bodyDiv.dataset.animIter = l.anim.iteration  || '1';
+      bodyDiv.dataset.animEas  = l.anim.easing     || 'ease';
     }
-    bodyDiv.style.cssText = `position:absolute;inset:0;opacity:${l.opacity ?? 1};${animStyle}`;
+    // Entrance animation: sembunyikan dulu, tunggu IntersectionObserver
+    // Infinite/loop animation: langsung visible, nanti fireAnimation akan set animation-nya
+    const hasAnim = l.anim && l.anim.name && l.anim.name !== 'none';
+    const isInfinite = hasAnim && l.anim.iteration === 'infinite';
+    // Body opacity: 0 untuk entrance (akan di-animate), 1 untuk infinite/no-anim
+    const bodyOpacity = (hasAnim && !isInfinite) ? 0 : 1;
+    bodyDiv.style.cssText = `position:absolute;inset:0;opacity:${bodyOpacity};`;
 
     // Inner content
     bodyDiv.appendChild(buildInner(l));
@@ -369,6 +376,7 @@ function render(data) {
         transform:rotate(${l.rotation || 0}deg);
         z-index:${l.zIndex};
         overflow:hidden;
+        opacity:${l.opacity ?? 1};
       `;
 
       const container = document.getElementById('pv-tembus-' + secId);
@@ -385,12 +393,13 @@ function render(data) {
         clipStyle = `clip-path:inset(${clipTop}px 0px ${clipBottom}px 0px);`;
       }
 
-      elDiv.style.cssText = `
+    elDiv.style.cssText = `
         left:${l.x}px; top:${l.y}px;
         width:${l.w}px; height:${l.h}px;
         transform:rotate(${l.rotation || 0}deg);
         z-index:${l.zIndex};
         overflow:hidden;
+        opacity:${l.opacity ?? 1};
         ${clipStyle}
       `;
 
@@ -595,18 +604,102 @@ function closeHint() {
   document.getElementById('hint-bar').classList.add('hidden');
 }
 
-// ─── Replay Animations ───────────────────────────────
-function replayAnimations() {
-  // Remove and re-add animation by cloning all animated elements
-  document.querySelectorAll('.pv-body').forEach(el => {
-    const anim = el.style.animation;
-    if (anim && anim !== 'none') {
-      el.style.animation = 'none';
-      // Force reflow
-      void el.offsetWidth;
-      el.style.animation = anim;
+// ─── Scroll-triggered animations ────────────────────
+let _sectionObserver = null;
+
+function triggerAnimationsInSection(secEl) {
+  // Cari semua pv-body yang berada di dalam section ini (via y position)
+  // atau yang merupakan child tembus container dalam section ini
+  const tembusContainer = secEl.querySelector('.pv-tembus-container');
+  if (tembusContainer) {
+    tembusContainer.querySelectorAll('.pv-body[data-anim-name]').forEach(body => {
+      fireAnimation(body);
+    });
+  }
+}
+
+function triggerAnimationsInViewport() {
+  // Untuk fix layers: cek berdasarkan posisi section yang sedang visible
+  const vp = document.getElementById('preview-viewport');
+  const scrollTop = vp.scrollTop;
+  const scrollBottom = scrollTop + vp.clientHeight;
+
+  document.querySelectorAll('#preview-layers .pv-el').forEach(el => {
+    const elTop = parseInt(el.style.top) || 0;
+    const elBot = elTop + (parseInt(el.style.height) || 0);
+    // Jika elemen overlapping dengan viewport
+    if (elBot > scrollTop && elTop < scrollBottom) {
+      const body = el.querySelector('.pv-body[data-anim-name]');
+      if (body && !body.dataset.animDone) {
+        fireAnimation(body);
+      }
     }
   });
+}
+
+function fireAnimation(body) {
+  if (body.dataset.animDone) return;
+  body.dataset.animDone = '1';
+  const name = body.dataset.animName;
+  const dur  = body.dataset.animDur  || 1;
+  const del  = body.dataset.animDel  || 0;
+  const iter = body.dataset.animIter || '1';
+  const eas  = body.dataset.animEas  || 'ease';
+  const isInfinite = iter === 'infinite';
+
+  if (isInfinite) {
+    // Infinite: langsung pasang animasi tanpa opacity flash
+    body.style.animation = `${name} ${dur}s ${eas} ${del}s ${iter} both`;
+  } else {
+    // Entrance: dari opacity 0
+    body.style.opacity = '0';
+    void body.offsetWidth; // force reflow
+    body.style.animation = `${name} ${dur}s ${eas} ${del}s ${iter} both`;
+  }
+}
+
+function setupScrollAnimations() {
+  // Trigger animasi untuk section pertama (cover) yang langsung terlihat
+  triggerAnimationsInViewport();
+
+  // Observer untuk section blocks (tembus layers)
+  if ('IntersectionObserver' in window) {
+    if (_sectionObserver) _sectionObserver.disconnect();
+    _sectionObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          triggerAnimationsInSection(entry.target);
+        }
+      });
+    }, {
+      root: document.getElementById('preview-viewport'),
+      rootMargin: '0px',
+      threshold: 0.05
+    });
+
+    document.querySelectorAll('.pv-section').forEach(sec => {
+      _sectionObserver.observe(sec);
+    });
+  }
+
+  // Listener scroll untuk fix layers
+  const vp = document.getElementById('preview-viewport');
+  vp.addEventListener('scroll', () => {
+    triggerAnimationsInViewport();
+  }, { passive: true });
+}
+
+// ─── Replay Animations ───────────────────────────────
+function replayAnimations() {
+  // Reset semua animasi
+  document.querySelectorAll('.pv-body[data-anim-name]').forEach(body => {
+    delete body.dataset.animDone;
+    body.style.animation = 'none';
+    body.style.opacity   = '0';
+    void body.offsetWidth;
+  });
+  // Re-trigger semua
+  setTimeout(() => setupScrollAnimations(), 50);
 }
 
 // ─── Scroll indicator ────────────────────────────────
@@ -790,6 +883,7 @@ function loadDemoData() {
   state = { layers: demoLayers, sectionBgs: demoSectionBgs, customFonts: [] };
   render(state);
   hideLoading();
+  setTimeout(() => setupScrollAnimations(), 450);
 
   // Update hint bar
   document.getElementById('hint-msg').textContent = 'Mode Demo — animasi aktif ✦ Klik tombol untuk melanjutkan';
