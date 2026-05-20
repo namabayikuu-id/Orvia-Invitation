@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-20T20:45:18.819Z",
-    "updatedAt": "2026-05-20T20:45:18.819Z"
+    "createdAt": "2026-05-20T20:46:09.974Z",
+    "updatedAt": "2026-05-20T20:46:09.974Z"
   },
   "layers": [
     {
@@ -1026,7 +1026,7 @@
       "textAlign": "center",
       "color": "#000000",
       "lineHeight": 1.4,
-      "linkedVar": "",
+      "linkedVar": "{{BRIDE_NAME}}",
       "pageMode": "fix",
       "anim": {
         "name": "anim-zoom-out",
@@ -1072,7 +1072,7 @@
       "id": "el_2_1779309803201",
       "type": "text",
       "name": "Mempleai Laki Laki",
-      "x": 92,
+      "x": 95,
       "y": 210,
       "w": 182,
       "h": 60,
@@ -1090,7 +1090,7 @@
       "textAlign": "center",
       "color": "#000000",
       "lineHeight": 1.4,
-      "linkedVar": "",
+      "linkedVar": "{{GROOM_NAME}}",
       "pageMode": "fix",
       "anim": {
         "name": "anim-zoom-out",
