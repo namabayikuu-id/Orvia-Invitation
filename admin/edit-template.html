@@ -1726,7 +1726,7 @@ function addMusicLayer() {
     autoplay:     true,
     loop:         true,
     // style tombol musik
-    btnStyle:     'pill',   // 'pill' | 'circle' | 'minimal'
+    btnStyle:     'circle', // 'pill' | 'circle' | 'minimal'
     color:        '#f0c060',
     bgColor:      'rgba(240,192,96,0.12)',
     borderColor:  'rgba(240,192,96,0.4)',
@@ -3532,48 +3532,70 @@ function generateDesignLayer() {
         : pos === 'bottom-left'  ? 'position:fixed;bottom:20px;left:20px;'
         : pos === 'top-right'    ? 'position:fixed;top:20px;right:20px;'
         :                          'position:fixed;top:20px;left:20px;';
-      return `<!-- 🎵 Music Player: ${label} -->
-<audio id="__audio-${l.id}" ${l.autoplay!==false?'':''}  ${l.loop!==false?'loop':''}
-  data-music-src="${musicVar}" preload="none"></audio>
-<button id="__dl-${l.id}" onclick="__toggleMusic_${l.id.replace(/-/g,'_')}(this)"
-  style="${posCSS}display:flex;align-items:center;justify-content:center;gap:6px;
-    padding:10px 18px;background:${bg};color:${color};
-    border:1.5px solid ${border};border-radius:${br};
-    cursor:pointer;z-index:9999;font-family:inherit;font-size:13px;font-weight:600;
-    backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,0.3);
-    transition:all .2s ease;"
-  data-playing="false">
-  <span id="__music-icon-${l.id}">▶</span> ${label}
+      const safeId = l.id.replace(/-/g,'_');
+      // Jika masih placeholder variabel, pakai lagu test agar bisa dicoba langsung di preview
+      const resolvedSrc = musicVar.startsWith('{{')
+        ? 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        : musicVar;
+      return `<!-- 🎵 Music Player -->
+<style>
+#__dl-${safeId}{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  width:52px;height:52px;border-radius:50%;
+  background:${bg};border:2px solid ${border};
+  color:${color};cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(10px);
+  box-shadow:0 4px 20px rgba(0,0,0,0.35);
+  transition:transform .2s,box-shadow .2s;
+  font-size:22px;line-height:1;
+}
+#__dl-${safeId}:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(0,0,0,0.45)}
+#__dl-${safeId}:active{transform:scale(0.95)}
+@keyframes __spin-${safeId}{to{transform:rotate(360deg)}}
+#__dl-${safeId}.playing #__music-icon-${safeId}{
+  display:inline-block;
+  animation:__spin-${safeId} 3s linear infinite;
+}
+</style>
+<audio id="__audio-${safeId}" ${l.loop!==false?'loop':''} preload="none" src="${resolvedSrc}"></audio>
+<button id="__dl-${safeId}" data-playing="false"
+  onclick="__toggleMusic_${safeId}(this)" title="${label}">
+  <span id="__music-icon-${safeId}">🎵</span>
 </button>
 <script>
 (function(){
-  const audio = document.getElementById('__audio-${l.id}');
-  const btn   = document.getElementById('__dl-${l.id}');
-  const icon  = document.getElementById('__music-icon-${l.id}');
-  // Ganti {{VAR}} dengan nilai aktual jika ada
-  let src = audio.dataset.musicSrc || '';
-  if (src && !src.startsWith('{{')) { audio.src = src; }
-  // Autoplay setelah interaksi pertama user (browser policy)
-  let started = false;
-  function tryStart() {
-    if (started || !audio.src || audio.src === location.href) return;
-    started = true;
-    ${l.autoplay!==false ? `audio.play().then(()=>{ btn.dataset.playing='true'; icon.textContent='⏸'; }).catch(()=>{});` : ''}
-    document.removeEventListener('click', tryStart);
-    document.removeEventListener('touchstart', tryStart);
+  const audio = document.getElementById('__audio-${safeId}');
+  const btn   = document.getElementById('__dl-${safeId}');
+  const icon  = document.getElementById('__music-icon-${safeId}');
+  ${l.autoplay!==false ? `
+  let _started = false;
+  function _tryStart() {
+    if (_started) return; _started = true;
+    audio.play().then(()=>{
+      btn.dataset.playing='true';
+      btn.classList.add('playing');
+      icon.textContent='⏸';
+    }).catch(()=>{});
   }
-  document.addEventListener('click', tryStart, {once:true});
-  document.addEventListener('touchstart', tryStart, {once:true});
-  window.__toggleMusic_${l.id.replace(/-/g,'_')} = function(el) {
-    if (!audio.src || audio.src === location.href) return;
+  document.addEventListener('click', _tryStart, {once:true});
+  document.addEventListener('touchstart', _tryStart, {once:true});
+  ` : ''}
+  window.__toggleMusic_${safeId} = function(el) {
     if (el.dataset.playing === 'true') {
-      audio.pause(); el.dataset.playing='false'; icon.textContent='▶';
+      audio.pause();
+      el.dataset.playing='false';
+      el.classList.remove('playing');
+      icon.textContent='🎵';
     } else {
-      audio.play(); el.dataset.playing='true'; icon.textContent='⏸';
+      audio.play().catch(()=>{});
+      el.dataset.playing='true';
+      el.classList.add('playing');
+      icon.textContent='⏸';
     }
   };
 })();
-<\/script>`;
+<\/script>`; 
 
     } else if (l.type === 'countdown') {
       // Countdown timer widget — live JS
