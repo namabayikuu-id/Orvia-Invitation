@@ -1224,10 +1224,12 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 // ═══════════════════════════════════════════════════════════
 const CANVAS_W = 390;
 
-// Tinggi 1 "halaman" = tinggi viewport dikurangi topbar (52px)
-// Setiap seksi full = 1 halaman, seksi kecil = proporsi dari 1 halaman
+// Tinggi 1 "halaman" = FIXED 760px, tidak terpengaruh zoom browser Chrome.
+// Dulu pakai window.innerHeight yang berubah saat browser di-zoom (80%, 90%, dll)
+// sehingga koordinat layer bergeser. Sekarang pakai nilai tetap agar konsisten.
 const TOPBAR_H = 52;
-function calcPageH() { return Math.max(600, window.innerHeight - TOPBAR_H); }
+const FIXED_PAGE_H = 760;
+function calcPageH() { return FIXED_PAGE_H; }
 
 const SECTION_DEFS = [
   { id:'cover',    label:'Cover / Landing Page',  ratio:1,    bg:'#100c07', accent:'#c9a96e' },
@@ -1477,11 +1479,9 @@ function fitZoom() {
 }
 
 window.addEventListener('resize', () => {
-  // Rebuild section heights berdasarkan viewport baru
-  SECTIONS = buildSections();
-  CANVAS_H = SECTIONS.reduce((s,sec) => s + sec.height, 0);
-  buildCanvasBg();
-  setZoom(state.zoom); // refresh scaler size
+  // Section heights sudah fixed (tidak bergantung viewport),
+  // hanya perlu re-fit zoom supaya canvas tetap pas di layar.
+  fitZoom();
 });
 
 // ═══════════════════════════════════════════════════════════
