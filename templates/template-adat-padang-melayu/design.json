@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-21T13:14:56.818Z",
-    "updatedAt": "2026-05-21T13:14:56.818Z"
+    "createdAt": "2026-05-21T20:56:24.736Z",
+    "updatedAt": "2026-05-21T20:56:24.736Z"
   },
   "layers": [
     {
@@ -1095,6 +1095,30 @@
         "iteration": "1",
         "easing": "ease"
       }
+    },
+    {
+      "id": "el_1_1779396796591",
+      "type": "music",
+      "name": "Tombol Musik",
+      "x": 329,
+      "y": 1458,
+      "w": 47,
+      "h": 52,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 41,
+      "musicVar": "{{MUSIC_URL}}",
+      "musicLabel": "♪ Musik",
+      "autoplay": true,
+      "loop": true,
+      "btnStyle": "circle",
+      "color": "#ffaa00",
+      "bgColor": "rgba(240,192,96,0.12)",
+      "borderColor": "rgba(240,192,96,0.4)",
+      "fixedPos": "inline",
+      "pageMode": "fix"
     }
   ],
   "sectionBgs": {},
