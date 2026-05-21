@@ -258,19 +258,10 @@ window.addEventListener('message', e => {
     document.head.appendChild(link);
   });
 
-  // Compute CANVAS_H from actual layer content bounds (no gap)
-  const allLayers2 = (data.layers || []);
-  const maxBottom2 = allLayers2.reduce((max, l) => {
-    if (!l.visible) return max;
-    return Math.max(max, (l.y || 0) + (l.h || 0));
-  }, 600);
-  CANVAS_H = maxBottom2 + 40;
-
-  // Distribute sections proportionally to fill CANVAS_H
-  const totalRatio2 = SECTION_DEFS.reduce((s, d) => s + d.ratio, 0);
-  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(CANVAS_H * s.ratio / totalRatio2) }));
-  const assigned2 = SECTIONS.reduce((s, x) => s + x.height, 0);
-  SECTIONS[SECTIONS.length - 1].height += CANVAS_H - assigned2;
+  // Rebuild sections dengan window.innerHeight yang benar
+  const ph = Math.max(600, window.innerHeight - TOPBAR_H);
+  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+  CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
 
   render(data);
   hideLoading();
@@ -760,20 +751,9 @@ function hideLoading() {
     if (!designData.sectionBgs[k]) designData.sectionBgs[k] = sectionDefaults[k];
   });
 
-  // Compute CANVAS_H from actual layer content bounds (no gap)
-  const allLayers = designData.layers || [];
-  const maxBottom = allLayers.reduce((max, l) => {
-    if (!l.visible) return max;
-    return Math.max(max, (l.y || 0) + (l.h || 0));
-  }, 600);
-  CANVAS_H = maxBottom + 40; // small padding at bottom
-
-  // Distribute sections proportionally to fill CANVAS_H
-  const totalRatio = SECTION_DEFS.reduce((s, d) => s + d.ratio, 0);
-  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(CANVAS_H * s.ratio / totalRatio) }));
-  // Fix rounding drift: last section absorbs remainder
-  const assigned = SECTIONS.reduce((s, x) => s + x.height, 0);
-  SECTIONS[SECTIONS.length - 1].height += CANVAS_H - assigned;
+  const ph = Math.max(600, window.innerHeight - TOPBAR_H);
+  SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+  CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
 
   state = designData;
   (designData.customFonts || []).forEach(f => {
@@ -824,8 +804,8 @@ function hideLoading() {
 // ─── DEMO DATA (dipakai saat tidak ada postMessage dari editor) ───
 function loadDemoData() {
   const ph = Math.max(600, window.innerHeight - TOPBAR_H);
-  CANVAS_H = SECTION_DEFS.reduce((sum, s) => sum + Math.round(ph * s.ratio), 0);
   SECTIONS = SECTION_DEFS.map(s => ({ ...s, height: Math.round(ph * s.ratio) }));
+  CANVAS_H = SECTIONS.reduce((sum, s) => sum + s.height, 0);
 
   const coverH = SECTIONS[0].height;
   const heroH  = SECTIONS[1].height;
