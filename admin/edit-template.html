@@ -1767,7 +1767,7 @@ function addCountdownLayer() {
   toast('⏱ Layer Countdown ditambahkan');
 }
 
-
+function confirmAddImage() {
   if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
   let src = '';
   const tab = document.getElementById('img-tab-upload').classList.contains('btn-gold') ? 'upload'
@@ -3573,7 +3573,7 @@ function generateDesignLayer() {
     }
   };
 })();
-</script>`;
+<\/script>`;
 
     } else if (l.type === 'countdown') {
       // Countdown timer widget — live JS
@@ -3677,7 +3677,7 @@ function generateDesignLayer() {
   tick();
   setInterval(tick, 1000);
 })();
-</script>`;
+<\/script>`;
     }
     return '';
   }).join('\n  ');
@@ -3746,7 +3746,7 @@ ${sectionOverrides}
     iframe.src = embedUrl;
   });
 })();
-</script>`;
+<\/script>`;
 }
 
 function downloadTemplate() {
