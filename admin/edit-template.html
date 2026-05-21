@@ -492,6 +492,75 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
 .font-modal-tab:hover { color: var(--text); }
 .font-modal-tab.active { color: var(--gold); border-bottom-color: var(--gold); }
 
+/* ── MAP LAYER preview ── */
+.canvas-map-el {
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:6px;
+  background:rgba(96,165,250,.06);border:1.5px dashed rgba(96,165,250,.4);
+  border-radius:6px;overflow:hidden;position:relative;
+}
+.canvas-map-iframe {
+  position:absolute;inset:0;width:100%;height:100%;border:none;pointer-events:none;
+  border-radius:4px;
+}
+.canvas-map-overlay {
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;
+  background:rgba(11,13,19,.55);backdrop-filter:blur(2px);
+  border-radius:4px;pointer-events:none;
+}
+.canvas-map-label {
+  font-size:10px;font-weight:700;color:rgba(96,165,250,.9);letter-spacing:1px;text-transform:uppercase;
+}
+.canvas-map-var {
+  font-size:9px;color:rgba(96,165,250,.6);font-family:monospace;
+}
+
+/* ── MUSIC LAYER preview ── */
+.canvas-music-el {
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;gap:10px;
+  background:rgba(167,139,250,.08);border:1.5px dashed rgba(167,139,250,.4);
+  border-radius:50px;
+}
+.canvas-music-icon {
+  font-size:20px;
+}
+.canvas-music-info {
+  display:flex;flex-direction:column;gap:2px;
+}
+.canvas-music-title {
+  font-size:11px;font-weight:700;color:rgba(167,139,250,.9);
+}
+.canvas-music-sub {
+  font-size:9px;color:rgba(167,139,250,.5);font-family:monospace;
+}
+
+/* ── COUNTDOWN LAYER preview ── */
+.canvas-countdown-el {
+  width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:4px;overflow:hidden;
+  padding:8px;box-sizing:border-box;
+}
+.canvas-countdown-label {
+  font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:rgba(240,192,96,.6);margin-bottom:4px;
+}
+.canvas-countdown-units {
+  display:flex;align-items:flex-start;gap:6px;
+}
+.canvas-countdown-unit {
+  display:flex;flex-direction:column;align-items:center;gap:2px;min-width:40px;
+}
+.canvas-countdown-num {
+  font-size:22px;font-weight:700;line-height:1;
+}
+.canvas-countdown-lbl {
+  font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;opacity:.6;
+}
+.canvas-countdown-sep {
+  font-size:18px;font-weight:700;line-height:1.2;opacity:.4;padding-top:2px;
+}
+
 /* ── MISC ── */
 .divider{height:1px;background:var(--border);margin:12px 0}
 .flex-center{display:flex;align-items:center;justify-content:center}
@@ -701,6 +770,10 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
           <div class="lam-item" onclick="closeAddMenu();addBoxLayer()"><span class="ic">▭</span> Tambah Box</div>
           <div class="lam-item" onclick="closeAddMenu();addTextLayer()"><span class="ic">T</span> Tambah Teks</div>
           <div class="lam-item" onclick="closeAddMenu();addButtonLayer()"><span class="ic">⬭</span> Tambah Button</div>
+          <div style="height:1px;background:var(--border);margin:4px 0"></div>
+          <div class="lam-item" onclick="closeAddMenu();addMapLayer()"><span class="ic">📍</span> Tambah Peta Maps</div>
+          <div class="lam-item" onclick="closeAddMenu();addMusicLayer()"><span class="ic">🎵</span> Tambah Tombol Musik</div>
+          <div class="lam-item" onclick="closeAddMenu();addCountdownLayer()"><span class="ic">⏱</span> Tambah Countdown</div>
           <div style="height:1px;background:var(--border);margin:4px 0"></div>
           <div class="lam-item" onclick="closeAddMenu();openSectionStyleModal()"><span class="ic">🎨</span> Style Seksi</div>
         </div>
@@ -1197,6 +1270,7 @@ const TEMPLATE_VARS = [
   '{{BANK_1}}','{{ACCOUNT_1}}','{{ACCOUNT_NAME_1}}',
   '{{BANK_2}}','{{ACCOUNT_2}}','{{ACCOUNT_NAME_2}}',
   '{{RSVP_DEADLINE}}','{{WA_NUMBER}}','{{WEDDING_DATE_ISO}}',
+  '{{MUSIC_URL}}',
   '{{VENDOR_NAME}}','{{GUEST_NAME}}'
 ];
 
@@ -1618,7 +1692,82 @@ function addButtonLayer() {
   toast('Button ditambahkan ✓');
 }
 
-function confirmAddImage() {
+// ── MAP LAYER ──────────────────────────────────────────────
+function addMapLayer() {
+  const centerX = Math.round((CANVAS_W - 340) / 2);
+  addLayer({
+    id: newId(), type: 'map', name: 'Peta Maps ' + (state.layers.length+1),
+    x: centerX, y: 140, w: 340, h: 200, rotation: 0,
+    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
+    // map config
+    mapVar:    '{{AKAD_MAPS}}',   // variabel URL Google Maps (dari index.html)
+    mapLabel:  'Akad Nikah',      // label tampil di atas peta
+    borderRadius: 12,
+    borderColor: 'rgba(201,169,110,0.4)',
+    borderWidth: 1,
+    pageMode: 'fix',
+  });
+  setTool('select');
+  toast('📍 Layer Peta ditambahkan');
+}
+
+// ── MUSIC LAYER ───────────────────────────────────────────
+function addMusicLayer() {
+  // Musik sebagai tombol fixed di pojok – tidak perlu posisi di canvas yang terlihat
+  // Tapi kita taruh sebagai overlay element agar bisa dipindah
+  const cx = Math.round((CANVAS_W - 200) / 2);
+  addLayer({
+    id: newId(), type: 'music', name: 'Tombol Musik',
+    x: cx, y: 80, w: 200, h: 52, rotation: 0,
+    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
+    // music config
+    musicVar:     '{{MUSIC_URL}}', // variabel URL musik (dari index.html field "URL Musik Latar")
+    musicLabel:   '♪ Musik',
+    autoplay:     true,
+    loop:         true,
+    // style tombol musik
+    btnStyle:     'pill',   // 'pill' | 'circle' | 'minimal'
+    color:        '#f0c060',
+    bgColor:      'rgba(240,192,96,0.12)',
+    borderColor:  'rgba(240,192,96,0.4)',
+    // posisi tombol di output (fixed position)
+    fixedPos:     'bottom-right',  // 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left' | 'inline'
+    pageMode: 'fix',
+  });
+  setTool('select');
+  toast('🎵 Layer Musik ditambahkan');
+}
+
+// ── COUNTDOWN LAYER ───────────────────────────────────────
+function addCountdownLayer() {
+  const cx = Math.round((CANVAS_W - 300) / 2);
+  addLayer({
+    id: newId(), type: 'countdown', name: 'Countdown Timer',
+    x: cx, y: 120, w: 300, h: 110, rotation: 0,
+    opacity: 1, visible: true, locked: false, zIndex: nextZ(),
+    // countdown config
+    dateVar:       '{{WEDDING_DATE_ISO}}', // variabel ISO date dari index.html
+    labelAbove:    'Menuju Hari Bahagia',
+    labelBelow:    '',
+    showDays:      true,
+    showHours:     true,
+    showMinutes:   true,
+    showSeconds:   true,
+    // style
+    numColor:      '#f0c060',
+    labelColor:    'rgba(240,192,96,0.55)',
+    headerColor:   'rgba(226,230,240,0.7)',
+    sepColor:      'rgba(240,192,96,0.35)',
+    numFontSize:   32,
+    bgBox:         'rgba(240,192,96,0.07)',
+    borderRadius:  8,
+    pageMode: 'fix',
+  });
+  setTool('select');
+  toast('⏱ Layer Countdown ditambahkan');
+}
+
+
   if (pendingImg.uploading) { toast('⏳ Tunggu upload selesai dulu...', 'err'); return; }
   let src = '';
   const tab = document.getElementById('img-tab-upload').classList.contains('btn-gold') ? 'upload'
@@ -1722,6 +1871,76 @@ function renderCanvas() {
           font-weight:${layer.fontWeight||'600'};
           letter-spacing:0.5px;
         ">${escH(layer.text||'Button')}</div>`;
+    } else if (layer.type === 'map') {
+      // Cek apakah ada URL embed (jika bukan variable placeholder)
+      const mapV = layer.mapVar || '{{AKAD_MAPS}}';
+      const embedSrc = !mapV.startsWith('{{')
+        ? buildMapEmbedUrl(mapV)
+        : '';
+      const iframeHtml = embedSrc
+        ? `<iframe class="canvas-map-iframe" src="${escH(embedSrc)}" loading="lazy" allowfullscreen></iframe>`
+        : '';
+      const borderSt = `border:${layer.borderWidth||1}px solid ${escH(layer.borderColor||'rgba(201,169,110,0.4)')};border-radius:${layer.borderRadius||12}px;overflow:hidden;`;
+      inner = `<div class="canvas-map-el" style="${borderSt}">
+        ${iframeHtml}
+        <div class="canvas-map-overlay">
+          <span style="font-size:22px">📍</span>
+          <div class="canvas-map-label">${escH(layer.mapLabel||'Peta Lokasi')}</div>
+          <div class="canvas-map-var">${escH(mapV)}</div>
+        </div>
+      </div>`;
+    } else if (layer.type === 'music') {
+      const style = layer.btnStyle || 'pill';
+      const isPill   = style === 'pill';
+      const isCircle = style === 'circle';
+      const br = isCircle ? '50%' : isPill ? '100px' : '8px';
+      inner = `<div class="canvas-music-el" style="background:${escH(layer.bgColor||'rgba(240,192,96,0.08)')};border:1.5px dashed ${escH(layer.borderColor||'rgba(240,192,96,0.4)')};border-radius:${br}">
+        <span class="canvas-music-icon">🎵</span>
+        <div class="canvas-music-info">
+          <div class="canvas-music-title" style="color:${escH(layer.color||'#f0c060')}">${escH(layer.musicLabel||'♪ Musik')}</div>
+          <div class="canvas-music-sub">${escH(layer.musicVar||'{{MUSIC_URL}}')}</div>
+        </div>
+        <span style="font-size:9px;color:rgba(167,139,250,.6);background:rgba(167,139,250,.1);padding:2px 8px;border-radius:10px;font-weight:700">${escH(layer.fixedPos||'bottom-right')}</span>
+      </div>`;
+    } else if (layer.type === 'countdown') {
+      // Live countdown preview dari tanggal contoh (pakai tanggal statis untuk preview editor)
+      const previewDate = new Date(Date.now() + 30*24*60*60*1000); // 30 hari dari sekarang
+      const diff = previewDate - Date.now();
+      const days    = Math.floor(diff / 86400000);
+      const hours   = Math.floor((diff % 86400000) / 3600000);
+      const minutes = Math.floor((diff % 3600000) / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      const nc = escH(layer.numColor||'#f0c060');
+      const lc = escH(layer.labelColor||'rgba(240,192,96,0.55)');
+      const hc = escH(layer.headerColor||'rgba(226,230,240,0.7)');
+      const sc = escH(layer.sepColor||'rgba(240,192,96,0.35)');
+      const fs = layer.numFontSize || 32;
+      const bg = escH(layer.bgBox||'rgba(240,192,96,0.07)');
+      const br2 = layer.borderRadius ?? 8;
+
+      const unitHtml = (val, lbl, show) => !show ? '' :
+        `<div class="canvas-countdown-unit">
+          <div class="canvas-countdown-num" style="font-size:${fs}px;color:${nc};background:${bg};padding:4px 10px;border-radius:${br2}px;min-width:${fs+16}px;text-align:center">${String(val).padStart(2,'0')}</div>
+          <div class="canvas-countdown-lbl" style="color:${lc}">${lbl}</div>
+        </div>`;
+      const sep = `<div class="canvas-countdown-sep" style="color:${sc};font-size:${fs}px">:</div>`;
+
+      const units = [
+        layer.showDays    !== false && unitHtml(days,    'HARI',  layer.showDays    !== false),
+        layer.showHours   !== false && unitHtml(hours,   'JAM',   layer.showHours   !== false),
+        layer.showMinutes !== false && unitHtml(minutes, 'MENIT', layer.showMinutes !== false),
+        layer.showSeconds !== false && unitHtml(seconds, 'DETIK', layer.showSeconds !== false),
+      ].filter(Boolean);
+
+      // Interleave separators
+      const unitsWithSep = units.map((u,i) => i < units.length-1 ? u + sep : u).join('');
+
+      inner = `<div class="canvas-countdown-el">
+        ${layer.labelAbove ? `<div class="canvas-countdown-label" style="color:${hc};font-size:${Math.round(fs*0.3)}px">${escH(layer.labelAbove)}</div>` : ''}
+        <div class="canvas-countdown-units">${unitsWithSep}</div>
+        ${layer.labelBelow ? `<div class="canvas-countdown-label" style="color:${hc};font-size:${Math.round(fs*0.28)}px;margin-top:4px">${escH(layer.labelBelow)}</div>` : ''}
+        <div style="font-size:8px;color:rgba(96,165,250,.5);margin-top:6px;font-family:monospace">preview • ${escH(layer.dateVar||'{{WEDDING_DATE_ISO}}')}</div>
+      </div>`;
     }
 
     const handles = isSel && !layer.locked
@@ -1736,6 +1955,12 @@ function renderCanvas() {
     // Button badge
     const btnBadge = layer.type === 'button'
       ? `<div class="canvas-btn-badge">⬭ BTN${layer.actionType && layer.actionType!=='none' ? ' →' : ''}</div>`
+      : layer.type === 'map'
+      ? `<div class="canvas-btn-badge" style="background:rgba(96,165,250,.9)">📍 MAP</div>`
+      : layer.type === 'music'
+      ? `<div class="canvas-btn-badge" style="background:rgba(167,139,250,.9)">🎵 MUSIK</div>`
+      : layer.type === 'countdown'
+      ? `<div class="canvas-btn-badge" style="background:rgba(52,211,153,.9)">⏱ COUNTDOWN</div>`
       : '';
 
     const bSt = layer.type === 'box'
@@ -1809,6 +2034,27 @@ function renderCanvas() {
 
 function escH(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Konversi URL Google Maps menjadi URL embed untuk iframe
+function buildMapEmbedUrl(url) {
+  if (!url || url.startsWith('{{')) return '';
+  // Kalau sudah embed URL
+  if (url.includes('maps/embed')) return url;
+  // Ekstrak q param dari maps.google.com/?q=...
+  try {
+    const u = new URL(url);
+    const q = u.searchParams.get('q') || u.searchParams.get('query') || '';
+    const ll = u.searchParams.get('ll') || '';
+    const daddr = u.searchParams.get('daddr') || '';
+    // Format: google.com/maps?q= → embed
+    const query = q || ll || daddr;
+    if (query) return `https://maps.google.com/maps?q=${encodeURIComponent(query)}&output=embed&z=15`;
+    // Fallback: coba embed langsung dari URL yang ada
+    return `https://maps.google.com/maps?q=${encodeURIComponent(url)}&output=embed&z=15`;
+  } catch(e) {
+    return '';
+  }
 }
 
 // ═══════════════════════════════════════════════════════════
@@ -2038,8 +2284,8 @@ function renderLayers() {
   // Helper: render satu layer item
   function layerItemHtml(layer) {
     const isSel = layer.id === state.selected;
-    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : layer.type === 'button' ? '⬭' : 'T';
-    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : layer.type === 'button' ? 'badge-btn' : 'badge-txt';
+    const typeIcon = layer.type === 'image' ? '🖼' : layer.type === 'box' ? '▭' : layer.type === 'button' ? '⬭' : layer.type === 'map' ? '📍' : layer.type === 'music' ? '🎵' : layer.type === 'countdown' ? '⏱' : 'T';
+    const typeBadge = layer.type === 'image' ? 'badge-img' : layer.type === 'box' ? 'badge-box' : layer.type === 'button' ? 'badge-btn' : layer.type === 'map' ? 'badge-img' : layer.type === 'music' ? 'badge-btn' : layer.type === 'countdown' ? 'badge-txt' : 'badge-txt';
     let thumb = `<span>${typeIcon}</span>`;
     if (layer.type === 'image' && layer.src && !layer.src.startsWith('{{')) {
       thumb = `<img src="${escH(layer.src)}" onerror="this.style.display='none'">`;
@@ -2202,8 +2448,8 @@ function updatePropsPanel() {
   const l = findLayer(state.selected);
   if (!l) return;
 
-  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : l.type === 'button' ? 'BUTTON' : 'TEKS';
-  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : l.type === 'button' ? 'badge-btn' : 'badge-txt';
+  const typeLabel = l.type === 'image' ? 'GAMBAR' : l.type === 'box' ? 'BOX' : l.type === 'button' ? 'BUTTON' : l.type === 'map' ? 'PETA' : l.type === 'music' ? 'MUSIK' : l.type === 'countdown' ? 'COUNTDOWN' : 'TEKS';
+  const typeCls   = l.type === 'image' ? 'badge-img' : l.type === 'box' ? 'badge-box' : l.type === 'button' ? 'badge-btn' : l.type === 'map' ? 'badge-img' : l.type === 'music' ? 'badge-btn' : 'badge-txt';
   badge.textContent = typeLabel;
   badge.className = 'section-tag ' + typeCls;
   badge.style.display = 'inline-block';
@@ -2343,6 +2589,206 @@ function updatePropsPanel() {
         <div style="padding:8px;background:var(--surf2);border-radius:6px;font-size:11px;color:var(--muted)">
           <div style="margin-bottom:4px;font-weight:600;color:var(--muted2)">Aksi Klik</div>
           <div style="color:var(--blue)">${actionLabel}</div>
+        </div>
+      </div>`;
+  } else if (l.type === 'map') {
+    // ── MAP PROPS ──────────────────────────────────────────
+    typeSpecific = `
+      <div class="prop-group">
+        <div class="prop-group-title">📍 Peta Maps</div>
+
+        <div class="prop-label" style="margin-bottom:4px">Sumber URL Maps</div>
+        <select class="prop-select" style="margin-bottom:8px" onchange="setProp('mapVar',this.value);renderCanvas()">
+          <option value="{{AKAD_MAPS}}"     ${(l.mapVar||'{{AKAD_MAPS}}') === '{{AKAD_MAPS}}'    ? 'selected':''}>{{AKAD_MAPS}} – Lokasi Akad Nikah</option>
+          <option value="{{RESEPSI_MAPS}}"  ${l.mapVar === '{{RESEPSI_MAPS}}'                     ? 'selected':''}>{{RESEPSI_MAPS}} – Lokasi Resepsi</option>
+          <option value="custom"            ${ l.mapVar && !l.mapVar.startsWith('{{')             ? 'selected':''}>URL Custom (isi di bawah)</option>
+        </select>
+
+        ${l.mapVar && !l.mapVar.startsWith('{{') ? `
+        <div class="prop-label" style="margin-bottom:4px">URL Google Maps Custom</div>
+        <input class="prop-input" placeholder="https://maps.google.com/?q=..." value="${escH(l.mapVar)}"
+          oninput="setProp('mapVar',this.value);renderCanvas()" style="margin-bottom:8px">
+        ` : `
+        <div style="font-size:11px;color:var(--blue);background:var(--blue-dim);padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5">
+          ℹ️ URL peta diisi otomatis dari field <strong>"Link Google Maps"</strong> saat membuat undangan di <strong>index.html</strong>.<br>
+          Format: <code style="font-family:monospace">https://maps.google.com/?q=nama+tempat</code>
+        </div>
+        `}
+
+        <div class="prop-label" style="margin-bottom:4px">Label Peta</div>
+        <input class="prop-input" placeholder="Akad Nikah / Resepsi / ..." value="${escH(l.mapLabel||'')}"
+          oninput="setProp('mapLabel',this.value);renderCanvas()" style="margin-bottom:10px">
+
+        <div class="prop-row">
+          <div class="prop-col">
+            <div class="prop-label">Warna Border</div>
+            <input class="prop-input" type="text" value="${escH(l.borderColor||'rgba(201,169,110,0.4)')}"
+              oninput="setProp('borderColor',this.value);renderCanvas()" placeholder="rgba(...)">
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Tebal Border</div>
+            <input class="prop-input" type="number" value="${l.borderWidth||1}" min="0" max="10"
+              oninput="setProp('borderWidth',+this.value);renderCanvas()">
+          </div>
+        </div>
+        <div class="prop-row">
+          <div class="prop-col">
+            <div class="prop-label">Border Radius</div>
+            <input class="prop-input" type="range" min="0" max="40" value="${l.borderRadius??12}"
+              oninput="setProp('borderRadius',+this.value);renderCanvas()">
+          </div>
+          <div class="prop-col flex-center" style="font-size:12px;color:var(--muted2)">${l.borderRadius??12}px</div>
+        </div>
+      </div>`;
+
+  } else if (l.type === 'music') {
+    // ── MUSIC PROPS ───────────────────────────────────────
+    typeSpecific = `
+      <div class="prop-group">
+        <div class="prop-group-title">🎵 Tombol Musik</div>
+
+        <div class="prop-label" style="margin-bottom:4px">Sumber URL Musik</div>
+        <select class="prop-select" style="margin-bottom:8px" onchange="if(this.value!=='custom')setProp('musicVar',this.value);renderCanvas()">
+          <option value="{{MUSIC_URL}}"  ${(l.musicVar||'{{MUSIC_URL}}') === '{{MUSIC_URL}}' ? 'selected':''}>{{MUSIC_URL}} – dari form undangan</option>
+          <option value="custom"         ${ l.musicVar && !l.musicVar.startsWith('{{')       ? 'selected':''}>URL Custom (isi di bawah)</option>
+        </select>
+
+        ${l.musicVar && !l.musicVar.startsWith('{{') ? `
+        <div class="prop-label" style="margin-bottom:4px">URL MP3 Custom</div>
+        <input class="prop-input" placeholder="https://...musik.mp3" value="${escH(l.musicVar)}"
+          oninput="setProp('musicVar',this.value);renderCanvas()" style="margin-bottom:8px">
+        ` : `
+        <div style="font-size:11px;color:var(--blue);background:var(--blue-dim);padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5">
+          ℹ️ URL musik diisi dari field <strong>"URL Musik Latar (MP3)"</strong> saat membuat undangan di <strong>index.html</strong>.
+        </div>
+        `}
+
+        <div class="prop-label" style="margin-bottom:4px">Label Tombol</div>
+        <input class="prop-input" placeholder="♪ Musik" value="${escH(l.musicLabel||'♪ Musik')}"
+          oninput="setProp('musicLabel',this.value);renderCanvas()" style="margin-bottom:8px">
+
+        <div class="prop-row">
+          <div class="prop-col">
+            <div class="prop-label">Gaya Tombol</div>
+            <select class="prop-select" onchange="setProp('btnStyle',this.value);renderCanvas()">
+              <option value="pill"    ${(l.btnStyle||'pill')==='pill'   ?'selected':''}>Pill (bulat panjang)</option>
+              <option value="circle"  ${l.btnStyle==='circle'           ?'selected':''}>Lingkaran</option>
+              <option value="minimal" ${l.btnStyle==='minimal'          ?'selected':''}>Minimal (kotak)</option>
+            </select>
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Posisi di Output</div>
+            <select class="prop-select" onchange="setProp('fixedPos',this.value);renderCanvas()">
+              <option value="bottom-right" ${(l.fixedPos||'bottom-right')==='bottom-right'?'selected':''}>Pojok Kanan Bawah</option>
+              <option value="bottom-left"  ${l.fixedPos==='bottom-left'                   ?'selected':''}>Pojok Kiri Bawah</option>
+              <option value="top-right"    ${l.fixedPos==='top-right'                     ?'selected':''}>Pojok Kanan Atas</option>
+              <option value="top-left"     ${l.fixedPos==='top-left'                      ?'selected':''}>Pojok Kiri Atas</option>
+              <option value="inline"       ${l.fixedPos==='inline'                        ?'selected':''}>Inline (ikut posisi layer)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="prop-row" style="margin-top:8px">
+          <div class="prop-col">
+            <div class="prop-label">Warna Tombol</div>
+            <input class="prop-input" type="color" value="${rgbToHex(l.color||'#f0c060')}"
+              oninput="setProp('color',this.value);renderCanvas()">
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Background</div>
+            <input class="prop-input" type="text" placeholder="rgba(...)" value="${escH(l.bgColor||'rgba(240,192,96,0.12)')}"
+              oninput="setProp('bgColor',this.value);renderCanvas()">
+          </div>
+        </div>
+
+        <div class="prop-row" style="margin-top:8px">
+          <div class="prop-col" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="chk-autoplay" ${l.autoplay!==false?'checked':''} onchange="setProp('autoplay',this.checked)">
+            <label for="chk-autoplay" style="font-size:11px;color:var(--muted2);cursor:pointer;text-transform:none;letter-spacing:0">Autoplay saat halaman dibuka</label>
+          </div>
+          <div class="prop-col" style="display:flex;align-items:center;gap:8px">
+            <input type="checkbox" id="chk-loop" ${l.loop!==false?'checked':''} onchange="setProp('loop',this.checked)">
+            <label for="chk-loop" style="font-size:11px;color:var(--muted2);cursor:pointer;text-transform:none;letter-spacing:0">Loop (berulang)</label>
+          </div>
+        </div>
+      </div>`;
+
+  } else if (l.type === 'countdown') {
+    // ── COUNTDOWN PROPS ───────────────────────────────────
+    typeSpecific = `
+      <div class="prop-group">
+        <div class="prop-group-title">⏱ Countdown Timer</div>
+
+        <div class="prop-label" style="margin-bottom:4px">Tanggal Target</div>
+        <select class="prop-select" style="margin-bottom:8px" onchange="if(this.value!=='custom')setProp('dateVar',this.value);renderCanvas()">
+          <option value="{{WEDDING_DATE_ISO}}" ${(l.dateVar||'{{WEDDING_DATE_ISO}}') === '{{WEDDING_DATE_ISO}}' ?'selected':''}>{{WEDDING_DATE_ISO}} – dari form undangan</option>
+          <option value="custom"               ${ l.dateVar && !l.dateVar.startsWith('{{')                      ?'selected':''}>Tanggal Custom</option>
+        </select>
+
+        ${l.dateVar && !l.dateVar.startsWith('{{') ? `
+        <div class="prop-label" style="margin-bottom:4px">Tanggal ISO Custom</div>
+        <input class="prop-input" placeholder="2025-06-15T09:00:00" value="${escH(l.dateVar)}"
+          oninput="setProp('dateVar',this.value);renderCanvas()" style="margin-bottom:8px">
+        ` : `
+        <div style="font-size:11px;color:var(--blue);background:var(--blue-dim);padding:7px 10px;border-radius:6px;margin-bottom:8px;line-height:1.5">
+          ℹ️ Tanggal diisi dari field <strong>"Tanggal ISO (untuk countdown)"</strong> saat membuat undangan.<br>
+          Format: <code style="font-family:monospace">2025-06-15T09:00:00</code>
+        </div>
+        `}
+
+        <div class="prop-label" style="margin-bottom:4px">Teks di Atas Countdown</div>
+        <input class="prop-input" placeholder="Menuju Hari Bahagia" value="${escH(l.labelAbove||'')}"
+          oninput="setProp('labelAbove',this.value);renderCanvas()" style="margin-bottom:6px">
+        <div class="prop-label" style="margin-bottom:4px">Teks di Bawah Countdown</div>
+        <input class="prop-input" placeholder="(opsional)" value="${escH(l.labelBelow||'')}"
+          oninput="setProp('labelBelow',this.value);renderCanvas()" style="margin-bottom:10px">
+
+        <div class="prop-group-title" style="margin-top:0;font-size:9px">Unit yang Ditampilkan</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px">
+          ${['showDays:Hari','showHours:Jam','showMinutes:Menit','showSeconds:Detik'].map(s => {
+            const [k, lab] = s.split(':');
+            return `<div style="display:flex;align-items:center;gap:6px">
+              <input type="checkbox" id="chk-${k}" ${l[k]!==false?'checked':''} onchange="setProp('${k}',this.checked);updatePropsPanel();renderCanvas()">
+              <label for="chk-${k}" style="font-size:11px;color:var(--muted2);cursor:pointer;text-transform:none;letter-spacing:0">${lab}</label>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <div class="prop-row">
+          <div class="prop-col">
+            <div class="prop-label">Ukuran Angka (px)</div>
+            <input class="prop-input" type="number" value="${l.numFontSize||32}" min="16" max="72"
+              oninput="setProp('numFontSize',+this.value);renderCanvas()">
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Warna Angka</div>
+            <input class="prop-input" type="color" value="${rgbToHex(l.numColor||'#f0c060')}"
+              oninput="setProp('numColor',this.value);renderCanvas()">
+          </div>
+        </div>
+        <div class="prop-row" style="margin-top:6px">
+          <div class="prop-col">
+            <div class="prop-label">Warna Label Unit</div>
+            <input class="prop-input" type="color" value="${rgbToHex(l.labelColor||'#f0c060')}"
+              oninput="setProp('labelColor',this.value);renderCanvas()">
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Warna Teks Atas/Bawah</div>
+            <input class="prop-input" type="color" value="${rgbToHex(l.headerColor||'#e2e6f0')}"
+              oninput="setProp('headerColor',this.value);renderCanvas()">
+          </div>
+        </div>
+        <div class="prop-row" style="margin-top:6px">
+          <div class="prop-col">
+            <div class="prop-label">Background Kotak</div>
+            <input class="prop-input" placeholder="rgba(240,192,96,0.07)" value="${escH(l.bgBox||'rgba(240,192,96,0.07)')}"
+              oninput="setProp('bgBox',this.value);renderCanvas()">
+          </div>
+          <div class="prop-col">
+            <div class="prop-label">Border Radius</div>
+            <input class="prop-input" type="number" value="${l.borderRadius??8}" min="0" max="40"
+              oninput="setProp('borderRadius',+this.value);renderCanvas()">
+          </div>
         </div>
       </div>`;
   }
@@ -2991,7 +3437,10 @@ function generateDesignLayer() {
     filter: ${l.hoverFilter || 'none'};
   }`;
     }
-    return `
+    // Map/Music/Countdown tidak butuh CSS inline di __design-layer karena
+    // mereka di-render sebagai widget JS khusus (lihat elHtml di bawah)
+    const skipAbsolutePos = l.type === 'music' && l.fixedPos !== 'inline';
+    return skipAbsolutePos ? '' : `
   #__dl-${l.id} {
     position: absolute;
     left: ${(l.x / CANVAS_W * 100).toFixed(4)}%;
@@ -3013,6 +3462,16 @@ function generateDesignLayer() {
     font-size: ${l.fontSize||14}px; font-weight: ${l.fontWeight||'600'};
     transition: all ${l.transitionDur||0.2}s ease;
     text-decoration: none; cursor: pointer;
+    ` : ''}
+    ${l.type === 'map' ? `
+    border: ${l.borderWidth||1}px solid ${l.borderColor||'rgba(201,169,110,0.4)'};
+    border-radius: ${l.borderRadius||12}px;
+    overflow: hidden;
+    pointer-events: all;
+    ` : ''}
+    ${l.type === 'countdown' ? `
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 4px; padding: 8px; overflow: hidden;
     ` : ''}
     ${animCss}
   }${btnHoverCss}`;
@@ -3037,6 +3496,188 @@ function generateDesignLayer() {
         ? `onclick="window.open('https://wa.me/${l.actionTarget.replace(/\D/g,'')}','_blank')"`
         : '';
       return `<button id="__dl-${l.id}" ${actionAttr} style="font-family:${fam},sans-serif;letter-spacing:0.5px">${l.text||'Button'}</button>`;
+
+    } else if (l.type === 'map') {
+      // Map embed — pakai JS untuk replace {{VAR}} saat halaman undangan diload
+      const mapVar = l.mapVar || '{{AKAD_MAPS}}';
+      const isVar  = mapVar.startsWith('{{');
+      // Di output template, src akan di-set oleh JS undangan yang mengganti {{VAR}}
+      // Kita generate iframe dengan data-src agar bisa diisi JS nantinya
+      const label  = l.mapLabel || 'Lokasi';
+      return `<div id="__dl-${l.id}">
+  <div style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(201,169,110,0.8);padding:0 0 6px;text-align:center">${label}</div>
+  <iframe
+    id="__map-${l.id}"
+    data-map-src="${isVar ? mapVar : mapVar}"
+    src="${isVar ? 'about:blank' : `https://maps.google.com/maps?q=${encodeURIComponent(mapVar)}&output=embed&z=15`}"
+    style="width:100%;height:calc(100% - 28px);border:none;border-radius:${l.borderRadius??12}px;display:block"
+    allowfullscreen loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade">
+  </iframe>
+</div>`;
+
+    } else if (l.type === 'music') {
+      // Music player — tombol fixed di pojok layar
+      const musicVar = l.musicVar || '{{MUSIC_URL}}';
+      const label    = l.musicLabel || '♪ Musik';
+      const pos      = l.fixedPos || 'bottom-right';
+      const isInline = pos === 'inline';
+      const color    = l.color || '#f0c060';
+      const bg       = l.bgColor || 'rgba(240,192,96,0.12)';
+      const border   = l.borderColor || 'rgba(240,192,96,0.4)';
+      const style    = l.btnStyle || 'pill';
+      const br       = style === 'circle' ? '50%' : style === 'pill' ? '100px' : '8px';
+      const posCSS   = isInline ? ''
+        : pos === 'bottom-right' ? 'position:fixed;bottom:20px;right:20px;'
+        : pos === 'bottom-left'  ? 'position:fixed;bottom:20px;left:20px;'
+        : pos === 'top-right'    ? 'position:fixed;top:20px;right:20px;'
+        :                          'position:fixed;top:20px;left:20px;';
+      return `<!-- 🎵 Music Player: ${label} -->
+<audio id="__audio-${l.id}" ${l.autoplay!==false?'':''}  ${l.loop!==false?'loop':''}
+  data-music-src="${musicVar}" preload="none"></audio>
+<button id="__dl-${l.id}" onclick="__toggleMusic_${l.id.replace(/-/g,'_')}(this)"
+  style="${posCSS}display:flex;align-items:center;justify-content:center;gap:6px;
+    padding:10px 18px;background:${bg};color:${color};
+    border:1.5px solid ${border};border-radius:${br};
+    cursor:pointer;z-index:9999;font-family:inherit;font-size:13px;font-weight:600;
+    backdrop-filter:blur(8px);box-shadow:0 4px 20px rgba(0,0,0,0.3);
+    transition:all .2s ease;"
+  data-playing="false">
+  <span id="__music-icon-${l.id}">▶</span> ${label}
+</button>
+<script>
+(function(){
+  const audio = document.getElementById('__audio-${l.id}');
+  const btn   = document.getElementById('__dl-${l.id}');
+  const icon  = document.getElementById('__music-icon-${l.id}');
+  // Ganti {{VAR}} dengan nilai aktual jika ada
+  let src = audio.dataset.musicSrc || '';
+  if (src && !src.startsWith('{{')) { audio.src = src; }
+  // Autoplay setelah interaksi pertama user (browser policy)
+  let started = false;
+  function tryStart() {
+    if (started || !audio.src || audio.src === location.href) return;
+    started = true;
+    ${l.autoplay!==false ? `audio.play().then(()=>{ btn.dataset.playing='true'; icon.textContent='⏸'; }).catch(()=>{});` : ''}
+    document.removeEventListener('click', tryStart);
+    document.removeEventListener('touchstart', tryStart);
+  }
+  document.addEventListener('click', tryStart, {once:true});
+  document.addEventListener('touchstart', tryStart, {once:true});
+  window.__toggleMusic_${l.id.replace(/-/g,'_')} = function(el) {
+    if (!audio.src || audio.src === location.href) return;
+    if (el.dataset.playing === 'true') {
+      audio.pause(); el.dataset.playing='false'; icon.textContent='▶';
+    } else {
+      audio.play(); el.dataset.playing='true'; icon.textContent='⏸';
+    }
+  };
+})();
+</script>`;
+
+    } else if (l.type === 'countdown') {
+      // Countdown timer widget — live JS
+      const dateVar  = l.dateVar || '{{WEDDING_DATE_ISO}}';
+      const isVar    = dateVar.startsWith('{{');
+      const labelA   = l.labelAbove || 'Menuju Hari Bahagia';
+      const labelB   = l.labelBelow || '';
+      const nc       = l.numColor || '#f0c060';
+      const lc       = l.labelColor || 'rgba(240,192,96,0.55)';
+      const hc       = l.headerColor || 'rgba(226,230,240,0.7)';
+      const sc       = l.sepColor || 'rgba(240,192,96,0.35)';
+      const fs       = l.numFontSize || 32;
+      const bgb      = l.bgBox || 'rgba(240,192,96,0.07)';
+      const br3      = l.borderRadius ?? 8;
+      const showD    = l.showDays    !== false;
+      const showH    = l.showHours   !== false;
+      const showM    = l.showMinutes !== false;
+      const showS    = l.showSeconds !== false;
+      return `<!-- ⏱ Countdown: ${labelA} -->
+<div id="__dl-${l.id}" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:8px;text-align:center">
+  ${labelA ? `<div style="font-size:${Math.round(fs*0.3)}px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:${hc};margin-bottom:4px">${labelA}</div>` : ''}
+  <div id="__cd-units-${l.id}" style="display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap;justify-content:center"></div>
+  ${labelB ? `<div style="font-size:${Math.round(fs*0.28)}px;color:${hc};margin-top:4px;letter-spacing:1px">${labelB}</div>` : ''}
+</div>
+<script>
+(function(){
+  const targetStr = '${isVar ? '' : dateVar}' || '${isVar ? dateVar : ''}';
+  const container = document.getElementById('__cd-units-${l.id}');
+  let targetDate = null;
+
+  function resolveDate() {
+    // Ambil dari variabel yang sudah di-inject oleh sistem undangan
+    let s = targetStr;
+    // Kalau masih {{...}}, coba cari dari window.WEDDING_DATA atau meta
+    if (s.startsWith('{{') || !s) {
+      const meta = document.querySelector('meta[name="wedding-date"]');
+      if (meta) s = meta.content;
+      if (!s) s = window.WEDDING_DATE_ISO || window.weddingDateIso || '';
+    }
+    if (s && !s.startsWith('{{')) {
+      targetDate = new Date(s);
+      if (isNaN(targetDate)) targetDate = null;
+    }
+  }
+
+  const UNITS = [
+    { key:'d', show:${showD}, label:'HARI'  },
+    { key:'h', show:${showH}, label:'JAM'   },
+    { key:'m', show:${showM}, label:'MENIT' },
+    { key:'s', show:${showS}, label:'DETIK' },
+  ].filter(u => u.show);
+
+  function makeUnitEl(u) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:3px;min-width:${fs+18}px';
+    const num = document.createElement('div');
+    num.id = '__cd-${l.id}-' + u.key;
+    num.style.cssText = 'font-size:${fs}px;font-weight:700;line-height:1;color:${nc};background:${bgb};padding:5px 12px;border-radius:${br3}px;min-width:${fs+18}px;text-align:center';
+    num.textContent = '00';
+    const lbl = document.createElement('div');
+    lbl.style.cssText = 'font-size:${Math.round(fs*0.28)}px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:${lc}';
+    lbl.textContent = u.label;
+    wrap.appendChild(num); wrap.appendChild(lbl);
+    return wrap;
+  }
+
+  function buildGrid() {
+    container.innerHTML = '';
+    UNITS.forEach((u, i) => {
+      container.appendChild(makeUnitEl(u));
+      if (i < UNITS.length - 1) {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'font-size:${fs}px;font-weight:700;line-height:1.1;color:${sc};padding-top:3px';
+        sep.textContent = ':';
+        container.appendChild(sep);
+      }
+    });
+  }
+
+  function tick() {
+    if (!targetDate) { resolveDate(); }
+    if (!targetDate) return;
+    const diff = targetDate - Date.now();
+    if (diff <= 0) {
+      UNITS.forEach(u => { const el = document.getElementById('__cd-${l.id}-'+u.key); if(el) el.textContent='00'; });
+      return;
+    }
+    const days    = Math.floor(diff / 86400000);
+    const hours   = Math.floor((diff % 86400000) / 3600000);
+    const minutes = Math.floor((diff % 3600000) / 60000);
+    const seconds = Math.floor((diff % 60000) / 1000);
+    const vals = { d: days, h: hours, m: minutes, s: seconds };
+    UNITS.forEach(u => {
+      const el = document.getElementById('__cd-${l.id}-' + u.key);
+      if (el) el.textContent = String(vals[u.key]).padStart(2, '0');
+    });
+  }
+
+  resolveDate();
+  buildGrid();
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>`;
     }
     return '';
   }).join('\n  ');
@@ -3083,7 +3724,29 @@ ${sectionOverrides}
 <div id="__design-layer">
   ${elHtml}
 </div>
-<!-- END DESIGN LAYER -->`;
+<!-- END DESIGN LAYER -->
+<!-- ✏️ Auto-inject map URLs: ganti placeholder {{VAR}} di iframe maps -->
+<script>
+(function(){
+  // Cari semua iframe map dengan data-map-src
+  document.querySelectorAll('iframe[data-map-src]').forEach(function(iframe) {
+    const src = iframe.dataset.mapSrc;
+    if (!src || src.startsWith('{{')) return; // sudah di-replace oleh template engine
+    // Bangun embed URL
+    let embedUrl = src;
+    if (!src.includes('output=embed') && !src.includes('maps/embed')) {
+      try {
+        const u = new URL(src);
+        const q = u.searchParams.get('q') || u.searchParams.get('query') || src;
+        embedUrl = 'https://maps.google.com/maps?q=' + encodeURIComponent(q) + '&output=embed&z=15';
+      } catch(e) {
+        embedUrl = 'https://maps.google.com/maps?q=' + encodeURIComponent(src) + '&output=embed&z=15';
+      }
+    }
+    iframe.src = embedUrl;
+  });
+})();
+</script>`;
 }
 
 function downloadTemplate() {
