@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-21T20:56:24.736Z",
-    "updatedAt": "2026-05-21T20:56:24.736Z"
+    "createdAt": "2026-05-22T13:35:33.715Z",
+    "updatedAt": "2026-05-22T13:35:33.715Z"
   },
   "layers": [
     {
@@ -1101,7 +1101,7 @@
       "type": "music",
       "name": "Tombol Musik",
       "x": 329,
-      "y": 1458,
+      "y": 1461,
       "w": 47,
       "h": 52,
       "rotation": 0,
