@@ -538,6 +538,95 @@ function buildInner(l) {
     }
 
     return btn;
+
+  } else if (l.type === 'music') {
+    // Tombol musik: lingkaran sticky fixed pojok kanan bawah
+    const safeId = l.id.replace(/-/g, '_');
+    const color  = l.color     || '#f0c060';
+    const bg     = l.bgColor   || 'rgba(240,192,96,0.12)';
+    const border = l.borderColor || 'rgba(240,192,96,0.4)';
+    const label  = l.musicLabel || '♪ Musik';
+    const musicVar = l.musicVar || '{{MUSIC_URL}}';
+    const src = musicVar.startsWith('{{')
+      ? 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+      : musicVar;
+
+    // Inject style sekali saja
+    if (!document.getElementById('__music-style')) {
+      const st = document.createElement('style');
+      st.id = '__music-style';
+      st.textContent = `
+        .__music-btn {
+          position:fixed;bottom:24px;right:24px;z-index:9999;
+          width:52px;height:52px;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;
+          cursor:pointer;font-size:22px;line-height:1;
+          backdrop-filter:blur(10px);
+          box-shadow:0 4px 20px rgba(0,0,0,0.35);
+          transition:transform .2s,box-shadow .2s;
+          border:none;
+        }
+        .__music-btn:hover{transform:scale(1.1);box-shadow:0 6px 28px rgba(0,0,0,0.45)}
+        .__music-btn:active{transform:scale(0.95)}
+        @keyframes __music-spin{to{transform:rotate(360deg)}}
+        .__music-btn.playing .__music-icon{animation:__music-spin 3s linear infinite;display:inline-block;}
+      `;
+      document.head.appendChild(st);
+    }
+
+    const audio = document.createElement('audio');
+    audio.id   = '__audio_' + safeId;
+    audio.src  = src;
+    audio.loop = l.loop !== false;
+    audio.preload = 'none';
+    document.body.appendChild(audio);
+
+    const btn = document.createElement('button');
+    btn.className = '__music-btn';
+    btn.id = '__dl_' + safeId;
+    btn.title = label;
+    btn.dataset.playing = 'false';
+    btn.style.cssText = `background:${bg};color:${color};border:2px solid ${border};`;
+
+    const icon = document.createElement('span');
+    icon.className = '__music-icon';
+    icon.textContent = '🎵';
+    btn.appendChild(icon);
+
+    // Autoplay after first user interaction
+    if (l.autoplay !== false) {
+      const tryStart = () => {
+        audio.play().then(() => {
+          btn.dataset.playing = 'true';
+          btn.classList.add('playing');
+          icon.textContent = '⏸';
+        }).catch(() => {});
+      };
+      document.addEventListener('click', tryStart, { once: true });
+      document.addEventListener('touchstart', tryStart, { once: true });
+    }
+
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (btn.dataset.playing === 'true') {
+        audio.pause();
+        btn.dataset.playing = 'false';
+        btn.classList.remove('playing');
+        icon.textContent = '🎵';
+      } else {
+        audio.play().catch(() => {});
+        btn.dataset.playing = 'true';
+        btn.classList.add('playing');
+        icon.textContent = '⏸';
+      }
+    });
+
+    // Tombol ini fixed — kita append langsung ke body, bukan ke canvas layer
+    setTimeout(() => document.body.appendChild(btn), 0);
+    // Return div kosong agar canvas layer tidak terlihat
+    const placeholder = document.createElement('div');
+    placeholder.style.display = 'none';
+    return placeholder;
   }
 
   // Fallback
