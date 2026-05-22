@@ -531,6 +531,7 @@ function buildInner(l) {
     // Store action data
     if (l.actionType === 'section' && l.actionTarget) {
       btn.dataset.actionSection = l.actionTarget;
+      if (l.musicAutoplay) btn.dataset.musicAutoplay = 'true';
     } else if (l.actionType === 'url' && l.actionTarget) {
       btn.dataset.actionUrl = l.actionTarget;
     } else if (l.actionType === 'whatsapp' && l.actionTarget) {
@@ -644,6 +645,20 @@ function attachButtonHandlers() {
 
       if (sec) {
         unlockAndScrollTo(sec);
+        // Putar musik jika musicAutoplay aktif
+        if (btn.dataset.musicAutoplay === 'true') {
+          document.querySelectorAll('audio[id^="__audio_"]').forEach(a => {
+            if (!a.src || a.src === location.href) return;
+            a.play().catch(() => {});
+            const musicBtn = document.getElementById('__dl_' + a.id.replace('__audio_', ''));
+            if (musicBtn) {
+              musicBtn.dataset.playing = 'true';
+              musicBtn.classList.add('playing');
+              const ic = musicBtn.querySelector('.__music-icon');
+              if (ic) ic.textContent = '⏸';
+            }
+          });
+        }
       } else if (url) {
         window.open(url, '_blank');
       } else if (wa) {
