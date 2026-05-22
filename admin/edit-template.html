@@ -1184,6 +1184,17 @@ html,body{height:100%;overflow:hidden;font-family:'Plus Jakarta Sans',sans-serif
               <option value="url">Buka URL</option>
               <option value="whatsapp">WhatsApp</option>
             </select>
+            <!-- Autoplay musik saat action=section -->
+            <div id="btn-action-music-wrap" style="display:none;margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+              <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:8px">🎵 Musik saat buka undangan</div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="btn-music-autoplay" onchange="renderCanvas()">
+                <span style="font-size:12px;color:var(--text)">Putar musik otomatis saat tombol diklik</span>
+              </label>
+              <div id="btn-music-autoplay-hint" style="margin-top:6px;font-size:11px;color:var(--muted2)">
+                Musik akan mulai diputar saat user membuka undangan lewat tombol ini. Pastikan ada layer Musik di halaman.
+              </div>
+            </div>
           </div>
           <div id="btn-action-target-wrap">
             <div class="field-label" id="btn-action-label">Target</div>
@@ -3488,8 +3499,12 @@ function generateDesignLayer() {
       return `<div id="__dl-${l.id}" style="display:flex;align-items:center;justify-content:${l.textAlign==='center'?'center':l.textAlign==='right'?'flex-end':'flex-start'};padding:4px"><span style="font-family:${fam},serif;font-size:${l.fontSize}px;color:${l.color};font-weight:${l.fontWeight};font-style:${l.fontStyle};text-decoration:${l.textDecoration};text-align:${l.textAlign};line-height:${l.lineHeight};word-break:break-word;width:100%">${l.linkedVar ? l.linkedVar : l.text}</span></div>`;
     } else if (l.type === 'button') {
       const fam = (l.fontFamily||'Plus Jakarta Sans').includes(' ') ? `'${l.fontFamily}'` : (l.fontFamily||'Plus Jakarta Sans');
+      // Jika musicAutoplay aktif, tambahkan trigger play semua audio layer musik
+      const musicTrigger = (l.actionType === 'section' && l.musicAutoplay)
+        ? `document.querySelectorAll('audio[id^=\'__audio_\']').forEach(function(a){if(!a.src||a.src===location.href)return;a.play().catch(function(){});var bid=a.id.replace('__audio_','__dl_');var b=document.getElementById(bid);if(b){b.dataset.playing='true';b.classList.add('playing');var ic=b.querySelector('.__music-icon');if(ic)ic.textContent='⏸';}});`
+        : '';
       const actionAttr = l.actionType === 'section' && l.actionTarget
-        ? `onclick="document.getElementById('section-${l.actionTarget}')?.scrollIntoView({behavior:'smooth'})"`
+        ? `onclick="document.getElementById('section-${l.actionTarget}')?.scrollIntoView({behavior:'smooth'});${musicTrigger}"`
         : l.actionType === 'url' && l.actionTarget
         ? `onclick="window.open('${l.actionTarget}','_blank')"`
         : l.actionType === 'whatsapp' && l.actionTarget
@@ -4195,6 +4210,9 @@ function openBtnHoverModal(id) {
   toggleBtnActionFields();
   if (l.actionType === 'section') document.getElementById('btn-action-section').value = l.actionTarget || '';
   else if (l.actionType === 'url' || l.actionType === 'whatsapp') document.getElementById('btn-action-url').value = l.actionTarget || '';
+  // Music autoplay checkbox
+  const musicAutoplayChk = document.getElementById('btn-music-autoplay');
+  if (musicAutoplayChk) musicAutoplayChk.checked = !!l.musicAutoplay;
 
   updateBtnHoverPreview();
   openModal('modal-button-hover');
@@ -4271,11 +4289,14 @@ function toggleBtnActionFields() {
   const urlEl = document.getElementById('btn-action-url');
   const hint  = document.getElementById('btn-action-preview-hint');
   const label = document.getElementById('btn-action-label');
+  const musicWrap = document.getElementById('btn-action-music-wrap');
   if (!secEl || !urlEl) return;
 
   secEl.style.display = type === 'section' ? '' : 'none';
   urlEl.style.display = (type === 'url' || type === 'whatsapp') ? '' : 'none';
   if (hint) hint.style.display = type === 'section' ? '' : 'none';
+  // Tampilkan opsi musik hanya saat action = section
+  if (musicWrap) musicWrap.style.display = type === 'section' ? '' : 'none';
   if (label) {
     label.textContent = type === 'section' ? 'Pindah ke Seksi' :
                         type === 'url' ? 'URL Tujuan' :
@@ -4310,6 +4331,10 @@ function applyBtnHoverToLayer() {
   if (actionType === 'section') l.actionTarget = document.getElementById('btn-action-section')?.value || '';
   else if (actionType === 'url' || actionType === 'whatsapp') l.actionTarget = document.getElementById('btn-action-url')?.value || '';
   else l.actionTarget = '';
+  // Simpan pilihan autoplay musik
+  l.musicAutoplay = actionType === 'section'
+    ? !!(document.getElementById('btn-music-autoplay')?.checked)
+    : false;
 
   renderCanvas();
   updatePropsPanel();
@@ -4364,6 +4389,15 @@ function togglePreviewMode() {
               const scaledTop = secTop * state.zoom;
               canvasArea.scrollTo({ top: scaledTop, behavior: 'smooth' });
               toast(`▶ Preview → Pindah ke: ${sec.label}`, 'info');
+            }
+            // Trigger musik jika musicAutoplay aktif
+            if (layer.musicAutoplay) {
+              // Cari semua layer musik yang ada
+              state.layers.filter(ml => ml.type === 'music' && ml.visible).forEach(ml => {
+                const safeId = ml.id.replace(/-/g, '_');
+                // Di canvas editor musik tidak ada audio element, tampilkan toast saja
+              });
+              toast('🎵 Musik akan diputar saat user membuka undangan', 'info');
             }
           } else if (layer.actionType === 'url' && layer.actionTarget) {
             toast(`🔗 Preview → Buka URL: ${layer.actionTarget}`, 'info');
