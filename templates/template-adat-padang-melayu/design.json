@@ -2,8 +2,8 @@
   "meta": {
     "id": "template-adat-padang-melayu",
     "displayName": "template-adat-padang-melayu",
-    "createdAt": "2026-05-23T17:33:50.314Z",
-    "updatedAt": "2026-05-23T17:33:50.314Z"
+    "createdAt": "2026-05-23T17:39:46.361Z",
+    "updatedAt": "2026-05-23T17:39:46.361Z"
   },
   "layers": [
     {
@@ -1351,6 +1351,31 @@
       "anim": {
         "name": "anim-zoom-out",
         "duration": 2,
+        "delay": 0,
+        "iteration": "1",
+        "easing": "ease"
+      }
+    },
+    {
+      "id": "el_1_1779557892094",
+      "type": "image",
+      "name": "Cokelat dan Putih Sederhana Pernikahan Kolase Foto",
+      "x": 0,
+      "y": 4142,
+      "w": 398,
+      "h": 581,
+      "rotation": 0,
+      "opacity": 1,
+      "visible": true,
+      "locked": false,
+      "zIndex": 50,
+      "src": "https://cdn.jsdelivr.net/gh/namabayikuu-id/Orvia-Invitation@main/templates/template-adat-padang-melayu/assets/1779557888647-Cokelat_dan_Putih_Sederhana_Pernikahan_Kolase_Foto_.png",
+      "objectFit": "cover",
+      "linkedVar": "",
+      "pageMode": "fix",
+      "anim": {
+        "name": "anim-zoom-out",
+        "duration": 3,
         "delay": 0,
         "iteration": "1",
         "easing": "ease"
